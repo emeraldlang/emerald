@@ -1,0 +1,41 @@
+(* Emerald Grammar *)
+program = { statement };
+
+(* Statements *)
+statement = do_statement | function_statement | while_statement | ite_statement | print_statement
+            | declaration_statement | return_statement;
+
+block = { statement };
+do_statement = "do" , block , "end";
+for_statement = "for" , declaration , "to" , NUMBER , [ "by" , NUMBER ] , "do" , block , "end";
+while_statement = "while" , expression , "do" , block , "end";
+ite_statement = "if" , expression , "then" , block , "end" | ("else" , block , "end") | ("else" , ite_statement);
+print_statement = "print" , expression , { "," , expression };
+declaration_statement = "let" , IDENT , ["=" , expression];
+function_statement = "def" , IDENT , parameter_list , block , "end";
+object_statement = "object" , IDENT , ["clones" , IDENT] , { declaration_statement | function_statement } , "end";
+return_statement = "return" , expression;
+expression_statement = expression;
+
+(* Expressions *)
+expression = assignment;
+assignment = logic_or , { "=" , logic_or };
+logic_or = logic_and , { "||" , logic_and };
+logic_and = bit_or , { "&&" , bit_or };
+bit_or = bit_xor , { "|" , bit_xor };
+bit_xor = bit_and , { "^" , bit_and };
+bit_and = equality , { "&" , equality };
+equality = comparison , { ("==" | "!=") , comparison };
+comparison = shift , { ("<" | ">" | "<=" | ">=") , shift };
+shift = addition , { ("<<" | ">>") , addition };
+addition = multiplication , { ("+" | "-") , multiplication };
+multiplication = unary , { ("*" | "/" | "%") , unary };
+unary = (("!" | "-" | "~") , unary) | trailer;
+trailer = primary , { ( "(" , [arguments] , ")" ) | ( "[" , expression , "]" ) | ( "." , IDENT ) };
+primary = IDENT | STRING | NUMBER |   "True" | "False" | "None" | "(" expression ")"
+          | ( "{" , IDENT , ":" , expression , { "," , IDENT , ":" , expression } , "}" ) 
+          | ( "[" , expression , { "," , expression , "]" } | ("clone", IDENT , [ "(" , [arguments] , ")" ]) 
+          | ("super" , [ "(" , arguments , ")" ]);
+
+arguments = expression , { "," , expression };
+parameter_list = [ ":" , IDENT , { "," , IDENT } ];

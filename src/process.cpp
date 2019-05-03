@@ -1,0 +1,299 @@
+/*  Emerald - Procedural and Object Oriented Programming Language
+**  Copyright (C) 2018  Zach Perkitny
+**
+**  This program is free software: you can redistribute it and/or modify
+**  it under the terms of the GNU General Public License as published by
+**  the Free Software Foundation, either version 3 of the License, or
+**  (at your option) any later version.
+**
+**  This program is distributed in the hope that it will be useful,
+**  but WITHOUT ANY WARRANTY; without even the implied warranty of
+**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+**  GNU General Public License for more details.
+**
+**  You should have received a copy of the GNU General Public License
+**  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+#include <iostream>
+
+#include "fmt/format.h"
+
+#include "emerald/process.h"
+#include "emerald/magic_methods.h"
+
+namespace emerald {
+
+    Process::Process(
+            PID id, 
+            std::shared_ptr<Code> code, 
+            std::shared_ptr<Process> parent_process, 
+            uint8_t priority, 
+            uint16_t max_stack_size)
+        : _id(id),
+        _parent_process(parent_process),
+        _priority(priority),
+        _stack(Stack(max_stack_size)),
+        _state(State::start) {
+        _stack.push_frame(code);
+
+        _heap.add_root_source(&_data_stack);
+        _heap.add_root_source(&_stack);
+    }
+
+    Process::PID Process::get_id() const {
+        return _id;
+    }
+    
+    std::shared_ptr<const Process> Process::get_parent_process() const {
+        return _parent_process;
+    }
+
+    std::shared_ptr<Process> Process::get_parent_process() {
+        return _parent_process;
+    }
+
+    uint8_t Process::get_priority() const {
+        return _priority;
+    }
+
+    Process::State Process::get_state() const {
+        return _state;
+    }
+
+    void Process::set_suspended() {
+        _heap.collect(); // TODO(zvp): Collect in allocate if has mem pressure
+        _state = State::suspended;
+    }
+
+    void Process::set_running() {
+        _state = State::running;
+    }
+
+    bool Process::is_suspended() const {
+        return _state == State::suspended;
+    }
+
+    bool Process::is_running() const {
+        return _state == State::running;
+    }
+
+    bool Process::is_terminated() const {
+        return _state == State::terminated;
+    }
+    
+    void Process::receive(Object* message) {
+        // TODO(zvp): add lock free implementation of queue
+        std::lock_guard<std::mutex> lock(_messages_mutex);
+        _messages.push(message);
+    }
+
+    void Process::execute() {
+        if (is_terminated()) return;
+
+        dispatch();
+    }
+
+    void Process::dispatch() {
+        while (!_stack.peek().has_instructions_left()) {
+            _stack.pop_frame();
+            if (_stack.empty()) {
+                _heap.collect();
+                _state = State::terminated;
+                return;
+            }
+        }
+
+        Stack::Frame& current_frame = _stack.peek();
+
+        const Code::Instruction& instr = current_frame.get_next_instruction();
+        current_frame.increment_instruction_pointer();
+
+        switch (instr.get_op()) {
+        case OpCode::nop:
+            break;
+        case OpCode::jmp:
+            current_frame.set_instruction_pointer(instr.get_args()[0]);
+            break;
+        case OpCode::jmp_true: {
+            Object* obj = _data_stack.pop();
+            if (obj->as_bool()) {
+                current_frame.set_instruction_pointer(instr.get_args()[0]);
+            }
+            break;
+        }
+        case OpCode::jmp_false: {
+            Object* obj = _data_stack.pop();
+            if (!obj->as_bool()) {
+                current_frame.set_instruction_pointer(instr.get_args()[0]);
+            }
+            break;
+        }
+        case OpCode::add:
+            execute_mm1(magic_methods::add);
+            break;
+        case OpCode::sub:
+            execute_mm1(magic_methods::sub);  
+            break;
+        case OpCode::mul:
+            execute_mm1(magic_methods::mul);
+            break;
+        case OpCode::div:
+            execute_mm1(magic_methods::div);
+            break;
+        case OpCode::mod:
+            execute_mm1(magic_methods::mod);
+            break;
+        case OpCode::prefix_inc:
+            execute_mm0(magic_methods::prefix_inc);
+            break;
+        case OpCode::prefix_dec:
+            execute_mm0(magic_methods::prefix_dec);
+            break;
+        case OpCode::postfix_inc:
+            execute_mm0(magic_methods::postfix_inc);
+            break;
+        case OpCode::postfix_dec:
+            execute_mm0(magic_methods::postfix_dec);
+            break;
+        case OpCode::eq:
+            execute_mm1(magic_methods::eq);
+            break;
+        case OpCode::neq:
+            execute_mm1(magic_methods::neq);
+            break;
+        case OpCode::lt:
+            execute_mm1(magic_methods::lt);
+            break;
+        case OpCode::gt:
+            execute_mm1(magic_methods::gt);
+            break;
+        case OpCode::lte:
+            execute_mm1(magic_methods::lte);
+            break;
+        case OpCode::gte:
+            execute_mm1(magic_methods::gte);
+            break;
+        case OpCode::bit_or:
+            execute_mm1(magic_methods::bit_or);
+            break;
+        case OpCode::bit_xor:
+            execute_mm1(magic_methods::bit_xor);
+            break;
+        case OpCode::bit_and:
+            execute_mm1(magic_methods::bit_and);
+            break;
+        case OpCode::str:
+            execute_mm0(magic_methods::str, [this](Object* obj){
+                return this->_heap.allocate<String>(obj->as_str());
+            });
+            break;
+        case OpCode::boolean:
+            execute_mm0(magic_methods::boolean, [this](Object* obj){
+                return this->_heap.allocate<Boolean>(obj->as_bool());
+            });
+            break;
+        case OpCode::call:
+            execute_mm(magic_methods::call, instr.get_args()[0]);
+            break;
+        case OpCode::ret:
+            _stack.pop_frame();
+            break;
+        case OpCode::newobj:
+            break;
+        case OpCode::newfunc: {
+            std::shared_ptr<const Code> code = current_frame.get_code()->get_func(instr.get_args()[0]);
+            Function* func = _heap.allocate<Function>(code);
+            _data_stack.push(func);
+            break;
+        }
+        case OpCode::newnum: {
+            double value = current_frame.get_code()->get_num_constant(instr.get_args()[0]);
+            Number* num = _heap.allocate<Number>(value);
+            _data_stack.push(num);
+            break;
+        }
+        case OpCode::newstr: {
+            const std::string& value = current_frame.get_code()->get_str_constant(instr.get_args()[0]);
+            String* str = _heap.allocate<String>(value);
+            _data_stack.push(str);
+            break;
+        }
+        case OpCode::getprop: {
+            Object* key = _data_stack.pop();
+            Object* obj = _data_stack.pop();
+            if (Object* val = obj->get_property(key->as_str())) {
+                _data_stack.push(val);
+            } else {
+                 throw _heap.allocate<Exception>("");
+            }
+            break;
+        }
+        case OpCode::hasprop: {
+            Object* key = _data_stack.pop();
+            Object* obj = _data_stack.pop();
+            _data_stack.push(_heap.allocate<Boolean>(obj->has_property(key->as_str())));
+            break;
+        }
+        case OpCode::setprop: {
+            Object* val = _data_stack.pop();
+            Object* key = _data_stack.pop();
+            Object* obj = _data_stack.pop();
+            obj->set_property(key->as_str(), val);
+            break;
+        }
+        case OpCode::ldloc:
+            _data_stack.push(current_frame.get_local(instr.get_args()[0]));
+            break;
+        case OpCode::stloc:
+            current_frame.set_local(instr.get_args()[0], _data_stack.pop());
+            break;
+        case OpCode::print: {
+            Object* obj = _data_stack.pop();
+            std::cout << obj->as_str() << std::endl;
+            break;
+        }
+        case OpCode::allocate_locals:
+            current_frame.allocate_locals(instr.get_args()[0]);
+            break;
+        default:
+            break;
+        }
+    }
+
+    void Process::execute_mm(
+        const std::string& magic_method,
+        size_t nargs,
+        std::function<Object*(Object*)> on_missing) {
+        std::vector<Object*> args = { _data_stack.pop() };
+        for (size_t i = 0; i < nargs; i++) {
+            args.push_back(_data_stack.pop());
+        }
+
+        Object* prop = args[0];
+        if (Function* func = dynamic_cast<Function*>(prop)) {
+            for (Object* arg : args) {
+                _data_stack.push(arg);
+            }
+
+            _stack.push_frame(func->get_code());
+        } else if (NativeFunction* func = dynamic_cast<NativeFunction*>(prop)) {
+            _data_stack.push((*func)(&_heap, args));
+        } else if (on_missing) {
+            _data_stack.push(on_missing(prop));
+        } else {
+            throw _heap.allocate<Exception>(fmt::format("unsupported method: {0}", magic_method));
+        }
+    }
+
+    bool Process::ProcessPriorityComparator::operator()(const Process& lhs, 
+        const Process& rhs) const {
+        return lhs.get_priority() < rhs.get_priority();
+    }
+
+    bool Process::SharedProcessPriorityComparator::operator()(std::shared_ptr<const Process> lhs, 
+        std::shared_ptr<const Process> rhs) const {
+        return lhs->get_priority() < rhs->get_priority();
+    }
+
+} // namespace emerald
