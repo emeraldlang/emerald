@@ -31,6 +31,7 @@ namespace emerald {
     X(jmp_true, 1)          \
     X(jmp_false, 1)         \
     /* Arithmetic */        \
+    X(neg, 0)               \
     X(add, 0)               \
     X(sub, 0)               \
     X(mul, 0)               \
@@ -48,9 +49,12 @@ namespace emerald {
     X(lte, 0)               \
     X(gte, 0)               \
     /* Bitwise */           \
+    X(bit_not, 0)           \
     X(bit_or, 0)            \
     X(bit_xor, 0)           \
     X(bit_and, 0)           \
+    X(bit_shl, 0)           \
+    X(bit_shr, 0)           \
     /* Cast Operators */    \
     X(str, 0)               \
     X(boolean, 0)           \
@@ -58,13 +62,16 @@ namespace emerald {
     X(call, 1)              \
     X(ret, 0)               \
     /* Objects */           \
-    X(newobj, 2)            \
-    X(newfunc, 1)           \
-    X(newnum, 1)            \
-    X(newstr, 1)            \
-    X(getprop, 0)           \
-    X(hasprop, 0)           \
-    X(setprop, 0)           \
+    X(new_obj, 1)           \
+    X(new_func, 1)          \
+    X(new_num, 1)           \
+    X(new_str, 1)           \
+    X(new_boolean, 1)       \
+    X(clone, 1)             \
+    X(init, 1)              \
+    X(get_prop, 0)          \
+    X(has_prop, 0)          \
+    X(set_prop, 0)          \
     /* Loads & Stores */    \
     X(ldloc, 1)             \
     X(stloc, 1)             \

@@ -116,6 +116,7 @@ namespace emerald {
         void visit(FunctionParameter* function_parameter) override;
         void visit(KeyValuePair* key_value_pair) override;
 
+        bool declare(const std::string& name);
         void declare_and_resolve(Resolvable* resolvable, const std::string& name);
 
         void enter_new_level();

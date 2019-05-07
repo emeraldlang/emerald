@@ -295,6 +295,7 @@ namespace emerald {
         { "then", Token::THEN },
         { "for", Token::FOR },
         { "to", Token::TO },
+        { "downto", Token::DOWNTO },
         { "by", Token::BY },
         { "while", Token::WHILE },
         { "def", Token::DEF },

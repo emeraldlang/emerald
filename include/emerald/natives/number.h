@@ -38,7 +38,9 @@
     X(number_gte)           \
     X(number_bit_or)        \
     X(number_bit_xor)       \
-    X(number_bit_and)
+    X(number_bit_and)       \
+    X(number_bit_shl)       \
+    X(number_bit_shr)
 
 namespace emerald {
 namespace natives {

@@ -26,12 +26,14 @@
 #include "emerald/object.h"
 
 #define FILE_STREAM_NATIVES \
+    X(file_stream_clone)    \
     X(file_stream_open)     \
     X(file_stream_is_open)  \
     X(file_stream_read)     \
     X(file_stream_write)
 
 #define STRING_STREAM_NATIVES   \
+    X(string_stream_clone)      \
     X(string_stream_read)       \
     X(string_stream_write)
 

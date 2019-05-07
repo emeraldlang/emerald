@@ -105,6 +105,9 @@ namespace emerald {
             const std::string& magic_method,
             size_t nargs,
             std::function<Object*(Object*)> on_missing = nullptr);
+        void execute_mm_nr(
+            const std::string& magic_method,
+            size_t nargs);
         void execute_mm0(
             const std::string& magic_method,
             std::function<Object*(Object*)> on_missing = nullptr) {

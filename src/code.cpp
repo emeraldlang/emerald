@@ -46,14 +46,6 @@ namespace emerald {
         return _instructions.size(); 
     }
 
-    void Code::write(const Instruction& instr) { 
-        _instructions.push_back(instr); 
-    }
-
-    void Code::rewrite(size_t i, const Instruction& instr) {
-        _instructions.at(i) = instr;
-    }
-
     void Code::write_nop() {
         WRITE_OP(OpCode::nop);
     }
@@ -85,6 +77,10 @@ namespace emerald {
 
     void Code::write_jmp_false(size_t label) {
         WRITE_OP_WARGS(OpCode::jmp_false, { get_label_offset(label) });
+    }
+
+    void Code::write_neg() {
+        WRITE_OP(OpCode::neg);
     }
 
     void Code::write_add() {
@@ -147,6 +143,10 @@ namespace emerald {
         WRITE_OP(OpCode::gte);
     }
 
+    void Code::write_bit_not() {
+        WRITE_OP(OpCode::bit_not);
+    }
+
     void Code::write_bit_or() {
         WRITE_OP(OpCode::bit_or);
     }
@@ -157,6 +157,14 @@ namespace emerald {
 
     void Code::write_bit_and() {
         WRITE_OP(OpCode::bit_and);
+    }
+
+    void Code::write_bit_shl() {
+        WRITE_OP(OpCode::bit_shl);
+    }
+    
+    void Code::write_bit_shr() {
+        WRITE_OP(OpCode::bit_shr);
     }
 
     void Code::write_str() {
@@ -175,7 +183,7 @@ namespace emerald {
         WRITE_OP(OpCode::ret);
     }
 
-    std::shared_ptr<Code> Code::write_newfunc(const std::string& label) {
+    std::shared_ptr<Code> Code::write_new_func(const std::string& label) {
         CHECK_THROW_LOGIC_ERROR(!label.empty(), "cannot have empty label");
 
         size_t id = _functions.size();
@@ -183,39 +191,51 @@ namespace emerald {
         _functions.push_back(code);
         _function_labels[label] = id;
 
-        WRITE_OP_WARGS(OpCode::newfunc, { id });
+        WRITE_OP_WARGS(OpCode::new_func, { id });
 
         return code;
     }
 
-    size_t Code::write_newnum(double val) {
+    size_t Code::write_new_num(double val) {
         size_t id = _num_constants.size();
         _num_constants.push_back(val);
 
-        WRITE_OP_WARGS(OpCode::newnum, { id });
+        WRITE_OP_WARGS(OpCode::new_num, { id });
 
         return id;
     }
 
-    size_t Code::write_newstr(const std::string& val) {
+    size_t Code::write_new_str(const std::string& val) {
         size_t id = _str_constants.size();
         _str_constants.push_back(val);
 
-        WRITE_OP_WARGS(OpCode::newstr, { id });
+        WRITE_OP_WARGS(OpCode::new_str, { id });
 
         return id;
     }
 
-    void Code::write_getprop() {
-        WRITE_OP(OpCode::getprop);
+    void Code::write_new_boolean(bool val) {
+        WRITE_OP_WARGS(OpCode::new_boolean, { val });
+    }
+    
+    void Code::write_clone(bool explicit_parent) {
+        WRITE_OP_WARGS(OpCode::clone, { explicit_parent });
+    }
+    
+    void Code::write_init(size_t num_args) {
+        WRITE_OP_WARGS(OpCode::init, { num_args });
     }
 
-    void Code::write_hasprop() {
-        WRITE_OP(OpCode::hasprop);
+    void Code::write_get_prop() {
+        WRITE_OP(OpCode::get_prop);
     }
 
-    void Code::write_setprop() {
-        WRITE_OP(OpCode::setprop);
+    void Code::write_has_prop() {
+        WRITE_OP(OpCode::has_prop);
+    }
+
+    void Code::write_set_prop() {
+        WRITE_OP(OpCode::set_prop);
     }
 
     void Code::write_ldloc(size_t loc_indx) {
@@ -297,6 +317,14 @@ namespace emerald {
     Code::Code(const std::string& label, size_t id)
         : _label(label),
         _id(id) {}
+
+    void Code::write(const Instruction& instr) { 
+        _instructions.push_back(instr); 
+    }
+
+    void Code::rewrite(size_t i, const Instruction& instr) {
+        _instructions.at(i) = instr;
+    }
 
     std::string Code::stringify(size_t depth) const {
         std::ostringstream oss;

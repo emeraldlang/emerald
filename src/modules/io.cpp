@@ -79,6 +79,12 @@ namespace modules {
     STRING_STREAM_NATIVES
 #undef X
 
+    NATIVE_FUNCTION(file_stream_clone) {
+        EXPECT_NUM_ARGS(0);
+
+        return heap->allocate<FileStream>();
+    }
+
     NATIVE_FUNCTION(file_stream_open) {
         EXPECT_NUM_ARGS(3);
 
@@ -136,6 +142,12 @@ namespace modules {
         return heap->allocate<Number>(s->get_value().length());
     }
 
+    NATIVE_FUNCTION(string_stream_clone) {
+        EXPECT_NUM_ARGS(0);
+
+        return heap->allocate<StringStream>();
+    }
+
     NATIVE_FUNCTION(string_stream_read) {
         EXPECT_NUM_ARGS(2);
 
@@ -160,6 +172,7 @@ namespace modules {
         std::shared_ptr<Module> module = std::make_shared<Module>("io");
 
         FileStream* file_stream = heap->allocate<FileStream>();
+        file_stream->set_property(magic_methods::clone, get_file_stream_clone());
         file_stream->set_property("open", get_file_stream_open());
         file_stream->set_property("is_open", get_file_stream_is_open());
         file_stream->set_property("read", get_file_stream_read());
@@ -167,6 +180,7 @@ namespace modules {
         module->add_object("FileStream", file_stream);
 
         StringStream* string_stream = heap->allocate<StringStream>();
+        string_stream->set_property(magic_methods::clone, get_string_stream_clone());
         string_stream->set_property("read", get_string_stream_read());
         string_stream->set_property("write", get_string_stream_write());
         module->add_object("StringStream", string_stream);

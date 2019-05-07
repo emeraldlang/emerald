@@ -57,9 +57,6 @@ namespace emerald {
 
         size_t get_num_instructions() const;
 
-        void write(const Instruction& instr);
-        void rewrite(size_t i, const Instruction& instr);
-
         void write_nop();
 
         size_t create_label();
@@ -69,6 +66,7 @@ namespace emerald {
         void write_jmp_true(size_t label);
         void write_jmp_false(size_t label);
 
+        void write_neg();
         void write_add();
         void write_sub();
         void write_mul();
@@ -86,9 +84,12 @@ namespace emerald {
         void write_lte();
         void write_gte();
 
+        void write_bit_not();
         void write_bit_or();
         void write_bit_xor();
         void write_bit_and();
+        void write_bit_shl();
+        void write_bit_shr();
 
         void write_str();
         void write_boolean();
@@ -96,12 +97,15 @@ namespace emerald {
         void write_call(size_t num_args);
         void write_ret();
 
-        std::shared_ptr<Code> write_newfunc(const std::string& label);
-        size_t write_newnum(double val);
-        size_t write_newstr(const std::string& val);
-        void write_getprop();
-        void write_hasprop();
-        void write_setprop();
+        std::shared_ptr<Code> write_new_func(const std::string& label);
+        size_t write_new_num(double val);
+        size_t write_new_str(const std::string& val);
+        void write_new_boolean(bool val);
+        void write_clone(bool explicit_parent);
+        void write_init(size_t num_args);
+        void write_get_prop();
+        void write_has_prop();
+        void write_set_prop();
 
         void write_ldloc(size_t loc_indx);
         void write_stloc(size_t loc_indx);
@@ -153,6 +157,9 @@ namespace emerald {
         std::vector<LabelEntry> _labels;
 
         Code(const std::string& label, size_t id);
+
+        void write(const Instruction& instr);
+        void rewrite(size_t i, const Instruction& instr);
 
         std::string stringify(size_t depth) const;
 

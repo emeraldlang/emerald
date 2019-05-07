@@ -42,8 +42,35 @@ namespace emerald {
         do_statement->get_block()->accept(this);
     }
 
-    void Compiler::visit(ForStatement* /*for_statement*/) {
+    void Compiler::visit(ForStatement* for_statement) {
+        for_statement->get_init_statement()->accept(this);
+
+        size_t beginning = _code->create_label();
+        size_t end = _code->create_label();
+
+        write_fs_condition(for_statement);
+        _code->write_jmp_false(end);
+
+        _code->bind_label(beginning);
         
+        for_statement->get_block()->accept(this);
+
+        if (for_statement->get_by_expression()) {
+            for_statement->get_by_expression()->accept(this);
+        } else {
+            _code->write_new_num(1);
+        }
+
+        if (for_statement->increments()) {
+            _code->write_add();
+        } else {
+            _code->write_sub();
+        }
+
+        write_fs_condition(for_statement);
+        _code->write_jmp_true(beginning);
+
+        _code->bind_label(end);
     }
 
     void Compiler::visit(WhileStatement* while_statement) {
@@ -97,17 +124,11 @@ namespace emerald {
     }
 
     void Compiler::visit(FunctionStatement* /*function_statement*/) {
-        // function_statement->get_function()->accept(this);
-
-        // size_t index = function_statement->get_resolved()->get_resolved_index();
-        // _code->write_stloc(index);
+        
     }
 
     void Compiler::visit(ObjectStatement* /*object_statement*/) {
-        // object_statement->get_clone()->accept(this);
 
-        // size_t index = object_statement->get_resolved()->get_resolved_index();
-        // _code->write_stloc(index);
     }
 
     void Compiler::visit(ReturnStatement* return_statement) {
@@ -160,12 +181,12 @@ namespace emerald {
         case Token::GTE:
             _code->write_gte();
             break;
-        // case Token::SHL:
-        //     _block->write(OP_SHL);
-        //     break;
-        // case Token::SHR:
-        //     _block->write(OP_SHR);
-        //     break;
+        case Token::SHL:
+            _code->write_bit_shl();
+            break;
+        case Token::SHR:
+            _code->write_bit_shr();
+            break;
         case Token::ADD:
             _code->write_add();
             break;
@@ -190,18 +211,14 @@ namespace emerald {
         unary_op->get_expression()->accept(this);
 
         switch (unary_op->get_operator()->get_type()) {
-        // case Token::NOT:
-        //     _block->write(OP_NOT);
-        //     break;
-        // case Token::BIT_NOT:
-        //     _block->write(OP_BIT_NOT);
-        //     break;
-        // case Token::SUB:
-        //     _block->write(OP_NEGATE);
-        //     break;
-        // case Token::CLONE:
-        //     _block->write(OP_OBJECT, 0, 1);
-        //     break;
+        case Token::NOT:
+            break;
+        case Token::BIT_NOT:
+            _code->write_bit_not();
+            break;
+        case Token::SUB:
+            _code->write_neg();
+            break;
         default:
             break;
         }
@@ -212,7 +229,7 @@ namespace emerald {
     void Compiler::visit(Property* property) {
         property->get_object()->accept(this);
         property->get_property()->accept(this);
-        _code->write_getprop();
+        _code->write_get_prop();
     }
 
     void Compiler::visit(Identifier* identifier) {
@@ -220,27 +237,54 @@ namespace emerald {
     }
 
     void Compiler::visit(NumberLiteral* number_literal) {
-        _code->write_newnum(number_literal->get_value());
+        _code->write_new_num(number_literal->get_value());
     }
 
     void Compiler::visit(NullLiteral*) {}
 
     void Compiler::visit(StringLiteral* string_literal) {
-        _code->write_newstr(string_literal->get_value());
+        _code->write_new_str(string_literal->get_value());
     }
 
-    void Compiler::visit(BooleanLiteral*) {}
+    void Compiler::visit(BooleanLiteral* boolean_literal) {
+        _code->write_new_boolean(boolean_literal->get_value());
+    }
 
     void Compiler::visit(ArrayLiteral* /*array_literal*/) {}
 
     void Compiler::visit(ObjectLiteral* /*object_literal*/) {}
 
-    void Compiler::visit(CloneExpression* /*clone_expression*/) {}
+    void Compiler::visit(CloneExpression* clone_expression) {
+        if (std::shared_ptr<Expression> parent = clone_expression->get_parent()) {
+            parent->accept(this);
+        }
+
+        _code->write_clone(true);
+
+        for (std::shared_ptr<Expression> arg : clone_expression->get_args()) {
+            arg->accept(this);
+        }
+
+        _code->write_init(clone_expression->get_args().length());
+    }
     
     void Compiler::visit(SuperExpression* /*super_expression*/) {}
     
     void Compiler::visit(FunctionParameter* /*function_parameter*/) {}
 
     void Compiler::visit(KeyValuePair* /*key_value_pair*/) {}
+
+    void Compiler::write_fs_condition(ForStatement* for_statement) {
+        size_t index = for_statement->get_init_statement()->get_resolved_index();
+
+        for_statement->get_to_expression()->accept(this);
+        _code->write_ldloc(index);
+
+        if (for_statement->increments()) {
+            _code->write_lt();
+        } else {
+            _code->write_gt();
+        }
+    }
 
 } // namespace emerald

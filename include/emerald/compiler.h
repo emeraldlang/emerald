@@ -62,6 +62,8 @@ namespace emerald {
         void visit(SuperExpression* super_expression) override;
         void visit(FunctionParameter* function_parameter) override;
         void visit(KeyValuePair* key_value_pair) override;
+
+        void write_fs_condition(ForStatement* for_statement);
     };
 
 } // namespace emerald

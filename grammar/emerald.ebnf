@@ -7,7 +7,7 @@ statement = do_statement | function_statement | while_statement | ite_statement 
 
 block = { statement };
 do_statement = "do" , block , "end";
-for_statement = "for" , declaration , "to" , NUMBER , [ "by" , NUMBER ] , "do" , block , "end";
+for_statement = "for" , declaration , ("to" | "downto") , NUMBER , [ "by" , NUMBER ] , "do" , block , "end";
 while_statement = "while" , expression , "do" , block , "end";
 ite_statement = "if" , expression , "then" , block , "end" | ("else" , block , "end") | ("else" , ite_statement);
 print_statement = "print" , expression , { "," , expression };

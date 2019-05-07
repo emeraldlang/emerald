@@ -102,7 +102,14 @@ namespace emerald {
 
         std::shared_ptr<DeclarationStatement> init = parse_declaration_statement();
 
-        expect(Token::TO);
+        bool increments;
+        if (match(Token::TO)) {
+            increments = true;
+        } else if (match(Token::DOWNTO)) {
+            increments = false;
+        } else {
+            report_unexpected_token(_scanner.scan());
+        }
         std::shared_ptr<Expression> to = parse_expression();
 
         std::shared_ptr<Expression> by;
@@ -114,7 +121,7 @@ namespace emerald {
         std::shared_ptr<StatementBlock> block = parse_statement_block({ Token::END });
         expect(Token::END);
 
-        return std::make_shared<ForStatement>(end_pos(start), init, to, by, block);
+        return std::make_shared<ForStatement>(end_pos(start), init, to, increments, by, block);
     }
 
     std::shared_ptr<WhileStatement> Parser::parse_while_statement() {

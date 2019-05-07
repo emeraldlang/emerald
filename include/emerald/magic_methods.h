@@ -23,6 +23,7 @@ namespace magic_methods {
 
 #define _MAGIC_METHODS  \
     /* Arithmetic */    \
+    X(neg)              \
     X(add)              \
     X(sub)              \
     X(mul)              \
@@ -40,15 +41,19 @@ namespace magic_methods {
     X(lte)              \
     X(gte)              \
     /* Bitwise */       \
+    X(bit_not)          \
     X(bit_or)           \
     X(bit_xor)          \
     X(bit_and)          \
+    X(bit_shl)          \
+    X(bit_shr)          \
     /* Casts */         \
     X(str)              \
     X(boolean)          \
     /* Other */         \
     X(call)             \
-    X(clone)
+    X(clone)            \
+    X(init)
 
 #define X(name) const std::string name = "__" #name "__";
 _MAGIC_METHODS

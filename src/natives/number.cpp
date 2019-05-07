@@ -201,5 +201,23 @@ namespace natives {
         return heap->allocate<Number>((long)lhs->get_value() & (long)rhs->get_value());
     }
 
+    NATIVE_FUNCTION(number_bit_shl) {
+        EXPECT_NUM_ARGS(2);
+
+        TRY_CONVERT_RECV_TO(Number, lhs);
+        TRY_CONVERT_ARG_TO(1, Number, rhs);
+
+        return heap->allocate<Number>((long)lhs->get_value() << (long)rhs->get_value());
+    }
+
+    NATIVE_FUNCTION(number_bit_shr) {
+        EXPECT_NUM_ARGS(2);
+
+        TRY_CONVERT_RECV_TO(Number, lhs);
+        TRY_CONVERT_ARG_TO(1, Number, rhs);
+
+        return heap->allocate<Number>((long)lhs->get_value() >> (long)rhs->get_value());
+    }
+
 } // namespace natives
 } // namespace emerald

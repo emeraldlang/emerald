@@ -227,6 +227,8 @@ namespace emerald {
         set_property(magic_methods::bit_or, natives::get_number_bit_or());
         set_property(magic_methods::bit_xor, natives::get_number_bit_xor());
         set_property(magic_methods::bit_and, natives::get_number_bit_and());
+        set_property(magic_methods::bit_shl, natives::get_number_bit_shl());
+        set_property(magic_methods::bit_shr, natives::get_number_bit_shr());
     }
 
     String::String(Heap* heap, const std::string& value)

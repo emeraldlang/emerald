@@ -31,6 +31,7 @@
     X(THEN, "then", 0)                  \
     X(FOR, "for", 0)                    \
     X(TO, "to", 0)                      \
+    X(DOWNTO, "downto", 0)              \
     X(BY, "by", 0)                      \
     X(WHILE, "while", 0)                \
     X(DEF, "def", 0)                    \

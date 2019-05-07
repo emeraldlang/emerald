@@ -122,6 +122,38 @@ namespace emerald {
         bool _is_resolved;
     };
 
+    class ResolvableLevel {
+    public:
+        ResolvableLevel()
+            : _index(0),
+            _max_num_variables(0),
+            _is_resolved(false) {}
+        virtual ~ResolvableLevel() = default;
+
+        size_t get_resolved_index() const {
+            return _index;
+        }
+
+        size_t get_max_num_variables() const {
+            return _max_num_variables;
+        }
+
+        void resolve(size_t index, size_t max_num_variables) {
+            _index = index;
+            _max_num_variables = max_num_variables;
+            _is_resolved = true;
+        }
+
+        bool is_resolved() const {
+            return _is_resolved;
+        }
+
+    private:
+        size_t _index;
+        size_t _max_num_variables;
+        bool _is_resolved;
+    };
+
     class ASTNode {
     public:
         ASTNode(std::shared_ptr<SourcePosition> position)
@@ -181,15 +213,17 @@ namespace emerald {
     class ForStatement final : public Statement {
     public:
         ForStatement(std::shared_ptr<SourcePosition> position, std::shared_ptr<DeclarationStatement> init, 
-            std::shared_ptr<Expression> to, std::shared_ptr<Expression> by, std::shared_ptr<StatementBlock> block) 
+            std::shared_ptr<Expression> to, bool increments, std::shared_ptr<Expression> by, std::shared_ptr<StatementBlock> block) 
             : Statement(position),
             _init(init),
             _to(to),
+            _increments(increments),
             _by(by),
             _block(block) {}
         
         std::shared_ptr<DeclarationStatement> get_init_statement() const { return _init; }
         std::shared_ptr<Expression> get_to_expression() const { return _to; }
+        bool increments() const { return _increments; }
         std::shared_ptr<Expression> get_by_expression() const { return _by; }
         std::shared_ptr<StatementBlock> get_block() const { return _block; }
 
@@ -198,6 +232,7 @@ namespace emerald {
     private:
         std::shared_ptr<DeclarationStatement> _init;
         std::shared_ptr<Expression> _to;
+        bool _increments;
         std::shared_ptr<Expression> _by;
         std::shared_ptr<StatementBlock> _block;
     };
@@ -273,7 +308,7 @@ namespace emerald {
         std::shared_ptr<Expression> _init_expression;
     };
 
-    class FunctionStatement final : public Statement, public Resolvable {
+    class FunctionStatement final : public Statement, public ResolvableLevel {
     public:
         FunctionStatement(std::shared_ptr<SourcePosition> position, const std::string& identifier, 
             std::vector<std::shared_ptr<FunctionParameter>> parameters, std::shared_ptr<StatementBlock> block) 

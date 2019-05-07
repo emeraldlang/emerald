@@ -335,16 +335,22 @@ namespace emerald {
         key_value_pair->get_value()->accept(this);
     }
 
-    void SemanticChecker::declare_and_resolve(Resolvable* resolvable, const std::string& name) {
+    bool SemanticChecker::declare(const std::string& name) {
         Scope* current_scope = _level->current_scope();
         if (!current_scope->declare_variable(name)) {
             _reporter->report(
                 ReportCode::duplicate_declaration,
                 ReportCode::format_report(ReportCode::duplicate_declaration, name));
-            return;
+            return false;
         }
 
-        resolvable->resolve(current_scope->get_variable_index(name));
+        return true;
+    }
+
+    void SemanticChecker::declare_and_resolve(Resolvable* resolvable, const std::string& name) {
+        if (declare(name)) {
+            resolvable->resolve(current_scope->get_variable_index(name));
+        }
     }
 
     void SemanticChecker::enter_new_level() {

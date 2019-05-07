@@ -91,6 +91,7 @@ namespace emerald {
     void Process::execute() {
         if (is_terminated()) return;
 
+        // TODO(zvp): Add try-catch and set exception for current stack frame.
         dispatch();
     }
 
@@ -129,6 +130,9 @@ namespace emerald {
             }
             break;
         }
+        case OpCode::neg:
+            execute_mm0(magic_methods::neg);
+            break;
         case OpCode::add:
             execute_mm1(magic_methods::add);
             break;
@@ -174,6 +178,9 @@ namespace emerald {
         case OpCode::gte:
             execute_mm1(magic_methods::gte);
             break;
+        case OpCode::bit_not:
+            execute_mm0(magic_methods::bit_not);
+            break;
         case OpCode::bit_or:
             execute_mm1(magic_methods::bit_or);
             break;
@@ -182,6 +189,12 @@ namespace emerald {
             break;
         case OpCode::bit_and:
             execute_mm1(magic_methods::bit_and);
+            break;
+        case OpCode::bit_shl:
+            execute_mm1(magic_methods::bit_shl);
+            break;
+        case OpCode::bit_shr:
+            execute_mm1(magic_methods::bit_shr);
             break;
         case OpCode::str:
             execute_mm0(magic_methods::str, [this](Object* obj){
@@ -199,27 +212,39 @@ namespace emerald {
         case OpCode::ret:
             _stack.pop_frame();
             break;
-        case OpCode::newobj:
+        case OpCode::new_obj:
             break;
-        case OpCode::newfunc: {
+        case OpCode::new_func: {
             std::shared_ptr<const Code> code = current_frame.get_code()->get_func(instr.get_args()[0]);
             Function* func = _heap.allocate<Function>(code);
             _data_stack.push(func);
             break;
         }
-        case OpCode::newnum: {
+        case OpCode::new_num: {
             double value = current_frame.get_code()->get_num_constant(instr.get_args()[0]);
             Number* num = _heap.allocate<Number>(value);
             _data_stack.push(num);
             break;
         }
-        case OpCode::newstr: {
+        case OpCode::new_str: {
             const std::string& value = current_frame.get_code()->get_str_constant(instr.get_args()[0]);
             String* str = _heap.allocate<String>(value);
             _data_stack.push(str);
             break;
         }
-        case OpCode::getprop: {
+        case OpCode::new_boolean: {
+            bool value = instr.get_args()[0];
+            Boolean* boolean = _heap.allocate<Boolean>(value);
+            _data_stack.push(boolean);
+            break;
+        }
+        case OpCode::clone:
+            execute_mm0(magic_methods::clone);
+            break;
+        case OpCode::init:
+            execute_mm_nr(magic_methods::init, instr.get_args()[0]);
+            break;
+        case OpCode::get_prop: {
             Object* key = _data_stack.pop();
             Object* obj = _data_stack.pop();
             if (Object* val = obj->get_property(key->as_str())) {
@@ -229,13 +254,13 @@ namespace emerald {
             }
             break;
         }
-        case OpCode::hasprop: {
+        case OpCode::has_prop: {
             Object* key = _data_stack.pop();
             Object* obj = _data_stack.pop();
             _data_stack.push(_heap.allocate<Boolean>(obj->has_property(key->as_str())));
             break;
         }
-        case OpCode::setprop: {
+        case OpCode::set_prop: {
             Object* val = _data_stack.pop();
             Object* key = _data_stack.pop();
             Object* obj = _data_stack.pop();
@@ -265,24 +290,48 @@ namespace emerald {
         const std::string& magic_method,
         size_t nargs,
         std::function<Object*(Object*)> on_missing) {
-        std::vector<Object*> args = { _data_stack.pop() };
+        Object* self = _data_stack.pop();
+        std::vector<Object*> args({ self });
         for (size_t i = 0; i < nargs; i++) {
             args.push_back(_data_stack.pop());
         }
 
-        Object* prop = args[0];
-        if (Function* func = dynamic_cast<Function*>(prop)) {
-            for (Object* arg : args) {
-                _data_stack.push(arg);
-            }
+        if (Object* prop = self->get_property(magic_method)) {
+            if (Function* func = dynamic_cast<Function*>(prop)) {
+                for (Object* arg : args) {
+                    _data_stack.push(arg);
+                }
 
-            _stack.push_frame(func->get_code());
-        } else if (NativeFunction* func = dynamic_cast<NativeFunction*>(prop)) {
-            _data_stack.push((*func)(&_heap, args));
+                _stack.push_frame(func->get_code());
+            } else if (NativeFunction* func = dynamic_cast<NativeFunction*>(prop)) {
+                _data_stack.push((*func)(&_heap, args));
+            }
         } else if (on_missing) {
             _data_stack.push(on_missing(prop));
         } else {
             throw _heap.allocate<Exception>(fmt::format("unsupported method: {0}", magic_method));
+        }
+    }
+
+    void Process::execute_mm_nr(
+        const std::string& magic_method,
+        size_t nargs) {
+        Object* self = _data_stack.pop();
+        std::vector<Object*> args({ self });
+        for (size_t i = 0; i < nargs; i++) {
+            args.push_back(_data_stack.pop());
+        }
+
+        if (Object* prop = self->get_property(magic_method)) {
+            if (Function* func = dynamic_cast<Function*>(prop)) {
+                for (Object* arg : args) {
+                    _data_stack.push(arg);
+                }
+
+                _stack.push_frame(func->get_code());
+            } else if (NativeFunction* func = dynamic_cast<NativeFunction*>(prop)) {
+                (*func)(&_heap, args);
+            }
         }
     }
 
