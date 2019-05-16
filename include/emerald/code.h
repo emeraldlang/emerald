@@ -107,8 +107,8 @@ namespace emerald {
         void write_has_prop();
         void write_set_prop();
 
-        void write_ldloc(size_t loc_indx);
-        void write_stloc(size_t loc_indx);
+        void write_ldloc(const std::string& name);
+        void write_stloc(const std::string& name);
 
         void write_print();
         void write_allocate_locals(size_t locals);
@@ -122,6 +122,9 @@ namespace emerald {
 
         double get_num_constant(size_t id) const;
         const std::string& get_str_constant(size_t id) const;
+
+        const std::string& get_local_name(size_t id) const;
+        const std::vector<std::string>& get_local_names() const;
 
         std::string stringify() const;
 
@@ -156,6 +159,8 @@ namespace emerald {
 
         std::vector<LabelEntry> _labels;
 
+        std::vector<std::string> _locals;
+
         Code(const std::string& label, size_t id);
 
         void write(const Instruction& instr);
@@ -164,6 +169,8 @@ namespace emerald {
         std::string stringify(size_t depth) const;
 
         size_t get_label_offset(size_t label);
+
+        size_t get_local_id(const std::string& name);
     };
 
     std::ostream& operator<<(std::ostream& os, const Code::Instruction& instr);

@@ -154,10 +154,7 @@ namespace emerald {
             parent->accept(this);
         }
 
-        for (std::shared_ptr<Statement> property : object_statement->get_properties()) {
-            _oss << std::endl;
-            property->accept(this);
-        }
+        object_statement->get_block()->accept(this);
 
         end_indentation_block();
     }

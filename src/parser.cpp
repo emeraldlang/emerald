@@ -226,24 +226,10 @@ namespace emerald {
             parent = parse_identifier();
         }
 
-        std::vector<std::shared_ptr<Statement>> properties;
-        while (!lookahead(Token::END) && !lookahead(Token::EOSF)) {
-            switch (_scanner.peek()->get_type()) {
-            case Token::LET:
-                properties.push_back(parse_declaration_statement());
-                break;
-            case Token::DEF:
-                properties.push_back(parse_function_statement());
-                break;
-            default:
-                report_unexpected_token(_scanner.scan());
-                break;
-            }
-        }
-
+        std::shared_ptr<StatementBlock> block = parse_statement_block({ Token::END });
         expect(Token::END);
 
-        return std::make_shared<ObjectStatement>(end_pos(start), identifier, parent, properties);
+        return std::make_shared<ObjectStatement>(end_pos(start), identifier, parent, block);
     }
 
     std::shared_ptr<ReturnStatement> Parser::parse_return_statement() {

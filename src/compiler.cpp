@@ -45,86 +45,95 @@ namespace emerald {
     void Compiler::visit(ForStatement* for_statement) {
         for_statement->get_init_statement()->accept(this);
 
-        size_t beginning = _code->create_label();
-        size_t end = _code->create_label();
+        size_t beginning = code()->create_label();
+        size_t end = code()->create_label();
 
         write_fs_condition(for_statement);
-        _code->write_jmp_false(end);
+        code()->write_jmp_false(end);
 
-        _code->bind_label(beginning);
+        code()->bind_label(beginning);
         
         for_statement->get_block()->accept(this);
 
         if (for_statement->get_by_expression()) {
             for_statement->get_by_expression()->accept(this);
         } else {
-            _code->write_new_num(1);
+            code()->write_new_num(1);
         }
 
         if (for_statement->increments()) {
-            _code->write_add();
+            code()->write_add();
         } else {
-            _code->write_sub();
+            code()->write_sub();
         }
 
         write_fs_condition(for_statement);
-        _code->write_jmp_true(beginning);
+        code()->write_jmp_true(beginning);
 
-        _code->bind_label(end);
+        code()->bind_label(end);
     }
 
     void Compiler::visit(WhileStatement* while_statement) {
-        size_t beginning = _code->create_label();
-        size_t end = _code->create_label();
+        size_t beginning = code()->create_label();
+        size_t end = code()->create_label();
 
         while_statement->get_conditional_expression()->accept(this);
-        _code->write_jmp_false(end);
+        code()->write_jmp_false(end);
 
-        _code->bind_label(beginning);
+        code()->bind_label(beginning);
         while_statement->get_block()->accept(this);
         while_statement->get_conditional_expression()->accept(this);
-        _code->write_jmp_true(beginning);
+        code()->write_jmp_true(beginning);
 
-        _code->bind_label(end);
+        code()->bind_label(end);
     }
 
     void Compiler::visit(IteStatement* ite_statement) {
-        size_t next = _code->create_label();
-        size_t end = _code->create_label();
+        size_t next = code()->create_label();
+        size_t end = code()->create_label();
 
         ite_statement->get_conditional_expression()->accept(this);
-        _code->write_jmp_false(next);
+        code()->write_jmp_false(next);
 
         ite_statement->get_then_block()->accept(this);
-        _code->write_jmp(end);
+        code()->write_jmp(end);
 
-        _code->bind_label(next);
+        code()->bind_label(next);
 
         if (std::shared_ptr<Statement> else_statement = ite_statement->get_else_statement()) {
             else_statement->accept(this);
         }
 
-        _code->bind_label(end);
+        code()->bind_label(end);
     }
 
     void Compiler::visit(PrintStatement* print_statement) {
         for (std::shared_ptr<Expression> expression : print_statement->get_expressions()) {
             expression->accept(this);
-            _code->write_print();
+            code()->write_print();
         }
     }
 
     void Compiler::visit(DeclarationStatement* declaration_statement) {
         if (std::shared_ptr<Expression> init = declaration_statement->get_init_expression()) {
             init->accept(this);
-
-            size_t index = declaration_statement->get_resolved_index();
-            _code->write_stloc(index);
+        } else {
+            // code()->write_null();
         }
+
+        code()->write_stloc(declaration_statement->get_identifier());
     }
 
-    void Compiler::visit(FunctionStatement* /*function_statement*/) {
-        
+    void Compiler::visit(FunctionStatement* function_statement) {
+        push_new_func(function_statement->get_identifier());
+
+        for (std::shared_ptr<FunctionParameter> parameter : function_statement->get_parameters()) {
+            parameter->accept(this);
+        }
+
+        function_statement->get_block()->accept(this);
+
+        pop_func();
     }
 
     void Compiler::visit(ObjectStatement* /*object_statement*/) {
@@ -136,7 +145,7 @@ namespace emerald {
             expression->accept(this);
         }
 
-        _code->write_ret();
+        code()->write_ret();
     }
 
     void Compiler::visit(ExpressionStatement* expression_statement) {
@@ -155,52 +164,52 @@ namespace emerald {
         //     _block->write(OP_LOGIC_AND);
         //     break;
         case Token::BIT_OR:
-            _code->write_bit_or();
+            code()->write_bit_or();
             break;
         case Token::BIT_XOR:
-            _code->write_bit_xor();
+            code()->write_bit_xor();
             break;
         case Token::BIT_AND:
-            _code->write_bit_and();
+            code()->write_bit_and();
             break;
         case Token::EQ:
-            _code->write_eq();
+            code()->write_eq();
             break;
         case Token::NEQ:
-            _code->write_neq();
+            code()->write_neq();
             break;
         case Token::LT:
-            _code->write_lt();
+            code()->write_lt();
             break;
         case Token::GT:
-            _code->write_gt();
+            code()->write_gt();
             break;
         case Token::LTE:
-            _code->write_lte();
+            code()->write_lte();
             break;
         case Token::GTE:
-            _code->write_gte();
+            code()->write_gte();
             break;
         case Token::SHL:
-            _code->write_bit_shl();
+            code()->write_bit_shl();
             break;
         case Token::SHR:
-            _code->write_bit_shr();
+            code()->write_bit_shr();
             break;
         case Token::ADD:
-            _code->write_add();
+            code()->write_add();
             break;
         case Token::SUB:
-            _code->write_sub();
+            code()->write_sub();
             break;
         case Token::MUL:
-            _code->write_mul();
+            code()->write_mul();
             break;
         case Token::DIV:
-            _code->write_div();
+            code()->write_div();
             break;
         case Token::MOD:
-            _code->write_mod();
+            code()->write_mod();
             break;
         default:
             break;
@@ -214,76 +223,98 @@ namespace emerald {
         case Token::NOT:
             break;
         case Token::BIT_NOT:
-            _code->write_bit_not();
+            code()->write_bit_not();
             break;
         case Token::SUB:
-            _code->write_neg();
+            code()->write_neg();
             break;
         default:
             break;
         }
     }
 
-    void Compiler::visit(CallExpression* /*call_expression*/) {}
+    void Compiler::visit(CallExpression* call_expression) {
+        call_expression->get_callee()->accept(this);
+        for (std::shared_ptr<Expression> arg : call_expression->get_args()) {
+            arg->accept(this);
+        }
+
+        code()->write_call(call_expression->get_args().size());
+    }
 
     void Compiler::visit(Property* property) {
         property->get_object()->accept(this);
         property->get_property()->accept(this);
-        _code->write_get_prop();
+
+        code()->write_get_prop();
     }
 
     void Compiler::visit(Identifier* identifier) {
-        _code->write_ldloc(identifier->get_resolved_index());
+        code()->write_ldloc(identifier->get_identifier());
     }
 
     void Compiler::visit(NumberLiteral* number_literal) {
-        _code->write_new_num(number_literal->get_value());
+        code()->write_new_num(number_literal->get_value());
     }
 
-    void Compiler::visit(NullLiteral*) {}
+    void Compiler::visit(NullLiteral*) {
+        // code()->write_null();
+    }
 
     void Compiler::visit(StringLiteral* string_literal) {
-        _code->write_new_str(string_literal->get_value());
+        code()->write_new_str(string_literal->get_value());
     }
 
     void Compiler::visit(BooleanLiteral* boolean_literal) {
-        _code->write_new_boolean(boolean_literal->get_value());
+        code()->write_new_boolean(boolean_literal->get_value());
     }
 
     void Compiler::visit(ArrayLiteral* /*array_literal*/) {}
 
-    void Compiler::visit(ObjectLiteral* /*object_literal*/) {}
+    void Compiler::visit(ObjectLiteral* object_literal) {
+        for (std::shared_ptr<KeyValuePair> key_value_pair : object_literal->get_key_value_pairs()) {
+            key_value_pair->accept(this);
+        }
+    }
 
     void Compiler::visit(CloneExpression* clone_expression) {
         if (std::shared_ptr<Expression> parent = clone_expression->get_parent()) {
             parent->accept(this);
         }
 
-        _code->write_clone(true);
+        code()->write_clone(true);
 
         for (std::shared_ptr<Expression> arg : clone_expression->get_args()) {
             arg->accept(this);
         }
 
-        _code->write_init(clone_expression->get_args().length());
+        code()->write_init(clone_expression->get_args().size());
     }
     
     void Compiler::visit(SuperExpression* /*super_expression*/) {}
     
-    void Compiler::visit(FunctionParameter* /*function_parameter*/) {}
+    void Compiler::visit(FunctionParameter* function_parameter) {
+        code()->write_stloc(function_parameter->get_identifier());
+    }
 
     void Compiler::visit(KeyValuePair* /*key_value_pair*/) {}
 
-    void Compiler::write_fs_condition(ForStatement* for_statement) {
-        size_t index = for_statement->get_init_statement()->get_resolved_index();
+    void Compiler::push_new_func(const std::string& label) {
+        _code_stack.push(code()->write_new_func(label));
+    }
 
+    void Compiler::pop_func() {
+        _code_stack.pop();
+    }
+
+    void Compiler::write_fs_condition(ForStatement* for_statement) {
         for_statement->get_to_expression()->accept(this);
-        _code->write_ldloc(index);
+        code()->write_ldloc(for_statement->get_init_statement()->get_identifier());
 
         if (for_statement->increments()) {
-            _code->write_lt();
+            code()->write_lt();
         } else {
-            _code->write_gt();
+            code()->write_gt();
         }
     }
 

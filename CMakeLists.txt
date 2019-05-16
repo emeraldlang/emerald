@@ -39,7 +39,6 @@ add_library(emerald_s SHARED
     src/reporter.cpp
     src/scanner.cpp
     src/scheduler.cpp
-    src/semantic_checker.cpp
     src/source.cpp
     src/stack.cpp
     src/token.cpp

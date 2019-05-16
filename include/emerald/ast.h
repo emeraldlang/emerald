@@ -330,26 +330,25 @@ namespace emerald {
         std::shared_ptr<StatementBlock> _block;
     };
 
-    class ObjectStatement final : public Statement, public Resolvable {
+    class ObjectStatement final : public Statement, public ResolvableLevel {
     public:
         ObjectStatement(std::shared_ptr<SourcePosition> position, const std::string& identifier, 
-            std::shared_ptr<Expression> parent, const std::vector<std::shared_ptr<Statement>>& properties)
+            std::shared_ptr<Expression> parent, std::shared_ptr<StatementBlock> block)
             : Statement(position),
             _identifier(identifier),
             _parent(parent),
-            _properties(properties) {}
+            _block(block) {}
 
         const std::string& get_identifier() const { return _identifier; }
         std::shared_ptr<Expression> get_parent() const { return _parent; }
-        const std::vector<std::shared_ptr<Statement>>& get_properties() const { return _properties; }
-        int get_size() const { return _properties.size(); }
+        std::shared_ptr<StatementBlock> get_block() const { return _block; }
 
         void accept(ASTVisitor* visitor) override { visitor->visit(this); }
 
     private:
         std::string _identifier;
         std::shared_ptr<Expression> _parent;
-        std::vector<std::shared_ptr<Statement>> _properties;
+        std::shared_ptr<StatementBlock> _block;
     };
 
     class ReturnStatement final : public Statement {

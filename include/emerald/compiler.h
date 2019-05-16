@@ -19,6 +19,7 @@
 #define _EMERALD_COMPILER_H
 
 #include <memory>
+#include <stack>
 #include <vector>
 
 #include "emerald/code.h"
@@ -35,6 +36,7 @@ namespace emerald {
         Compiler();
 
         std::shared_ptr<Code> _code;
+        std::stack<std::shared_ptr<Code>> _code_stack;
 
         void visit(StatementBlock* statement_block) override;
         void visit(DoStatement* do_statement) override;
@@ -63,6 +65,17 @@ namespace emerald {
         void visit(FunctionParameter* function_parameter) override;
         void visit(KeyValuePair* key_value_pair) override;
 
+        void push_new_func(const std::string& label);
+        void pop_func();
+
+        std::shared_ptr<Code> code() {
+            if (_code_stack.size()) {
+                return _code_stack.top();
+            }
+
+            return _code;
+        }
+        
         void write_fs_condition(ForStatement* for_statement);
     };
 

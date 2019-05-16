@@ -15,15 +15,17 @@
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include <iostream>
 #include <memory>
 
 #include "CLI/CLI.hpp"
 
 #include "emerald/ast_printer.h"
+#include "emerald/compiler.h"
 #include "emerald/parser.h"
 #include "emerald/reporter.h"
-#include "emerald/semantic_checker.h"
 #include "emerald/source.h"
+#include "emerald/vm.h"
 
 int main(int argc, char** argv) {
     CLI::App app;
@@ -50,7 +52,7 @@ int main(int argc, char** argv) {
 
     CLI::App* run = app.add_subcommand(
         "run",
-        "executes the emerald code");
+        "executes the emerald code.");
 
     // std::string configuration_file;
     run->add_option("source_file", source_file, "specifies the emerald source file")->required();
@@ -65,11 +67,15 @@ int main(int argc, char** argv) {
             return;
         }
 
-        emerald::SemanticChecker::check(statements, reporter);
-        if (reporter->has_errors()) {
-            reporter->print();
-            return;
-        }
+        std::shared_ptr<emerald::Code> code = emerald::Compiler::compile(statements);
+
+        emerald::VM vm;
+        vm.start();
+        vm.create_process(code);
+
+        // TODO(zvp): Wait for SIGINT
+
+        vm.stop();
     });
 
     CLI11_PARSE(app, argc, argv);

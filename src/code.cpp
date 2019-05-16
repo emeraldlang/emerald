@@ -238,12 +238,12 @@ namespace emerald {
         WRITE_OP(OpCode::set_prop);
     }
 
-    void Code::write_ldloc(size_t loc_indx) {
-        WRITE_OP_WARGS(OpCode::ldloc, { loc_indx });
+    void Code::write_ldloc(const std::string& name) {
+        WRITE_OP_WARGS(OpCode::ldloc, { get_local_id(name) });
     }
 
-    void Code::write_stloc(size_t loc_indx) {
-        WRITE_OP_WARGS(OpCode::stloc, { loc_indx });
+    void Code::write_stloc(const std::string& name) {
+        WRITE_OP_WARGS(OpCode::stloc, { get_local_id(name) });
     }
 
     void Code::write_print() {
@@ -280,6 +280,14 @@ namespace emerald {
     
     const std::string& Code::get_str_constant(size_t id) const {
         return _str_constants.at(id);
+    }
+
+    const std::string& Code::get_local_name(size_t id) const {
+        return _locals.at(id);
+    }
+
+    const std::vector<std::string>& Code::get_local_names() const {
+        return _locals;
     }
 
     std::string Code::stringify() const {
@@ -353,6 +361,19 @@ namespace emerald {
         }
 
         return entry.pos;
+    }
+
+    size_t Code::get_local_id(const std::string& name) {
+        size_t i;
+        for (; i < _locals.size(); i++) {
+            if (_locals[i] == name) break;
+        }
+
+        if (i == _locals.size()) {
+            _locals.push_back(name);
+        }
+
+        return i;
     }
 
     Code::Instruction::Instruction(OpCode::Value op)

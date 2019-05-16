@@ -13,7 +13,7 @@ ite_statement = "if" , expression , "then" , block , "end" | ("else" , block , "
 print_statement = "print" , expression , { "," , expression };
 declaration_statement = "let" , IDENT , ["=" , expression];
 function_statement = "def" , IDENT , parameter_list , block , "end";
-object_statement = "object" , IDENT , ["clones" , IDENT] , { declaration_statement | function_statement } , "end";
+object_statement = "object" , IDENT , ["clones" , IDENT] , block , "end";
 return_statement = "return" , expression;
 expression_statement = expression;
 
