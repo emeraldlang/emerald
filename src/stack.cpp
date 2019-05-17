@@ -73,7 +73,9 @@ namespace emerald {
 
     Stack::Frame::Frame(std::shared_ptr<const Code> code)
         : _code(code), 
-        _ip(0) {}
+        _ip(0) {
+        _locals.resize(code->get_num_locals());
+    }
 
     std::shared_ptr<const Code> Stack::Frame::get_code() const {
         return _code;
@@ -107,16 +109,8 @@ namespace emerald {
         return _locals.at(i);
     }
 
-    std::vector<Object*>& Stack::Frame::get_locals() {
-        return _locals;
-    }
-
     Object* Stack::Frame::get_local(size_t i) {
         return _locals.at(i);
-    }
-
-    void Stack::Frame::allocate_locals(size_t n) {
-        _locals.resize(n);
     }
 
     void Stack::Frame::set_local(size_t i, Object* obj) {

@@ -98,11 +98,14 @@ namespace emerald {
 
     class Array final : public HeapObject {
     public:
-        Array(Heap* heap, std::initializer_list<Object*> objects);
-        Array(Heap* heap, Object* parent, std::initializer_list<Object*> objects);
+        Array(Heap* heap);
+        Array(Heap* heap, Object* parent);
 
-        std::vector<Object*> get_value();
-        const std::vector<Object*> get_value() const;
+        bool as_bool() const override;
+        std::string as_str() const override;
+
+        std::vector<Object*>& get_value();
+        const std::vector<Object*>& get_value() const;
 
     private:
         std::vector<Object*> _value;

@@ -62,22 +62,22 @@ namespace emerald {
     X(call, 1)              \
     X(ret, 0)               \
     /* Objects */           \
-    X(new_obj, 1)           \
+    X(new_obj, 2)           \
+    X(new_obj_and_init, 3)  \
     X(new_func, 1)          \
     X(new_num, 1)           \
     X(new_str, 1)           \
     X(new_boolean, 1)       \
-    X(clone, 1)             \
-    X(init, 1)              \
+    X(new_arr, 1)           \
     X(get_prop, 0)          \
     X(has_prop, 0)          \
     X(set_prop, 0)          \
+    X(get_parent, 0)        \
     /* Loads & Stores */    \
     X(ldloc, 1)             \
     X(stloc, 1)             \
     /* Other */             \
-    X(print, 0)             \
-    X(allocate_locals, 1)
+    X(print, 0)
 
     class OpCode {
     public:

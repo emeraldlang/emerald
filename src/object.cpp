@@ -35,6 +35,10 @@ namespace emerald {
         return true;
     }
 
+    Object* Object::get_parent() const {
+        return _parent;
+    }
+
     const std::unordered_map<std::string, Object*>& Object::get_properties() const {
         return _properties;
     }
@@ -118,6 +122,33 @@ namespace emerald {
         }
     }
 
+    Array::Array(Heap* heap)
+        : HeapObject(heap) {}
+
+    Array::Array(Heap* heap, Object* parent)
+        : HeapObject(heap, parent) {}
+
+    bool Array::as_bool() const {
+        return _value.size() > 0;
+    }
+    
+    std::string Array::as_str() const {
+        std::string str = "[";
+        for (Object* obj : _value) {
+            str += obj->as_str();
+        }
+        str += "]";
+        return str;
+    }
+
+    std::vector<Object*>& Array::get_value() {
+        return _value;
+    }
+
+    const std::vector<Object*>& Array::get_value() const {
+        return _value;
+    }
+
     Boolean::Boolean(Heap* heap, bool value)
         : HeapObject(heap),
         _value(value) {}
@@ -163,7 +194,7 @@ namespace emerald {
         _code(code) {}
 
     std::string Function::as_str() const {
-        return fmt::format("<function %s>", _code->get_label());
+        return fmt::format("<function {}>", _code->get_label());
     }
 
     std::shared_ptr<const Code> Function::get_code() const {
@@ -187,7 +218,7 @@ namespace emerald {
     }
 
     std::string Number::as_str() const {
-        return fmt::format("%g", _value);
+        return fmt::format("{}", _value);
     }
 
     double Number::get_value() const {

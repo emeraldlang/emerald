@@ -54,10 +54,8 @@ namespace emerald {
             const std::vector<Object*>& get_locals() const;
             const Object* get_local(size_t i) const;
 
-            std::vector<Object*>& get_locals();
             Object* get_local(size_t i);
 
-            void allocate_locals(size_t n);
             void set_local(size_t i, Object* obj);
 
             size_t num_locals() const;

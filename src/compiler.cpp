@@ -134,10 +134,33 @@ namespace emerald {
         function_statement->get_block()->accept(this);
 
         pop_func();
+
+        code()->write_stloc(function_statement->get_identifier());
     }
 
-    void Compiler::visit(ObjectStatement* /*object_statement*/) {
+    void Compiler::visit(ObjectStatement* object_statement) {
+        push_new_func(object_statement->get_identifier());
 
+        object_statement->get_block()->accept(this);
+
+        std::shared_ptr<Expression> parent = object_statement->get_parent();
+        if (parent) {
+            parent->accept(this);
+        }
+
+        const std::vector<std::string>& locals = code()->get_local_names();
+        for (const std::string& local : locals) {
+            code()->write_new_str(local);
+            code()->write_ldloc(local);
+        }
+
+        code()->write_new_obj(parent != nullptr, locals.size());
+        code()->write_ret();
+
+        pop_func();
+
+        code()->write_call(0);
+        code()->write_stloc(object_statement->get_identifier());
     }
 
     void Compiler::visit(ReturnStatement* return_statement) {
@@ -269,35 +292,48 @@ namespace emerald {
         code()->write_new_boolean(boolean_literal->get_value());
     }
 
-    void Compiler::visit(ArrayLiteral* /*array_literal*/) {}
+    void Compiler::visit(ArrayLiteral* array_literal) {
+        const std::vector<std::shared_ptr<Expression>> elements = array_literal->get_elements();
+        for (std::shared_ptr<Expression> element : elements) {
+            element->accept(this);
+        }
+
+        code()->write_new_arr(elements.size());
+    }
 
     void Compiler::visit(ObjectLiteral* object_literal) {
-        for (std::shared_ptr<KeyValuePair> key_value_pair : object_literal->get_key_value_pairs()) {
+        const std::vector<std::shared_ptr<KeyValuePair>>& key_value_pairs = object_literal->get_key_value_pairs();
+        for (std::shared_ptr<KeyValuePair> key_value_pair : key_value_pairs) {
             key_value_pair->accept(this);
         }
+
+        code()->write_new_obj(false, key_value_pairs.size());
     }
 
     void Compiler::visit(CloneExpression* clone_expression) {
-        if (std::shared_ptr<Expression> parent = clone_expression->get_parent()) {
-            parent->accept(this);
-        }
+        clone_expression->get_parent()->accept(this);
 
-        code()->write_clone(true);
-
-        for (std::shared_ptr<Expression> arg : clone_expression->get_args()) {
+        const std::vector<std::shared_ptr<Expression>> args = clone_expression->get_args();
+        for (std::shared_ptr<Expression> arg : args) {
             arg->accept(this);
         }
 
-        code()->write_init(clone_expression->get_args().size());
+        code()->write_new_obj_and_init(true, 0, args.size());
     }
     
-    void Compiler::visit(SuperExpression* /*super_expression*/) {}
+    void Compiler::visit(SuperExpression* super_expression) {
+        super_expression->get_object()->accept(this);
+        code()->write_get_parent();
+    }
     
     void Compiler::visit(FunctionParameter* function_parameter) {
         code()->write_stloc(function_parameter->get_identifier());
     }
 
-    void Compiler::visit(KeyValuePair* /*key_value_pair*/) {}
+    void Compiler::visit(KeyValuePair* key_value_pair) {
+        key_value_pair->get_key()->accept(this);
+        key_value_pair->get_value()->accept(this);
+    }
 
     void Compiler::push_new_func(const std::string& label) {
         _code_stack.push(code()->write_new_func(label));

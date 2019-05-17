@@ -103,21 +103,35 @@ namespace emerald {
 
         void execute_mm(
             const std::string& magic_method,
+            Object* self,
+            const std::vector<Object*>& args,
+            std::function<Object*(Object*)> on_missing = nullptr);
+        void execute_mm(
+            const std::string& magic_method,
             size_t nargs,
             std::function<Object*(Object*)> on_missing = nullptr);
-        void execute_mm_nr(
-            const std::string& magic_method,
-            size_t nargs);
+
         void execute_mm0(
             const std::string& magic_method,
             std::function<Object*(Object*)> on_missing = nullptr) {
             execute_mm(magic_method, 0, on_missing);
         }
+
         void execute_mm1(
             const std::string& magic_method,
             std::function<Object*(Object*)> on_missing = nullptr) {
             execute_mm(magic_method, 1, on_missing);
         }
+
+        void execute_mm_nr(
+            const std::string& magic_method,
+            Object* self,
+            const std::vector<Object*>& args);
+        void execute_mm_nr(
+            const std::string& magic_method,
+            size_t nargs);
+
+        Object* new_obj(bool explicit_parent, size_t num_props);
     };
 
 }

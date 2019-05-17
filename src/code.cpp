@@ -183,6 +183,14 @@ namespace emerald {
         WRITE_OP(OpCode::ret);
     }
 
+    void Code::write_new_obj(bool explicit_parent, size_t num_props) {
+        WRITE_OP_WARGS(OpCode::new_obj, { explicit_parent, num_props });
+    }
+
+    void Code::write_new_obj_and_init(bool explicit_parent, size_t num_props, size_t num_args) {
+        WRITE_OP_WARGS(OpCode::new_obj_and_init, { explicit_parent, num_props, num_args });
+    }
+
     std::shared_ptr<Code> Code::write_new_func(const std::string& label) {
         CHECK_THROW_LOGIC_ERROR(!label.empty(), "cannot have empty label");
 
@@ -217,13 +225,9 @@ namespace emerald {
     void Code::write_new_boolean(bool val) {
         WRITE_OP_WARGS(OpCode::new_boolean, { val });
     }
-    
-    void Code::write_clone(bool explicit_parent) {
-        WRITE_OP_WARGS(OpCode::clone, { explicit_parent });
-    }
-    
-    void Code::write_init(size_t num_args) {
-        WRITE_OP_WARGS(OpCode::init, { num_args });
+
+    void Code::write_new_arr(size_t num_elems) {
+        WRITE_OP_WARGS(OpCode::new_arr, { num_elems });
     }
 
     void Code::write_get_prop() {
@@ -238,6 +242,10 @@ namespace emerald {
         WRITE_OP(OpCode::set_prop);
     }
 
+    void Code::write_get_parent() {
+        WRITE_OP(OpCode::get_parent);
+    }
+
     void Code::write_ldloc(const std::string& name) {
         WRITE_OP_WARGS(OpCode::ldloc, { get_local_id(name) });
     }
@@ -248,10 +256,6 @@ namespace emerald {
 
     void Code::write_print() {
         WRITE_OP(OpCode::print);
-    }
-
-    void Code::write_allocate_locals(size_t locals) {
-        WRITE_OP_WARGS(OpCode::allocate_locals, { locals });
     }
 
     std::shared_ptr<const Code> Code::get_func(const std::string& label) const {
@@ -288,6 +292,10 @@ namespace emerald {
 
     const std::vector<std::string>& Code::get_local_names() const {
         return _locals;
+    }
+
+    size_t Code::get_num_locals() const {
+        return _locals.size();
     }
 
     std::string Code::stringify() const {
@@ -364,7 +372,7 @@ namespace emerald {
     }
 
     size_t Code::get_local_id(const std::string& name) {
-        size_t i;
+        size_t i = 0;
         for (; i < _locals.size(); i++) {
             if (_locals[i] == name) break;
         }
