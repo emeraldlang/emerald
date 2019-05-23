@@ -15,30 +15,38 @@
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef _EMERALD_HEAP_MANAGED_H
-#define _EMERALD_HEAP_MANAGED_H
+#ifndef _EMERALD_ITERUTILS_H
+#define _EMERALD_ITERUTILS_H
+
+#include <utility>
 
 namespace emerald {
+namespace iterutils {
 
-    class Heap;
-
-    class HeapManaged {
+    template <class T>
+    class ReverseContainer {
     public:
-        HeapManaged();
-        virtual ~HeapManaged();
+        ReverseContainer(const T& container)
+            : _container(container) {}
 
-        bool is_marked() const;
+        auto begin() {
+            return _container.rbegin();
+        }
 
-        void mark();
-        void unmark();
-
-    protected:
-        virtual void reach();
+        auto end() {
+            return _container.rend();
+        }
 
     private:
-        bool _marked;
+        T _container;
     };
 
+    template <class T>
+    ReverseContainer<T> reverse(const T& container) {
+        return ReverseContainer(container);
+    }
+
+} // namespace iterutils
 } // namespace emerald
 
-#endif // _EMERALD_HEAP_MANAGED_H
+#endif // _EMERALD_ITERUTILS_H

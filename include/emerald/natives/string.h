@@ -28,6 +28,7 @@
     X(string_gt)            \
     X(string_lte)           \
     X(string_gte)           \
+    X(string_clone)         \
     X(string_empty)         \
     X(string_length)        \
     X(string_at)            \

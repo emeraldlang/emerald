@@ -61,8 +61,8 @@ namespace emerald {
     std::vector<HeapManaged*> Stack::get_roots() const {
         std::vector<HeapManaged*> roots;
         for (const Frame& frame : _stack) {
-            for (Object* local : frame.get_locals()) {
-                if (HeapObject* heap_obj = dynamic_cast<HeapObject*>(local)) {
+            for (std::pair<std::string, Object*> local : frame.get_locals()) {
+                if (HeapObject* heap_obj = dynamic_cast<HeapObject*>(local.second)) {
                     roots.push_back(heap_obj);
                 }
             }
@@ -73,9 +73,7 @@ namespace emerald {
 
     Stack::Frame::Frame(std::shared_ptr<const Code> code)
         : _code(code), 
-        _ip(0) {
-        _locals.resize(code->get_num_locals());
-    }
+        _ip(0) {}
 
     std::shared_ptr<const Code> Stack::Frame::get_code() const {
         return _code;
@@ -101,20 +99,20 @@ namespace emerald {
         return (*_code)[_ip];
     }
 
-    const std::vector<Object*>& Stack::Frame::get_locals() const {
+    const std::unordered_map<std::string, Object*>& Stack::Frame::get_locals() const {
         return _locals;
     }
 
-    const Object* Stack::Frame::get_local(size_t i) const {
-        return _locals.at(i);
+    const Object* Stack::Frame::get_local(const std::string& name) const {
+        return _locals.at(name);
     }
 
-    Object* Stack::Frame::get_local(size_t i) {
-        return _locals.at(i);
+    Object* Stack::Frame::get_local(const std::string& name) {
+        return _locals.at(name);
     }
 
-    void Stack::Frame::set_local(size_t i, Object* obj) {
-        _locals.at(i) = obj;
+    void Stack::Frame::set_local(const std::string& name, Object* obj) {
+        _locals.at(name) = obj;
     }
 
     size_t Stack::Frame::num_locals() const {

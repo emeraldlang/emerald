@@ -75,6 +75,12 @@ namespace natives {
         return heap->allocate<Boolean>(args[0]->as_str() > args[1]->as_str());
     }
 
+    NATIVE_FUNCTION(string_clone) {
+        EXPECT_NUM_ARGS(0);
+
+        return heap->allocate<String>();
+    }
+
     NATIVE_FUNCTION(string_empty) {
         EXPECT_NUM_ARGS(1);
 

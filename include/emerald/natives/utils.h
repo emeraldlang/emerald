@@ -18,12 +18,15 @@
 #ifndef EMERALD_NATIVES_UTILS_H
 #define EMERALD_NATIVES_UTILS_H
 
-#define EXPECT_NUM_ARGS(count)                      \
+#define EXPECT_NUM_ARGS_OP(count, op)               \
     do {                                            \
-        if (args.size() != count) {                 \
+        if (args.size() op count) {                 \
             throw heap->allocate<Exception>("");    \
         }                                           \
-    } while(false)
+    } while (false)
+
+#define EXPECT_NUM_ARGS(count) EXPECT_NUM_ARGS_OP(count, !=)
+#define EXPECT_ATLEAST_NUM_ARGS(count) EXPECT_NUM_ARGS_OP(count, <)
 
 #define TRY_CONVERT_ARG_TO(i, Type, name)           \
     Type* name;                                     \
@@ -32,7 +35,7 @@
         if (name == nullptr) {                      \
             throw heap->allocate<Exception>("");    \
         }                                           \
-    } while(false)
+    } while (false)
 
 #define TRY_CONVERT_RECV_TO(Type, name) TRY_CONVERT_ARG_TO(0, Type, name)
 

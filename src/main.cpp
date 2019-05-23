@@ -74,6 +74,8 @@ int main(int argc, char** argv) {
         vm.create_process(code);
 
         // TODO(zvp): Wait for SIGINT
+        int x;
+        std::cin >> x;
 
         vm.stop();
     });

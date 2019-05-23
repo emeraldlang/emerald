@@ -26,10 +26,12 @@ add_library(emerald_s SHARED
     src/code.cpp
     src/compiler.cpp
     src/data_stack.cpp
+    src/globals.cpp
     src/heap.cpp
     src/heap_managed.cpp
     src/module.cpp
     src/modules/io.cpp
+    src/natives/array.cpp
     src/natives/number.cpp
     src/natives/string.cpp
     src/object.cpp

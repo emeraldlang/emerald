@@ -34,11 +34,13 @@ namespace emerald {
         _parent_process(parent_process),
         _priority(priority),
         _stack(Stack(max_stack_size)),
+        _globals(&_heap),
         _state(State::start) {
         _stack.push_frame(code);
 
         _heap.add_root_source(&_data_stack);
         _heap.add_root_source(&_stack);
+        _heap.add_root_source(&_globals);
     }
 
     Process::PID Process::get_id() const {
@@ -198,7 +200,7 @@ namespace emerald {
             break;
         case OpCode::str:
             execute_mm0(magic_methods::str, [this](Object* obj){
-                return this->_heap.allocate<String>(obj->as_str());
+                return this->allocate_string(obj->as_str());
             });
             break;
         case OpCode::boolean:
@@ -206,9 +208,12 @@ namespace emerald {
                 return this->_heap.allocate<Boolean>(obj->as_bool());
             });
             break;
-        case OpCode::call:
-            execute_mm(magic_methods::call, instr.get_args()[0]);
+        case OpCode::call: {
+            Object* obj = _data_stack.pop();
+            std::vector<Object*> args = pop_n_from_stack(instr.get_args()[0]);
+            call_obj(obj, args);
             break;
+        }
         case OpCode::ret:
             _stack.pop_frame();
             break;
@@ -222,11 +227,9 @@ namespace emerald {
             Object* self = new_obj(args[0], args[1]);
 
             std::vector<Object*> mm_args({ self });
-            for (size_t i = 0; i < args[2]; i++) {
-                mm_args.push_back(mm_args[i]);
-            }
+            pop_n_from_stack(mm_args, args[2]);
+            execute_mm(magic_methods::init, self, mm_args);
 
-            execute_mm_nr(magic_methods::init, self, mm_args);
             _data_stack.push(self);
             break;
         }
@@ -238,13 +241,13 @@ namespace emerald {
         }
         case OpCode::new_num: {
             double value = current_frame.get_code()->get_num_constant(instr.get_args()[0]);
-            Number* num = _heap.allocate<Number>(value);
+            Number* num = allocate_number(value);
             _data_stack.push(num);
             break;
         }
         case OpCode::new_str: {
             const std::string& value = current_frame.get_code()->get_str_constant(instr.get_args()[0]);
-            String* str = _heap.allocate<String>(value);
+            String* str = allocate_string(value);
             _data_stack.push(str);
             break;
         }
@@ -255,7 +258,7 @@ namespace emerald {
             break;
         }
         case OpCode::new_arr: {
-            Array* array = _heap.allocate<Array>();
+            Array* array = allocate_array();
             for (size_t i = 0; i < instr.get_args()[0]; i++) {
                 array->get_value().push_back(_data_stack.pop());
             }
@@ -263,8 +266,8 @@ namespace emerald {
             break;
         }
         case OpCode::get_prop: {
-            Object* key = _data_stack.pop();
             Object* obj = _data_stack.pop();
+            Object* key = _data_stack.pop();
             if (Object* val = obj->get_property(key->as_str())) {
                 _data_stack.push(val);
             } else {
@@ -273,15 +276,15 @@ namespace emerald {
             break;
         }
         case OpCode::has_prop: {
-            Object* key = _data_stack.pop();
             Object* obj = _data_stack.pop();
+            Object* key = _data_stack.pop();
             _data_stack.push(_heap.allocate<Boolean>(obj->has_property(key->as_str())));
             break;
         }
         case OpCode::set_prop: {
-            Object* val = _data_stack.pop();
-            Object* key = _data_stack.pop();
             Object* obj = _data_stack.pop();
+            Object* key = _data_stack.pop();
+            Object* val = _data_stack.pop();
             obj->set_property(key->as_str(), val);
             break;
         }
@@ -290,12 +293,18 @@ namespace emerald {
             _data_stack.push(obj->get_parent());
             break;
         }
-        case OpCode::ldloc:
-            _data_stack.push(current_frame.get_local(instr.get_args()[0]));
+        case OpCode::ldloc: {
+            const std::string& name = current_frame.get_code()->get_local_name(
+                instr.get_args()[0]);
+            _data_stack.push(current_frame.get_local(name));
             break;
-        case OpCode::stloc:
-            current_frame.set_local(instr.get_args()[0], _data_stack.pop());
+        }
+        case OpCode::stloc: {
+            const std::string& name = current_frame.get_code()->get_local_name(
+                instr.get_args()[0]);
+            current_frame.set_local(name, _data_stack.pop());
             break;
+        }
         case OpCode::print: {
             Object* obj = _data_stack.pop();
             std::cout << obj->as_str() << std::endl;
@@ -312,15 +321,7 @@ namespace emerald {
         const std::vector<Object*>& args,
         std::function<Object*(Object*)> on_missing) {
         if (Object* prop = self->get_property(magic_method)) {
-            if (Function* func = dynamic_cast<Function*>(prop)) {
-                for (Object* arg : args) {
-                    _data_stack.push(arg);
-                }
-
-                _stack.push_frame(func->get_code());
-            } else if (NativeFunction* func = dynamic_cast<NativeFunction*>(prop)) {
-                _data_stack.push((*func)(&_heap, args));
-            }
+            call_obj(self, args);
         } else if (on_missing) {
             _data_stack.push(on_missing(prop));
         } else {
@@ -332,47 +333,13 @@ namespace emerald {
         const std::string& magic_method,
         size_t nargs,
         std::function<Object*(Object*)> on_missing) {
-        Object* self = _data_stack.pop();
-        std::vector<Object*> args({ self });
-        for (size_t i = 0; i < nargs; i++) {
-            args.push_back(_data_stack.pop());
-        }
-
-        execute_mm(magic_method, self, args, on_missing);
-    }
-
-    void Process::execute_mm_nr(
-        const std::string& magic_method,
-        Object* self,
-        const std::vector<Object*>& args) {
-        if (Object* prop = self->get_property(magic_method)) {
-            if (Function* func = dynamic_cast<Function*>(prop)) {
-                for (Object* arg : args) {
-                    _data_stack.push(arg);
-                }
-
-                _stack.push_frame(func->get_code());
-            } else if (NativeFunction* func = dynamic_cast<NativeFunction*>(prop)) {
-                (*func)(&_heap, args);
-            }
-        }
-    }
-
-    void Process::execute_mm_nr(
-        const std::string& magic_method,
-        size_t nargs) {
-        Object* self = _data_stack.pop();
-        std::vector<Object*> args({ self });
-        for (size_t i = 0; i < nargs; i++) {
-            args.push_back(_data_stack.pop());
-        }
-
-        execute_mm_nr(magic_method, self, args);
+        std::vector<Object*> args = pop_n_from_stack(nargs);
+        execute_mm(magic_method, args[0], args, on_missing);
     }
 
     Object* Process::new_obj(bool explicit_parent, size_t num_props) {
         if (!explicit_parent) {
-            _data_stack.push(nullptr);
+            _data_stack.push(_globals.get_object());
         }
 
         execute_mm0(magic_methods::clone);
@@ -385,6 +352,32 @@ namespace emerald {
         }
 
         return self;
+    }
+
+    void Process::call_obj(Object* obj, const std::vector<Object*>& args) {
+        if (Function* func = dynamic_cast<Function*>(obj)) {
+            for (Object* arg : args) {
+                _data_stack.push(arg);
+            }
+
+            _stack.push_frame(func->get_code());
+        } else if (NativeFunction* func = dynamic_cast<NativeFunction*>(obj)) {
+            _data_stack.push((*func)(&_heap, args));
+        } else if (Object* func = obj->get_property(magic_methods::call)) {
+            call_obj(func, args);
+        }
+    }
+
+    void Process::pop_n_from_stack(std::vector<Object*>& vec, size_t n) {
+        for (size_t i = 0; i < n; i++) {
+            vec.push_back(_data_stack.pop());
+        }
+    }
+    
+    std::vector<Object*> Process::pop_n_from_stack(size_t n) {
+        std::vector<Object*> vec;
+        pop_n_from_stack(vec, n);
+        return vec;   
     }
 
     bool Process::ProcessPriorityComparator::operator()(const Process& lhs, 

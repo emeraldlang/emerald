@@ -16,6 +16,7 @@
 */
 
 #include "emerald/compiler.h"
+#include "emerald/iterutils.h"
 #include "emerald/token.h"
 
 namespace emerald {
@@ -143,15 +144,15 @@ namespace emerald {
 
         object_statement->get_block()->accept(this);
 
-        std::shared_ptr<Expression> parent = object_statement->get_parent();
-        if (parent) {
-            parent->accept(this);
-        }
-
         const std::vector<std::string>& locals = code()->get_local_names();
         for (const std::string& local : locals) {
             code()->write_new_str(local);
             code()->write_ldloc(local);
+        }
+
+        std::shared_ptr<Expression> parent = object_statement->get_parent();
+        if (parent) {
+            parent->accept(this);
         }
 
         code()->write_new_obj(parent != nullptr, locals.size());
@@ -174,6 +175,8 @@ namespace emerald {
     void Compiler::visit(ExpressionStatement* expression_statement) {
         expression_statement->get_expression()->accept(this);
     }
+
+    void Compiler::visit(AssignmentExpression* /*assignment_expression*/) {}
 
     void Compiler::visit(BinaryOp* binary_op) {
         binary_op->get_left_expression()->accept(this);
@@ -294,7 +297,7 @@ namespace emerald {
 
     void Compiler::visit(ArrayLiteral* array_literal) {
         const std::vector<std::shared_ptr<Expression>> elements = array_literal->get_elements();
-        for (std::shared_ptr<Expression> element : elements) {
+        for (std::shared_ptr<Expression> element : iterutils::reverse(elements)) {
             element->accept(this);
         }
 
@@ -303,7 +306,7 @@ namespace emerald {
 
     void Compiler::visit(ObjectLiteral* object_literal) {
         const std::vector<std::shared_ptr<KeyValuePair>>& key_value_pairs = object_literal->get_key_value_pairs();
-        for (std::shared_ptr<KeyValuePair> key_value_pair : key_value_pairs) {
+        for (std::shared_ptr<KeyValuePair> key_value_pair : iterutils::reverse(key_value_pairs)) {
             key_value_pair->accept(this);
         }
 
@@ -311,12 +314,12 @@ namespace emerald {
     }
 
     void Compiler::visit(CloneExpression* clone_expression) {
-        clone_expression->get_parent()->accept(this);
-
         const std::vector<std::shared_ptr<Expression>> args = clone_expression->get_args();
         for (std::shared_ptr<Expression> arg : args) {
             arg->accept(this);
         }
+
+        clone_expression->get_parent()->accept(this);
 
         code()->write_new_obj_and_init(true, 0, args.size());
     }
@@ -331,8 +334,8 @@ namespace emerald {
     }
 
     void Compiler::visit(KeyValuePair* key_value_pair) {
-        key_value_pair->get_key()->accept(this);
         key_value_pair->get_value()->accept(this);
+        key_value_pair->get_key()->accept(this);
     }
 
     void Compiler::push_new_func(const std::string& label) {
@@ -341,6 +344,10 @@ namespace emerald {
 
     void Compiler::pop_func() {
         _code_stack.pop();
+    }
+
+    bool Compiler::is_top_level() {
+        return _code_stack.empty();
     }
 
     void Compiler::write_fs_condition(ForStatement* for_statement) {

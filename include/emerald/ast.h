@@ -41,6 +41,7 @@ namespace emerald {
     X(ExpressionStatement)
 
 #define EXPRESSION_NODES        \
+    X(AssignmentExpression)     \
     X(BinaryOp)                 \
     X(UnaryOp)                  \
     X(CallExpression)           \
@@ -80,6 +81,7 @@ namespace emerald {
         virtual void visit(ObjectStatement* object_statement) = 0;
         virtual void visit(ReturnStatement* return_statement) = 0;
         virtual void visit(ExpressionStatement* expression_statement) = 0;
+        virtual void visit(AssignmentExpression* assignment_expression) = 0;
         virtual void visit(BinaryOp* binary_op) = 0;
         virtual void visit(UnaryOp* unary_op) = 0;
         virtual void visit(CallExpression* call_expression) = 0;
@@ -95,63 +97,6 @@ namespace emerald {
         virtual void visit(SuperExpression* super_expression) = 0;
         virtual void visit(FunctionParameter* function_parameter) = 0;
         virtual void visit(KeyValuePair* key_value_pair) = 0;
-    };
-
-    class Resolvable {
-    public:
-        Resolvable()
-            : _index(0),
-            _is_resolved(false) {}
-        virtual ~Resolvable() = default;
-
-        size_t get_resolved_index() const {
-            return _index;
-        }
-
-        void resolve(size_t index) {
-            _index = index;
-            _is_resolved = true;
-        }
-
-        bool is_resolved() const {
-            return _is_resolved;
-        }
-
-    private:
-        size_t _index;
-        bool _is_resolved;
-    };
-
-    class ResolvableLevel {
-    public:
-        ResolvableLevel()
-            : _index(0),
-            _max_num_variables(0),
-            _is_resolved(false) {}
-        virtual ~ResolvableLevel() = default;
-
-        size_t get_resolved_index() const {
-            return _index;
-        }
-
-        size_t get_max_num_variables() const {
-            return _max_num_variables;
-        }
-
-        void resolve(size_t index, size_t max_num_variables) {
-            _index = index;
-            _max_num_variables = max_num_variables;
-            _is_resolved = true;
-        }
-
-        bool is_resolved() const {
-            return _is_resolved;
-        }
-
-    private:
-        size_t _index;
-        size_t _max_num_variables;
-        bool _is_resolved;
     };
 
     class ASTNode {
@@ -290,7 +235,7 @@ namespace emerald {
         std::vector<std::shared_ptr<Expression>> _expressions;
     };
 
-    class DeclarationStatement final : public Statement, public Resolvable {
+    class DeclarationStatement final : public Statement {
     public:
         DeclarationStatement(std::shared_ptr<SourcePosition> position, const std::string& identifier, 
             std::shared_ptr<Expression> init_expression)
@@ -308,7 +253,7 @@ namespace emerald {
         std::shared_ptr<Expression> _init_expression;
     };
 
-    class FunctionStatement final : public Statement, public ResolvableLevel {
+    class FunctionStatement final : public Statement {
     public:
         FunctionStatement(std::shared_ptr<SourcePosition> position, const std::string& identifier, 
             std::vector<std::shared_ptr<FunctionParameter>> parameters, std::shared_ptr<StatementBlock> block) 
@@ -330,7 +275,7 @@ namespace emerald {
         std::shared_ptr<StatementBlock> _block;
     };
 
-    class ObjectStatement final : public Statement, public ResolvableLevel {
+    class ObjectStatement final : public Statement {
     public:
         ObjectStatement(std::shared_ptr<SourcePosition> position, const std::string& identifier, 
             std::shared_ptr<Expression> parent, std::shared_ptr<StatementBlock> block)
@@ -377,6 +322,24 @@ namespace emerald {
 
     private:
         std::shared_ptr<Expression> _expression;
+    };
+
+    class AssignmentExpression final : public Expression {
+    public:
+        AssignmentExpression(std::shared_ptr<SourcePosition> position, std::shared_ptr<Expression> target,
+            std::shared_ptr<Expression> value)
+            : Expression(position),
+            _target(target),
+            _value(value) {}
+
+        std::shared_ptr<Expression> get_target() const { return _target; }
+        std::shared_ptr<Expression> get_expression() const { return _value; }
+
+        void accept(ASTVisitor* visitor) override { visitor->visit(this); }
+
+    private:
+        std::shared_ptr<Expression> _target;
+        std::shared_ptr<Expression> _value;
     };
 
     class BinaryOp final : public Expression {
@@ -453,7 +416,7 @@ namespace emerald {
         std::shared_ptr<Expression> _property;
     };
 
-    class Identifier : public Expression, public Resolvable {
+    class Identifier : public Expression {
     public:
         Identifier(std::shared_ptr<SourcePosition> position, std::string identifier)
             : Expression(position),
@@ -579,7 +542,7 @@ namespace emerald {
         std::shared_ptr<Expression> _object;
     };
 
-    class FunctionParameter final : public ASTNode, public Resolvable {
+    class FunctionParameter final : public ASTNode {
     public:
         FunctionParameter(std::shared_ptr<SourcePosition> position, const std::string& identifier,
             std::shared_ptr<Expression> default_expr)

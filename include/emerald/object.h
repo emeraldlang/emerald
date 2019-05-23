@@ -89,8 +89,11 @@ namespace emerald {
 
     class HeapObject : public Object, public HeapManaged {
     public:
-        HeapObject(Heap* heap);
-        HeapObject(Heap* heap, Object* parent);
+        HeapObject();
+        HeapObject(Object* parent);
+
+        bool as_bool() const override;
+        std::string as_str() const override;
 
     protected:
         virtual void reach() override;
@@ -98,8 +101,8 @@ namespace emerald {
 
     class Array final : public HeapObject {
     public:
-        Array(Heap* heap);
-        Array(Heap* heap, Object* parent);
+        Array();
+        Array(Object* parent);
 
         bool as_bool() const override;
         std::string as_str() const override;
@@ -113,8 +116,8 @@ namespace emerald {
 
     class Boolean final : public HeapObject {
     public:
-        Boolean(Heap* heap, bool value);
-        Boolean(Heap* heap, Object* parent, bool value);
+        Boolean(bool value = false);
+        Boolean(Object* parent, bool value = false);
 
         bool as_bool() const override;
         std::string as_str() const override;
@@ -127,8 +130,8 @@ namespace emerald {
 
     class Exception : public HeapObject {
     public:
-        Exception(Heap* heap, const std::string& message);
-        Exception(Heap* heap, Object* parent, const std::string& message);
+        Exception(const std::string& message);
+        Exception(Object* parent, const std::string& message);
 
         std::string as_str() const override;
 
@@ -140,8 +143,8 @@ namespace emerald {
 
     class Function final : public HeapObject {
     public:
-        Function(Heap* heap, std::shared_ptr<const Code> code);
-        Function(Heap* heap, Object* parent, std::shared_ptr<const Code> code);
+        Function(std::shared_ptr<const Code> code);
+        Function(Object* parent, std::shared_ptr<const Code> code);
 
         std::string as_str() const override;
 
@@ -153,8 +156,8 @@ namespace emerald {
 
     class Number final : public HeapObject {
     public:
-        Number(Heap* heap, double value);
-        Number(Heap* heap, Object* parent, double value);
+        Number(double value = 0);
+        Number(Object* parent, double value = 0);
 
         bool as_bool() const override;
         std::string as_str() const override;
@@ -167,14 +170,12 @@ namespace emerald {
 
     private:
         double _value;
-
-        void initialize_properties();
     };
 
     class String final : public HeapObject {
     public:
-        String(Heap* heap, const std::string& value);
-        String(Heap* heap, Object* parent, const std::string& value);
+        String(const std::string& value = "");
+        String(Object* parent, const std::string& value = "");
 
         bool as_bool() const override;
         std::string as_str() const override;
@@ -184,8 +185,6 @@ namespace emerald {
 
     private:
         std::string _value;
-
-        void initialize_properties();
     };
 
 } // namespace emerald

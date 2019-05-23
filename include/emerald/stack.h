@@ -51,12 +51,12 @@ namespace emerald {
 
             const Code::Instruction& get_next_instruction() const;
 
-            const std::vector<Object*>& get_locals() const;
-            const Object* get_local(size_t i) const;
+            const std::unordered_map<std::string, Object*>& get_locals() const;
 
-            Object* get_local(size_t i);
+            const Object* get_local(const std::string& name) const;
+            Object* get_local(const std::string& name);
 
-            void set_local(size_t i, Object* obj);
+            void set_local(const std::string& name, Object* obj);
 
             size_t num_locals() const;
 
@@ -64,7 +64,7 @@ namespace emerald {
             std::shared_ptr<const Code> _code;
             size_t _ip;
 
-            std::vector<Object*> _locals;
+            std::unordered_map<std::string, Object*> _locals;
         };
 
         uint16_t max_size() const;

@@ -28,6 +28,7 @@
 #include "emerald/code.h"
 #include "emerald/concurrent_map.h"
 #include "emerald/data_stack.h"
+#include "emerald/globals.h"
 #include "emerald/heap.h"
 #include "emerald/no_copy.h"
 #include "emerald/object.h"
@@ -93,6 +94,7 @@ namespace emerald {
 
         Stack _stack;
         Heap _heap;
+        Globals _globals;
 
         State _state;
 
@@ -123,15 +125,23 @@ namespace emerald {
             execute_mm(magic_method, 1, on_missing);
         }
 
-        void execute_mm_nr(
-            const std::string& magic_method,
-            Object* self,
-            const std::vector<Object*>& args);
-        void execute_mm_nr(
-            const std::string& magic_method,
-            size_t nargs);
-
         Object* new_obj(bool explicit_parent, size_t num_props);
+        void call_obj(Object* obj, const std::vector<Object*>& args);
+
+        void pop_n_from_stack(std::vector<Object*>& vec, size_t n);
+        std::vector<Object*> pop_n_from_stack(size_t n);
+
+        Array* allocate_array() {
+            return _heap.allocate<Array>(_globals.get_array());
+        }
+        
+        Number* allocate_number(double value) {
+            return _heap.allocate<Number>(_globals.get_number(), value);
+        }
+        
+        String* allocate_string(const std::string& value) {
+            return _heap.allocate<String>(_globals.get_string(), value);
+        }
     };
 
 }

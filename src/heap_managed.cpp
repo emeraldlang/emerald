@@ -19,9 +19,8 @@
 
 namespace emerald {
 
-    HeapManaged::HeapManaged(Heap* heap)
-        : _heap(heap), 
-        _marked(false) {}
+    HeapManaged::HeapManaged()
+        : _marked(false) {}
 
     HeapManaged::~HeapManaged() {}
 
@@ -39,13 +38,5 @@ namespace emerald {
     }
 
     void HeapManaged::reach() {}
-
-    Heap* HeapManaged::get_heap() {
-        return _heap;
-    }
-    
-    const Heap* HeapManaged::get_heap() const {
-        return _heap;
-    }
 
 } // namespace emerald

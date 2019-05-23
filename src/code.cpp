@@ -32,7 +32,9 @@
 namespace emerald {
 
     Code::Code()
-        : _id(0) {}
+        : _id(0) {
+        _globals = std::make_shared<std::vector<std::string>>();
+    }
 
     const std::string& Code::get_label() const {
         return _label;
@@ -195,7 +197,7 @@ namespace emerald {
         CHECK_THROW_LOGIC_ERROR(!label.empty(), "cannot have empty label");
 
         size_t id = _functions.size();
-        std::shared_ptr<Code> code(new Code(label, id));
+        std::shared_ptr<Code> code(new Code(label, id, _globals));
         _functions.push_back(code);
         _function_labels[label] = id;
 
@@ -246,12 +248,36 @@ namespace emerald {
         WRITE_OP(OpCode::get_parent);
     }
 
+    void Code::write_ldgbl(const std::string& name) {
+        size_t i;
+        CHECK_THROW_LOGIC_ERROR(get_global_id(name, i),
+            "no such global: " + name);
+        WRITE_OP_WARGS(OpCode::ldgbl, { i });
+    }
+    
+    void Code::write_stgbl(const std::string& name) {
+        size_t i;
+        if (!get_global_id(name, i)) {
+            i = _globals->size();
+            _globals->push_back(name);
+        }
+        WRITE_OP_WARGS(OpCode::stgbl, { i });
+    }
+
     void Code::write_ldloc(const std::string& name) {
-        WRITE_OP_WARGS(OpCode::ldloc, { get_local_id(name) });
+        size_t i;
+        CHECK_THROW_LOGIC_ERROR(get_local_id(name, i),
+            "no such local: " + name);
+        WRITE_OP_WARGS(OpCode::ldloc, { i });
     }
 
     void Code::write_stloc(const std::string& name) {
-        WRITE_OP_WARGS(OpCode::stloc, { get_local_id(name) });
+        size_t i;
+        if (!get_local_id(name, i)) {
+            i = _locals.size();
+            _locals.push_back(name);
+        }
+        WRITE_OP_WARGS(OpCode::stloc, { i });
     }
 
     void Code::write_print() {
@@ -330,9 +356,13 @@ namespace emerald {
         return _instructions.end(); 
     }
 
-    Code::Code(const std::string& label, size_t id)
+    Code::Code(
+        const std::string& label,
+        size_t id,
+        std::shared_ptr<std::vector<std::string>> globals)
         : _label(label),
-        _id(id) {}
+        _id(id),
+        _globals(globals) {}
 
     void Code::write(const Instruction& instr) { 
         _instructions.push_back(instr); 
@@ -371,17 +401,22 @@ namespace emerald {
         return entry.pos;
     }
 
-    size_t Code::get_local_id(const std::string& name) {
-        size_t i = 0;
+    bool Code::get_local_id(const std::string& name, size_t& i) {
+        i = 0;
         for (; i < _locals.size(); i++) {
             if (_locals[i] == name) break;
         }
 
-        if (i == _locals.size()) {
-            _locals.push_back(name);
+        return i < _locals.size();
+    }
+
+    bool Code::get_global_id(const std::string& name, size_t& i) {
+        i = 0;
+        for (; i < _globals->size(); i++) {
+            if ((*_globals)[i] == name) break;
         }
 
-        return i;
+        return i < _globals->size();
     }
 
     Code::Instruction::Instruction(OpCode::Value op)

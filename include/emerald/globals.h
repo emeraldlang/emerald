@@ -15,45 +15,50 @@
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef _EMERALD_HEAP_H
-#define _EMERALD_HEAP_H
+#ifndef _EMERALD_GLOBALS_H
+#define _EMERALD_GLOBALS_H
 
-#include <unordered_set>
-#include <utility>
+#include <vector>
 
-#include "emerald/heap_managed.h"
 #include "emerald/heap_root_source.h"
+#include "emerald/object.h"
 
 namespace emerald {
 
-    class Heap {
+    class Globals : public HeapRootSource {
     public:
-        Heap() = default;
-        ~Heap();
+        Globals(Heap* heap);
 
-        const std::unordered_set<HeapManaged*>& get_managed_set() const;
-        size_t get_managed_count() const;
-        void add_managed(HeapManaged* managed);
+        const HeapObject* get_object() const;
+        HeapObject* get_object();
 
-        template <class T, class... Args>
-        T* allocate(Args&&... args);
+        const Array* get_array() const;
+        Array* get_array();
 
-        void add_root_source(HeapRootSource* root_source);
-        
-        void collect();
+        const Number* get_number() const;
+        Number* get_number();
+
+        const String* get_string() const;
+        String* get_string();
+
+        std::vector<HeapManaged*> get_roots() const override;
 
     private:
-        std::unordered_set<HeapManaged*> _managed_set;
-        std::unordered_set<HeapRootSource*> _root_source_set;
-    };
+        Heap* _heap;
 
-    template <class T, class... Args>
-    T* Heap::allocate(Args&&... args) {
-        T* managed = new T(std::forward<Args>(args)...);
-        _managed_set.insert(managed);
-        return managed;
-    }
+        HeapObject* _object;
+        Array* _array;
+        Number* _number;
+        String* _string;
+
+        std::vector<Object*> _globals;
+
+        void initialize_object();
+        void initialize_array();
+        void initialize_number();
+        void initialize_string();
+    };
 
 } // namespace emerald
 
-#endif // _EMERALD_HEAP_H
+#endif // _EMERALD_GLOBALS_H

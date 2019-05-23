@@ -171,6 +171,8 @@ namespace emerald {
         end_indentation_block();
     }
 
+    void ASTPrinter::visit(AssignmentExpression* /*assignment_expression*/) {}
+
     void ASTPrinter::visit(BinaryOp* binary_op) {
         start_indentation_block("binary_op");
 

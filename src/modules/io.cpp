@@ -22,11 +22,11 @@
 namespace emerald {
 namespace modules {
 
-    FileStream::FileStream(Heap* heap)
-        : HeapObject(heap) {}
+    FileStream::FileStream()
+        : HeapObject() {}
 
-    FileStream::FileStream(Heap* heap, Object* parent)
-        : HeapObject(heap, parent) {}
+    FileStream::FileStream(Object* parent)
+        : HeapObject(parent) {}
 
     std::string FileStream::as_str() const {
         return "<file_stream>";
@@ -50,11 +50,11 @@ namespace modules {
         _stream.write(s.data(), s.size());
     }
 
-    StringStream::StringStream(Heap* heap)
-        : HeapObject(heap) {}
+    StringStream::StringStream()
+        : HeapObject() {}
 
-    StringStream::StringStream(Heap* heap, Object* parent)
-        : HeapObject(heap, parent) {}
+    StringStream::StringStream(Object* parent)
+        : HeapObject(parent) {}
 
     std::string StringStream::as_str() const {
         return "<string_stream>";

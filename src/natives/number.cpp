@@ -219,5 +219,11 @@ namespace natives {
         return heap->allocate<Number>((long)lhs->get_value() >> (long)rhs->get_value());
     }
 
+    NATIVE_FUNCTION(number_clone) {
+        EXPECT_NUM_ARGS(0);
+
+        return heap->allocate<Number>();
+    }
+
 } // namespace natives
 } // namespace emerald

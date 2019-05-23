@@ -49,6 +49,7 @@ namespace emerald {
         void visit(ObjectStatement* object_statement) override;
         void visit(ReturnStatement* return_statement) override;
         void visit(ExpressionStatement* expression_statement) override;
+        void visit(AssignmentExpression* assignment_expression) override;
         void visit(BinaryOp* binary_op) override;
         void visit(UnaryOp* unary_op) override;
         void visit(CallExpression* call_expression) override;
@@ -67,6 +68,7 @@ namespace emerald {
 
         void push_new_func(const std::string& label);
         void pop_func();
+        bool is_top_level();
 
         std::shared_ptr<Code> code() {
             if (_code_stack.size()) {

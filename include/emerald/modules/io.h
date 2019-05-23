@@ -42,8 +42,8 @@ namespace modules {
 
     class FileStream final : public HeapObject {
     public:
-        FileStream(Heap* heap);
-        FileStream(Heap* heap, Object* parent);
+        FileStream();
+        FileStream(Object* parent);
 
         std::string as_str() const override;
 
@@ -59,8 +59,8 @@ namespace modules {
 
     class StringStream final : public HeapObject {
     public:
-        StringStream(Heap* heap);
-        StringStream(Heap* heap, Object* parent);
+        StringStream();
+        StringStream(Object* parent);
 
         std::string as_str() const override;
 

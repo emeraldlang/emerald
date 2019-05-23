@@ -1,5 +1,3 @@
-def test 
-	print 'hello'
-end
+object Test
 
-test()
+end

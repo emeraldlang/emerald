@@ -109,6 +109,8 @@ namespace emerald {
         void write_set_prop();
         void write_get_parent();
 
+        void write_ldgbl(const std::string& name);
+        void write_stgbl(const std::string& name);
         void write_ldloc(const std::string& name);
         void write_stloc(const std::string& name);
 
@@ -162,8 +164,12 @@ namespace emerald {
         std::vector<LabelEntry> _labels;
 
         std::vector<std::string> _locals;
+        std::shared_ptr<std::vector<std::string>> _globals;
 
-        Code(const std::string& label, size_t id);
+        Code(  
+            const std::string& label,
+            size_t id,
+            std::shared_ptr<std::vector<std::string>> globals);
 
         void write(const Instruction& instr);
         void rewrite(size_t i, const Instruction& instr);
@@ -172,7 +178,8 @@ namespace emerald {
 
         size_t get_label_offset(size_t label);
 
-        size_t get_local_id(const std::string& name);
+        bool get_global_id(const std::string& name, size_t& i);
+        bool get_local_id(const std::string& name, size_t& i);
     };
 
     std::ostream& operator<<(std::ostream& os, const Code::Instruction& instr);

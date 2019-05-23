@@ -74,6 +74,8 @@ namespace emerald {
     X(set_prop, 0)          \
     X(get_parent, 0)        \
     /* Loads & Stores */    \
+    X(ldgbl, 1)             \
+    X(stgbl, 1)             \
     X(ldloc, 1)             \
     X(stloc, 1)             \
     /* Other */             \
