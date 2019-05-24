@@ -21,7 +21,8 @@
 
 namespace emerald {
 
-    Object::Object() {}
+    Object::Object()
+        : _parent(nullptr) {}
 
     Object::Object(Object* parent)
         : _parent(parent) {}
@@ -45,7 +46,7 @@ namespace emerald {
             return property;
         }
 
-        if (_parent != nullptr) {
+        if (_parent) {
             return _parent->get_property(key);
         }
 
@@ -95,12 +96,12 @@ namespace emerald {
         return _callable;
     }
 
-    Object* NativeFunction::invoke(Heap* heap, const std::vector<Object*>& args) {
-        return _callable(heap, args);
+    Object* NativeFunction::invoke(Heap* heap, NativePrototypes* native_prototypes, const std::vector<Object*>& args) {
+        return _callable(heap, native_prototypes, args);
     }
 
-    Object* NativeFunction::operator()(Heap* heap, const std::vector<Object*>& args) {
-        return _callable(heap, args);
+    Object* NativeFunction::operator()(Heap* heap, NativePrototypes* native_prototypes, const std::vector<Object*>& args) {
+        return _callable(heap, native_prototypes, args);
     }
 
     HeapObject::HeapObject()

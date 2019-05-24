@@ -179,8 +179,8 @@ namespace emerald {
     void Compiler::visit(AssignmentExpression* /*assignment_expression*/) {}
 
     void Compiler::visit(BinaryOp* binary_op) {
-        binary_op->get_left_expression()->accept(this);
         binary_op->get_right_expression()->accept(this);
+        binary_op->get_left_expression()->accept(this);
 
         switch (binary_op->get_operator()->get_type()) {
         // case Token::LOGIC_OR:

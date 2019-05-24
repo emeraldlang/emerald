@@ -115,6 +115,7 @@ namespace emerald {
         void write_stloc(const std::string& name);
 
         void write_print();
+        size_t write_import(const std::string& name);
 
         std::shared_ptr<const Code> get_func(const std::string& label) const;
         std::shared_ptr<Code> get_func(const std::string& label);
@@ -129,6 +130,8 @@ namespace emerald {
         const std::string& get_local_name(size_t id) const;
         const std::vector<std::string>& get_local_names() const;
         size_t get_num_locals() const;
+
+        const std::string& get_import_name(size_t id) const;
 
         std::string stringify() const;
 
@@ -165,6 +168,8 @@ namespace emerald {
 
         std::vector<std::string> _locals;
         std::shared_ptr<std::vector<std::string>> _globals;
+
+        std::vector<std::string> _import_names;
 
         Code(  
             const std::string& label,

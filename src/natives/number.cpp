@@ -37,7 +37,9 @@ namespace natives {
         TRY_CONVERT_RECV_TO(Number, lhs);
         TRY_CONVERT_ARG_TO(1, Number, rhs);
 
-        return heap->allocate<Number>(lhs->get_value() + rhs->get_value());
+        return heap->allocate<Number>(
+            native_prototypes->get_number_prototype(),
+            lhs->get_value() + rhs->get_value());
     }
 
     NATIVE_FUNCTION(number_sub) {
@@ -46,7 +48,9 @@ namespace natives {
         TRY_CONVERT_RECV_TO(Number, lhs);
         TRY_CONVERT_ARG_TO(1, Number, rhs);
 
-        return heap->allocate<Number>(lhs->get_value() - rhs->get_value());
+        return heap->allocate<Number>(
+            native_prototypes->get_number_prototype(),
+            lhs->get_value() - rhs->get_value());
     }
 
     NATIVE_FUNCTION(number_mul) {
@@ -55,7 +59,9 @@ namespace natives {
         TRY_CONVERT_RECV_TO(Number, lhs);
         TRY_CONVERT_ARG_TO(1, Number, rhs);
 
-        return heap->allocate<Number>(lhs->get_value() * rhs->get_value());
+        return heap->allocate<Number>(
+            native_prototypes->get_number_prototype(),
+            lhs->get_value() * rhs->get_value());
     }
 
     NATIVE_FUNCTION(number_div) {
@@ -64,7 +70,9 @@ namespace natives {
         TRY_CONVERT_RECV_TO(Number, lhs);
         TRY_CONVERT_ARG_TO(1, Number, rhs);
 
-        return heap->allocate<Number>(lhs->get_value() / rhs->get_value());
+        return heap->allocate<Number>(
+            native_prototypes->get_number_prototype(),
+            lhs->get_value() / rhs->get_value());
     }
 
     NATIVE_FUNCTION(number_mod) {
@@ -73,11 +81,14 @@ namespace natives {
         TRY_CONVERT_RECV_TO(Number, lhs);
         TRY_CONVERT_ARG_TO(1, Number, rhs);
 
-        return heap->allocate<Number>((long)lhs->get_value() % (long)rhs->get_value());
+        return heap->allocate<Number>(
+            native_prototypes->get_number_prototype(),
+            (long)lhs->get_value() % (long)rhs->get_value());
     }
 
     NATIVE_FUNCTION(number_prefix_inc) {
         (void)heap;
+        (void)native_prototypes;
         
         EXPECT_NUM_ARGS(1);
 
@@ -89,6 +100,7 @@ namespace natives {
 
     NATIVE_FUNCTION(number_prefix_dec) {
         (void)heap;
+        (void)native_prototypes;
         
         EXPECT_NUM_ARGS(1);
 
@@ -103,7 +115,9 @@ namespace natives {
 
         TRY_CONVERT_RECV_TO(Number, val);
 
-        Number* prev = heap->allocate<Number>(val->get_value());
+        Number* prev = heap->allocate<Number>(
+            native_prototypes->get_number_prototype(),
+            val->get_value());
         val->increment();
 
         return prev;
@@ -114,7 +128,9 @@ namespace natives {
 
         TRY_CONVERT_RECV_TO(Number, val);
 
-        Number* prev = heap->allocate<Number>(val->get_value());
+        Number* prev = heap->allocate<Number>(
+            native_prototypes->get_number_prototype(),
+            val->get_value());
         val->decrement();
 
         return prev;
@@ -126,7 +142,9 @@ namespace natives {
         TRY_CONVERT_RECV_TO(Number, lhs);
         TRY_CONVERT_ARG_TO(1, Number, rhs);
 
-        return heap->allocate<Boolean>(lhs->get_value() == rhs->get_value());
+        return heap->allocate<Boolean>(
+            native_prototypes->get_boolean_prototype(),
+            lhs->get_value() == rhs->get_value());
     }
 
     NATIVE_FUNCTION(number_neq) {
@@ -135,7 +153,9 @@ namespace natives {
         TRY_CONVERT_RECV_TO(Number, lhs);
         TRY_CONVERT_ARG_TO(1, Number, rhs);
 
-        return heap->allocate<Boolean>(lhs->get_value() != rhs->get_value());
+        return heap->allocate<Boolean>(
+            native_prototypes->get_boolean_prototype(),
+            lhs->get_value() != rhs->get_value());
     }
 
     NATIVE_FUNCTION(number_lt) {
@@ -144,7 +164,9 @@ namespace natives {
         TRY_CONVERT_RECV_TO(Number, lhs);
         TRY_CONVERT_ARG_TO(1, Number, rhs);
 
-        return heap->allocate<Boolean>(lhs->get_value() < rhs->get_value());
+        return heap->allocate<Boolean>(
+            native_prototypes->get_boolean_prototype(),
+            lhs->get_value() < rhs->get_value());
     }
 
     NATIVE_FUNCTION(number_gt) {
@@ -153,7 +175,9 @@ namespace natives {
         TRY_CONVERT_RECV_TO(Number, lhs);
         TRY_CONVERT_ARG_TO(1, Number, rhs);
 
-        return heap->allocate<Boolean>(lhs->get_value() > rhs->get_value());
+        return heap->allocate<Boolean>(
+            native_prototypes->get_boolean_prototype(),
+            lhs->get_value() > rhs->get_value());
     }
 
     NATIVE_FUNCTION(number_lte) {
@@ -162,7 +186,9 @@ namespace natives {
         TRY_CONVERT_RECV_TO(Number, lhs);
         TRY_CONVERT_ARG_TO(1, Number, rhs);
 
-        return heap->allocate<Boolean>(lhs->get_value() <= rhs->get_value());
+        return heap->allocate<Boolean>(
+            native_prototypes->get_boolean_prototype(),
+            lhs->get_value() <= rhs->get_value());
     }
 
     NATIVE_FUNCTION(number_gte) {
@@ -171,7 +197,9 @@ namespace natives {
         TRY_CONVERT_RECV_TO(Number, lhs);
         TRY_CONVERT_ARG_TO(1, Number, rhs);
 
-        return heap->allocate<Boolean>(lhs->get_value() >= rhs->get_value());
+        return heap->allocate<Boolean>(
+            native_prototypes->get_boolean_prototype(),
+            lhs->get_value() >= rhs->get_value());
     }
 
     NATIVE_FUNCTION(number_bit_or) {
@@ -180,7 +208,9 @@ namespace natives {
         TRY_CONVERT_RECV_TO(Number, lhs);
         TRY_CONVERT_ARG_TO(1, Number, rhs);
 
-        return heap->allocate<Number>((long)lhs->get_value() | (long)rhs->get_value());
+        return heap->allocate<Number>(
+            native_prototypes->get_number_prototype(),
+            (long)lhs->get_value() | (long)rhs->get_value());
     }
 
     NATIVE_FUNCTION(number_bit_xor) {
@@ -189,7 +219,9 @@ namespace natives {
         TRY_CONVERT_RECV_TO(Number, lhs);
         TRY_CONVERT_ARG_TO(1, Number, rhs);
 
-        return heap->allocate<Number>((long)lhs->get_value() ^ (long)rhs->get_value());
+        return heap->allocate<Number>(
+            native_prototypes->get_number_prototype(),
+            (long)lhs->get_value() ^ (long)rhs->get_value());
     }
 
     NATIVE_FUNCTION(number_bit_and) {
@@ -198,7 +230,9 @@ namespace natives {
         TRY_CONVERT_RECV_TO(Number, lhs);
         TRY_CONVERT_ARG_TO(1, Number, rhs);
 
-        return heap->allocate<Number>((long)lhs->get_value() & (long)rhs->get_value());
+        return heap->allocate<Number>(
+            native_prototypes->get_number_prototype(),
+            (long)lhs->get_value() & (long)rhs->get_value());
     }
 
     NATIVE_FUNCTION(number_bit_shl) {
@@ -207,7 +241,9 @@ namespace natives {
         TRY_CONVERT_RECV_TO(Number, lhs);
         TRY_CONVERT_ARG_TO(1, Number, rhs);
 
-        return heap->allocate<Number>((long)lhs->get_value() << (long)rhs->get_value());
+        return heap->allocate<Number>(
+            native_prototypes->get_number_prototype(),
+            (long)lhs->get_value() << (long)rhs->get_value());
     }
 
     NATIVE_FUNCTION(number_bit_shr) {
@@ -216,13 +252,16 @@ namespace natives {
         TRY_CONVERT_RECV_TO(Number, lhs);
         TRY_CONVERT_ARG_TO(1, Number, rhs);
 
-        return heap->allocate<Number>((long)lhs->get_value() >> (long)rhs->get_value());
+        return heap->allocate<Number>(
+            native_prototypes->get_number_prototype(),
+            (long)lhs->get_value() >> (long)rhs->get_value());
     }
 
     NATIVE_FUNCTION(number_clone) {
         EXPECT_NUM_ARGS(0);
 
-        return heap->allocate<Number>();
+        return heap->allocate<Number>(
+            native_prototypes->get_number_prototype());
     }
 
 } // namespace natives

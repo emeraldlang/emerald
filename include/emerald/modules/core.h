@@ -15,37 +15,17 @@
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef _EMERALD_NATIVES_ARRAY_H
-#define _EMERALD_NATIVES_ARRAY_H
+#ifndef _EMERALD_MODULES_CORE_H
+#define _EMERALD_MODULES_CORE_H
 
-#include "emerald/native_prototypes.h"
-#include "emerald/object.h"
-
-#define ARRAY_NATIVES   \
-    X(array_eq)         \
-    X(array_neq)        \
-    X(array_clone)      \
-    X(array_at)         \
-    X(array_front)      \
-    X(array_back)       \
-    X(array_empty)      \
-    X(array_size)       \
-    X(array_clear)      \
-    X(array_push)       \
-    X(array_pop)
+#include "emerald/module.h"
 
 namespace emerald {
-namespace natives {
+namespace modules {
 
-#define X(name) NativeFunction* get_##name();
-    ARRAY_NATIVES
-#undef X
+    MODULE_INITIALIZATION_FUNC(init_core_module);
 
-#define X(name) NATIVE_FUNCTION(name);
-    ARRAY_NATIVES
-#undef X
-
-} // namespace natives
+} // namespace modules
 } // namespace emerald
 
-#endif // _EMERALD_NATIVES_ARRAY_H
+#endif // _EMERALD_MODULES_CORE_H

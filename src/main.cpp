@@ -22,6 +22,7 @@
 
 #include "emerald/ast_printer.h"
 #include "emerald/compiler.h"
+#include "emerald/modules/init.h"
 #include "emerald/parser.h"
 #include "emerald/reporter.h"
 #include "emerald/source.h"
@@ -68,6 +69,8 @@ int main(int argc, char** argv) {
         }
 
         std::shared_ptr<emerald::Code> code = emerald::Compiler::compile(statements);
+
+        emerald::modules::add_modules_to_registry();
 
         emerald::VM vm;
         vm.start();

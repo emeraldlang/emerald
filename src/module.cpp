@@ -42,9 +42,16 @@ namespace emerald {
         _modules[name] = initialization;
     }
 
-    std::shared_ptr<Module> NativeModuleRegistry::initialize_module(const std::string& name, Heap* heap) {
+    bool NativeModuleRegistry::is_module_registered(const std::string& name) {
+        return _modules.find(name) != _modules.end();
+    }
+
+    std::shared_ptr<Module> NativeModuleRegistry::initialize_module(
+        const std::string& name,
+        Heap* heap,
+        NativePrototypes* native_prototypes) {
         ModuleInitialization initialization = _modules.at(name);
-        return initialization(heap);
+        return initialization(heap, native_prototypes);
     }
 
     std::unordered_map<std::string, NativeModuleRegistry::ModuleInitialization> NativeModuleRegistry::_modules = {};

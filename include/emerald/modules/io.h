@@ -23,6 +23,7 @@
 #include <string>
 
 #include "emerald/module.h"
+#include "emerald/native_prototypes.h"
 #include "emerald/object.h"
 
 #define FILE_STREAM_NATIVES \
@@ -81,7 +82,7 @@ namespace modules {
     STRING_STREAM_NATIVES
 #undef X
 
-    MODULE_INITIALIZATION_FUNC(io);
+    MODULE_INITIALIZATION_FUNC(init_io_module);
 
 } // namespace modules
 } // namespace emerald

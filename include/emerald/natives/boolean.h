@@ -15,47 +15,29 @@
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef _EMERALD_NATIVES_NUMBER_H
-#define _EMERALD_NATIVES_NUMBER_H
+#ifndef _EMERALD_NATIVES_BOOLEAN_H
+#define _EMERALD_NATIVES_BOOLEAN_H
 
 #include "emerald/native_prototypes.h"
 #include "emerald/object.h"
 
-#define NUMBER_NATIVES      \
-    X(number_add)           \
-    X(number_sub)           \
-    X(number_mul)           \
-    X(number_div)           \
-    X(number_mod)           \
-    X(number_prefix_inc)    \
-    X(number_prefix_dec)    \
-    X(number_postfix_inc)   \
-    X(number_postfix_dec)   \
-    X(number_eq)            \
-    X(number_neq)           \
-    X(number_lt)            \
-    X(number_gt)            \
-    X(number_lte)           \
-    X(number_gte)           \
-    X(number_bit_or)        \
-    X(number_bit_xor)       \
-    X(number_bit_and)       \
-    X(number_bit_shl)       \
-    X(number_bit_shr)       \
-    X(number_clone)
+#define BOOLEAN_NATIVES     \
+    X(boolean_eq)           \
+    X(boolean_neq)          \
+    X(boolean_clone)
 
 namespace emerald {
 namespace natives {
 
 #define X(name) NativeFunction* get_##name();
-    NUMBER_NATIVES
+    BOOLEAN_NATIVES
 #undef X
 
 #define X(name) NATIVE_FUNCTION(name);
-    NUMBER_NATIVES
+    BOOLEAN_NATIVES
 #undef X
 
 } // namespace natives
 } // namespace emerald
 
-#endif // _EMERALD_NATIVES_NUMBER_H
+#endif // _EMERALD_NATIVES_BOOLEAN_H

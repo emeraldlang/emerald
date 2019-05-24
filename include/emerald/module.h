@@ -24,9 +24,10 @@
 #include <unordered_map>
 
 #include "emerald/heap.h"
+#include "emerald/native_prototypes.h"
 #include "emerald/object.h"
 
-#define MODULE_INITIALIZATION_FUNC(name) std::shared_ptr<Module> name(Heap* heap)
+#define MODULE_INITIALIZATION_FUNC(name) std::shared_ptr<Module> name(Heap* heap, NativePrototypes* native_prototypes)
 
 namespace emerald {
 
@@ -48,10 +49,14 @@ namespace emerald {
 
     class NativeModuleRegistry {
     public:
-        using ModuleInitialization = std::function<std::shared_ptr<Module>(Heap*)>;
+        using ModuleInitialization = std::function<std::shared_ptr<Module>(Heap*, NativePrototypes*)>;
 
         static void add_module(const std::string& name, ModuleInitialization initialization);
-        static std::shared_ptr<Module> initialize_module(const std::string& name, Heap* heap);
+        static bool is_module_registered(const std::string& name);
+        static std::shared_ptr<Module> initialize_module(
+            const std::string& name,
+            Heap* heap,
+            NativePrototypes* native_prototypes);
 
     private:
         static std::unordered_map<std::string, ModuleInitialization> _modules;

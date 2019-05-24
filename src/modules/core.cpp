@@ -15,37 +15,24 @@
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef _EMERALD_NATIVES_ARRAY_H
-#define _EMERALD_NATIVES_ARRAY_H
-
-#include "emerald/native_prototypes.h"
-#include "emerald/object.h"
-
-#define ARRAY_NATIVES   \
-    X(array_eq)         \
-    X(array_neq)        \
-    X(array_clone)      \
-    X(array_at)         \
-    X(array_front)      \
-    X(array_back)       \
-    X(array_empty)      \
-    X(array_size)       \
-    X(array_clear)      \
-    X(array_push)       \
-    X(array_pop)
+#include "emerald/modules/core.h"
 
 namespace emerald {
-namespace natives {
+namespace modules {
 
-#define X(name) NativeFunction* get_##name();
-    ARRAY_NATIVES
-#undef X
+    MODULE_INITIALIZATION_FUNC(init_core_module) {
+        (void)heap;
 
-#define X(name) NATIVE_FUNCTION(name);
-    ARRAY_NATIVES
-#undef X
+        std::shared_ptr<Module> module = std::make_shared<Module>("io");
 
-} // namespace natives
+        module->add_object("Object", native_prototypes->get_object_prototype());
+        module->add_object("Array", native_prototypes->get_array_prototype());
+        module->add_object("Boolean", native_prototypes->get_boolean_prototype());
+        module->add_object("Number", native_prototypes->get_number_prototype());
+        module->add_object("String", native_prototypes->get_string_prototype());
+
+        return module;
+    }
+
+} // namespace modules
 } // namespace emerald
-
-#endif // _EMERALD_NATIVES_ARRAY_H

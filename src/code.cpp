@@ -284,6 +284,15 @@ namespace emerald {
         WRITE_OP(OpCode::print);
     }
 
+    size_t Code::write_import(const std::string& name) {
+        size_t id = _import_names.size();
+        _import_names.push_back(name);
+
+        WRITE_OP_WARGS(OpCode::import, { id });
+
+        return id;
+    }
+
     std::shared_ptr<const Code> Code::get_func(const std::string& label) const {
         return _functions[_function_labels.at(label)];
     }
@@ -322,6 +331,10 @@ namespace emerald {
 
     size_t Code::get_num_locals() const {
         return _locals.size();
+    }
+
+    const std::string& Code::get_import_name(size_t id) const {
+        return _import_names.at(id);
     }
 
     std::string Code::stringify() const {

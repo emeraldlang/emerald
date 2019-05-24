@@ -79,7 +79,8 @@ namespace emerald {
     X(ldloc, 1)             \
     X(stloc, 1)             \
     /* Other */             \
-    X(print, 0)
+    X(print, 0)             \
+    X(import, 1)
 
     class OpCode {
     public:

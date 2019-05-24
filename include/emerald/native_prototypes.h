@@ -15,8 +15,8 @@
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef _EMERALD_GLOBALS_H
-#define _EMERALD_GLOBALS_H
+#ifndef _EMERALD_NATIVE_PROTOTYPES_H
+#define _EMERALD_NATIVE_PROTOTYPES_H
 
 #include <vector>
 
@@ -25,40 +25,41 @@
 
 namespace emerald {
 
-    class Globals : public HeapRootSource {
+    class NativePrototypes : public HeapRootSource {
     public:
-        Globals(Heap* heap);
+        NativePrototypes(Heap* heap);
 
-        const HeapObject* get_object() const;
-        HeapObject* get_object();
+        const HeapObject* get_object_prototype() const;
+        HeapObject* get_object_prototype();
 
-        const Array* get_array() const;
-        Array* get_array();
+        const Array* get_array_prototype() const;
+        Array* get_array_prototype();
 
-        const Number* get_number() const;
-        Number* get_number();
+        const Boolean* get_boolean_prototype() const;
+        Boolean* get_boolean_prototype();
 
-        const String* get_string() const;
-        String* get_string();
+        const Number* get_number_prototype() const;
+        Number* get_number_prototype();
+
+        const String* get_string_prototype() const;
+        String* get_string_prototype();
 
         std::vector<HeapManaged*> get_roots() const override;
 
     private:
-        Heap* _heap;
-
         HeapObject* _object;
         Array* _array;
+        Boolean* _boolean;
         Number* _number;
         String* _string;
 
-        std::vector<Object*> _globals;
-
-        void initialize_object();
-        void initialize_array();
-        void initialize_number();
-        void initialize_string();
+        void initialize_object(Heap* heap);
+        void initialize_array(Heap* heap);
+        void initialize_boolean(Heap* heap);
+        void initialize_number(Heap* heap);
+        void initialize_string(Heap* heap);
     };
 
 } // namespace emerald
 
-#endif // _EMERALD_GLOBALS_H
+#endif // _EMERALD_NATIVE_PROTOTYPES_H

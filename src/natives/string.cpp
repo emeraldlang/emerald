@@ -36,61 +36,80 @@ namespace natives {
     NATIVE_FUNCTION(string_add) {
         EXPECT_NUM_ARGS(2);
 
-        return heap->allocate<String>(args[0]->as_str() + args[1]->as_str());
+        return heap->allocate<String>(
+            native_prototypes->get_string_prototype(),
+            args[0]->as_str() + args[1]->as_str());
     }
 
     NATIVE_FUNCTION(string_eq) {
         EXPECT_NUM_ARGS(2);
 
-        return heap->allocate<Boolean>(args[0]->as_str() == args[1]->as_str());
+        return heap->allocate<Boolean>(
+            native_prototypes->get_boolean_prototype(),
+            args[0]->as_str() == args[1]->as_str());
     }
 
     NATIVE_FUNCTION(string_neq) {
         EXPECT_NUM_ARGS(2);
 
-        return heap->allocate<Boolean>(args[0]->as_str() != args[1]->as_str());
+        return heap->allocate<Boolean>(
+            native_prototypes->get_boolean_prototype(),
+            args[0]->as_str() != args[1]->as_str());
     }
 
     NATIVE_FUNCTION(string_lt) {
         EXPECT_NUM_ARGS(2);
 
-        return heap->allocate<Boolean>(args[0]->as_str() < args[1]->as_str());
+        return heap->allocate<Boolean>(
+            native_prototypes->get_boolean_prototype(),
+            args[0]->as_str() < args[1]->as_str());
     }
 
     NATIVE_FUNCTION(string_gt) {
         EXPECT_NUM_ARGS(2);
 
-        return heap->allocate<Boolean>(args[0]->as_str() > args[1]->as_str());
+        return heap->allocate<Boolean>(
+            native_prototypes->get_boolean_prototype(),
+            args[0]->as_str() > args[1]->as_str());
     }
 
     NATIVE_FUNCTION(string_lte) {
         EXPECT_NUM_ARGS(2);
 
-        return heap->allocate<Boolean>(args[0]->as_str() <= args[1]->as_str());
+        return heap->allocate<Boolean>(
+            native_prototypes->get_boolean_prototype(),
+            args[0]->as_str() <= args[1]->as_str());
     }
 
     NATIVE_FUNCTION(string_gte) {
         EXPECT_NUM_ARGS(2);
 
-        return heap->allocate<Boolean>(args[0]->as_str() > args[1]->as_str());
+        return heap->allocate<Boolean>(
+            native_prototypes->get_boolean_prototype(),
+            args[0]->as_str() > args[1]->as_str());
     }
 
     NATIVE_FUNCTION(string_clone) {
         EXPECT_NUM_ARGS(0);
 
-        return heap->allocate<String>();
+        return heap->allocate<String>(
+            native_prototypes->get_string_prototype());
     }
 
     NATIVE_FUNCTION(string_empty) {
         EXPECT_NUM_ARGS(1);
 
-        return heap->allocate<Boolean>(args[0]->as_str().empty());
+        return heap->allocate<Boolean>(
+            native_prototypes->get_boolean_prototype(),
+            args[0]->as_str().empty());
     }
 
     NATIVE_FUNCTION(string_length) {
         EXPECT_NUM_ARGS(1);
 
-        return heap->allocate<Number>(args[0]->as_str().length());
+        return heap->allocate<Number>(
+            native_prototypes->get_number_prototype(),
+            args[0]->as_str().length());
     }
 
     NATIVE_FUNCTION(string_at) {
@@ -98,31 +117,41 @@ namespace natives {
 
         TRY_CONVERT_ARG_TO(1, Number, index);
 
-        return heap->allocate<String>(std::string(1, args[0]->as_str()[(long)index->get_value()]));
+        return heap->allocate<String>(
+            native_prototypes->get_string_prototype(),
+            std::string(1, args[0]->as_str()[(long)index->get_value()]));
     }
 
     NATIVE_FUNCTION(string_back) {
         EXPECT_NUM_ARGS(1);
 
-        return heap->allocate<String>(std::string(1, args[0]->as_str().back()));
+        return heap->allocate<String>(
+            native_prototypes->get_string_prototype(),
+            std::string(1, args[0]->as_str().back()));
     }
 
     NATIVE_FUNCTION(string_front) {
         EXPECT_NUM_ARGS(1);
 
-        return heap->allocate<String>(std::string(1, args[0]->as_str().back()));
+        return heap->allocate<String>(
+            native_prototypes->get_string_prototype(),
+            std::string(1, args[0]->as_str().back()));
     }
 
     NATIVE_FUNCTION(string_compare) {
         EXPECT_NUM_ARGS(2);
 
-        return heap->allocate<Number>(args[0]->as_str().compare(args[1]->as_str()));
+        return heap->allocate<Number>(
+            native_prototypes->get_number_prototype(),
+            args[0]->as_str().compare(args[1]->as_str()));
     }
 
     NATIVE_FUNCTION(string_find) {
         EXPECT_NUM_ARGS(2);
 
-        return heap->allocate<Number>(args[0]->as_str().find(args[1]->as_str()));
+        return heap->allocate<Number>(
+            native_prototypes->get_number_prototype(),
+            args[0]->as_str().find(args[1]->as_str()));
     }
 
     NATIVE_FUNCTION(string_substr) {
@@ -131,13 +160,16 @@ namespace natives {
         TRY_CONVERT_ARG_TO(1, Number, pos);
         TRY_CONVERT_ARG_TO(2, Number, len);
 
-        return heap->allocate<String>(args[0]->as_str().substr(pos->get_value(), len->get_value()));
+        return heap->allocate<String>(
+            native_prototypes->get_string_prototype(),
+            args[0]->as_str().substr(pos->get_value(), len->get_value()));
     }
 
     NATIVE_FUNCTION(string_format) {
         // TODO(zvp): Write custom formatter for vectors
         (void)args;
-        return heap->allocate<String>("");
+        return heap->allocate<String>(
+            native_prototypes->get_string_prototype(), "");
     }
 
 } // namespace natives

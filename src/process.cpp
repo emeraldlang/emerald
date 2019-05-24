@@ -34,13 +34,13 @@ namespace emerald {
         _parent_process(parent_process),
         _priority(priority),
         _stack(Stack(max_stack_size)),
-        _globals(&_heap),
+        _native_prototypes(&_heap),
         _state(State::start) {
         _stack.push_frame(code);
 
         _heap.add_root_source(&_data_stack);
         _heap.add_root_source(&_stack);
-        _heap.add_root_source(&_globals);
+        _heap.add_root_source(&_native_prototypes);
     }
 
     Process::PID Process::get_id() const {
@@ -133,78 +133,78 @@ namespace emerald {
             break;
         }
         case OpCode::neg:
-            execute_mm0(magic_methods::neg);
+            execute_mm1(magic_methods::neg);
             break;
         case OpCode::add:
-            execute_mm1(magic_methods::add);
+            execute_mm2(magic_methods::add);
             break;
         case OpCode::sub:
-            execute_mm1(magic_methods::sub);  
+            execute_mm2(magic_methods::sub);  
             break;
         case OpCode::mul:
-            execute_mm1(magic_methods::mul);
+            execute_mm2(magic_methods::mul);
             break;
         case OpCode::div:
-            execute_mm1(magic_methods::div);
+            execute_mm2(magic_methods::div);
             break;
         case OpCode::mod:
-            execute_mm1(magic_methods::mod);
+            execute_mm2(magic_methods::mod);
             break;
         case OpCode::prefix_inc:
-            execute_mm0(magic_methods::prefix_inc);
+            execute_mm1(magic_methods::prefix_inc);
             break;
         case OpCode::prefix_dec:
-            execute_mm0(magic_methods::prefix_dec);
+            execute_mm1(magic_methods::prefix_dec);
             break;
         case OpCode::postfix_inc:
-            execute_mm0(magic_methods::postfix_inc);
+            execute_mm1(magic_methods::postfix_inc);
             break;
         case OpCode::postfix_dec:
-            execute_mm0(magic_methods::postfix_dec);
+            execute_mm1(magic_methods::postfix_dec);
             break;
         case OpCode::eq:
-            execute_mm1(magic_methods::eq);
+            execute_mm2(magic_methods::eq);
             break;
         case OpCode::neq:
-            execute_mm1(magic_methods::neq);
+            execute_mm2(magic_methods::neq);
             break;
         case OpCode::lt:
-            execute_mm1(magic_methods::lt);
+            execute_mm2(magic_methods::lt);
             break;
         case OpCode::gt:
-            execute_mm1(magic_methods::gt);
+            execute_mm2(magic_methods::gt);
             break;
         case OpCode::lte:
-            execute_mm1(magic_methods::lte);
+            execute_mm2(magic_methods::lte);
             break;
         case OpCode::gte:
-            execute_mm1(magic_methods::gte);
+            execute_mm2(magic_methods::gte);
             break;
         case OpCode::bit_not:
-            execute_mm0(magic_methods::bit_not);
+            execute_mm1(magic_methods::bit_not);
             break;
         case OpCode::bit_or:
-            execute_mm1(magic_methods::bit_or);
+            execute_mm2(magic_methods::bit_or);
             break;
         case OpCode::bit_xor:
-            execute_mm1(magic_methods::bit_xor);
+            execute_mm2(magic_methods::bit_xor);
             break;
         case OpCode::bit_and:
-            execute_mm1(magic_methods::bit_and);
+            execute_mm2(magic_methods::bit_and);
             break;
         case OpCode::bit_shl:
-            execute_mm1(magic_methods::bit_shl);
+            execute_mm2(magic_methods::bit_shl);
             break;
         case OpCode::bit_shr:
-            execute_mm1(magic_methods::bit_shr);
+            execute_mm2(magic_methods::bit_shr);
             break;
         case OpCode::str:
-            execute_mm0(magic_methods::str, [this](Object* obj){
+            execute_mm1(magic_methods::str, [this](Object* obj){
                 return this->allocate_string(obj->as_str());
             });
             break;
         case OpCode::boolean:
-            execute_mm0(magic_methods::boolean, [this](Object* obj){
+            execute_mm1(magic_methods::boolean, [this](Object* obj){
                 return this->_heap.allocate<Boolean>(obj->as_bool());
             });
             break;
@@ -228,7 +228,7 @@ namespace emerald {
 
             std::vector<Object*> mm_args({ self });
             pop_n_from_stack(mm_args, args[2]);
-            execute_mm(magic_methods::init, self, mm_args);
+            execute_mm(magic_methods::init, mm_args);
 
             _data_stack.push(self);
             break;
@@ -310,6 +310,8 @@ namespace emerald {
             std::cout << obj->as_str() << std::endl;
             break;
         }
+        case OpCode::import: 
+            break;
         default:
             break;
         }
@@ -317,11 +319,10 @@ namespace emerald {
 
     void Process::execute_mm(
         const std::string& magic_method,
-        Object* self,
         const std::vector<Object*>& args,
         std::function<Object*(Object*)> on_missing) {
-        if (Object* prop = self->get_property(magic_method)) {
-            call_obj(self, args);
+        if (Object* prop = args[0]->get_property(magic_method)) {
+            call_obj(prop, args);
         } else if (on_missing) {
             _data_stack.push(on_missing(prop));
         } else {
@@ -334,15 +335,15 @@ namespace emerald {
         size_t nargs,
         std::function<Object*(Object*)> on_missing) {
         std::vector<Object*> args = pop_n_from_stack(nargs);
-        execute_mm(magic_method, args[0], args, on_missing);
+        execute_mm(magic_method, args, on_missing);
     }
 
     Object* Process::new_obj(bool explicit_parent, size_t num_props) {
         if (!explicit_parent) {
-            _data_stack.push(_globals.get_object());
+            _data_stack.push(_native_prototypes.get_object_prototype());
         }
 
-        execute_mm0(magic_methods::clone);
+        execute_mm1(magic_methods::clone);
 
         Object* self = _data_stack.pop();
         for (size_t i = 0; i < num_props; i++) {
@@ -362,7 +363,7 @@ namespace emerald {
 
             _stack.push_frame(func->get_code());
         } else if (NativeFunction* func = dynamic_cast<NativeFunction*>(obj)) {
-            _data_stack.push((*func)(&_heap, args));
+            _data_stack.push((*func)(&_heap, &_native_prototypes, args));
         } else if (Object* func = obj->get_property(magic_methods::call)) {
             call_obj(func, args);
         }

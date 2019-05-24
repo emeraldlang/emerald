@@ -112,7 +112,7 @@ namespace emerald {
     }
 
     void Stack::Frame::set_local(const std::string& name, Object* obj) {
-        _locals.at(name) = obj;
+        _locals[name] = obj;
     }
 
     size_t Stack::Frame::num_locals() const {
