@@ -21,7 +21,7 @@
 namespace emerald {
 namespace modules {
 
-    void add_modules_to_registry();
+    void add_module_inits_to_registry();
 
 } // namespace modules
 } // namespace emerald

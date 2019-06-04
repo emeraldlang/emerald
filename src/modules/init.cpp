@@ -23,9 +23,9 @@
 namespace emerald {
 namespace modules {
 
-    void add_modules_to_registry() {
-        NativeModuleRegistry::add_module("core", init_core_module);
-        NativeModuleRegistry::add_module("io", init_io_module);
+    void add_module_inits_to_registry() {
+        NativeModuleInitRegistry::add_module_init("core", init_core_module);
+        NativeModuleInitRegistry::add_module_init("io", init_io_module);
     }
 
 } // namespace modules

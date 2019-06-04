@@ -72,16 +72,6 @@ namespace emerald {
         return _string;
     }
 
-    std::vector<HeapManaged*> NativePrototypes::get_roots() const {
-        return std::vector<HeapManaged*>({
-            _object,
-            _array,
-            _boolean,
-            _number,
-            _string
-        });
-    }
-
     void NativePrototypes::initialize_object(Heap* heap) {
         _object = heap->allocate<HeapObject>();
     }

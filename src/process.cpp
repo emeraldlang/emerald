@@ -15,12 +15,14 @@
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include <filesystem>
 #include <iostream>
 
 #include "fmt/format.h"
 
 #include "emerald/process.h"
 #include "emerald/magic_methods.h"
+#include "emerald/strutils.h"
 
 namespace emerald {
 
@@ -40,7 +42,7 @@ namespace emerald {
 
         _heap.add_root_source(&_data_stack);
         _heap.add_root_source(&_stack);
-        _heap.add_root_source(&_native_prototypes);
+        _heap.add_root_source(&_module_registry);
     }
 
     Process::PID Process::get_id() const {
@@ -310,7 +312,7 @@ namespace emerald {
             std::cout << obj->as_str() << std::endl;
             break;
         }
-        case OpCode::import: 
+        case OpCode::import:
             break;
         default:
             break;
@@ -367,6 +369,38 @@ namespace emerald {
         } else if (Object* func = obj->get_property(magic_methods::call)) {
             call_obj(func, args);
         }
+    }
+
+    Module* Process::import_module(const std::string& name) {
+        if (_module_registry.has_module(name)) {
+            return _module_registry.get_module(name);
+        }
+
+        Module* module = nullptr;
+        if (NativeModuleInitRegistry::is_module_init_registered(name)) {
+            module = NativeModuleInitRegistry::init_module(
+                name, &_heap, &_native_prototypes);
+        } else {
+            std::vector<std::string> parts = strutils::split(name, ".");
+            std::filesystem::path path;
+            for (const std::string& part : parts) {
+                if (part != parts.back()) {
+                    path /= part;
+                } else {
+                    path /= part + ".em";
+                }
+            }
+
+            if (std::filesystem::is_regular_file(path)) {
+                // TODO(zvp): Change errors in parser and scanner.   
+            }
+        }
+
+        if (module) {
+            _module_registry.add_module(module);
+        }
+
+        return module;
     }
 
     void Process::pop_n_from_stack(std::vector<Object*>& vec, size_t n) {

@@ -189,7 +189,7 @@ namespace modules {
     }
 
     MODULE_INITIALIZATION_FUNC(init_io_module) {
-        std::shared_ptr<Module> module = std::make_shared<Module>("io");
+        Module* module = heap->allocate<Module>("io");
 
         FileStream* file_stream = heap->allocate<FileStream>(
             native_prototypes->get_object_prototype());
@@ -198,14 +198,14 @@ namespace modules {
         file_stream->set_property("is_open", get_file_stream_is_open());
         file_stream->set_property("read", get_file_stream_read());
         file_stream->set_property("write", get_file_stream_write());
-        module->add_object("FileStream", file_stream);
+        module->set_property("FileStream", file_stream);
 
         StringStream* string_stream = heap->allocate<StringStream>(
             native_prototypes->get_object_prototype());
         string_stream->set_property(magic_methods::clone, get_string_stream_clone());
         string_stream->set_property("read", get_string_stream_read());
         string_stream->set_property("write", get_string_stream_write());
-        module->add_object("StringStream", string_stream);
+        module->set_property("StringStream", string_stream);
 
         return module;
     }

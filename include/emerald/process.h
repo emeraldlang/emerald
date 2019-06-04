@@ -23,12 +23,13 @@
 #include <mutex>
 #include <stack>
 #include <queue>
-#include <iostream>
+#include <vector>
 
 #include "emerald/code.h"
 #include "emerald/concurrent_map.h"
 #include "emerald/data_stack.h"
 #include "emerald/heap.h"
+#include "emerald/module.h"
 #include "emerald/native_prototypes.h"
 #include "emerald/no_copy.h"
 #include "emerald/object.h"
@@ -94,6 +95,7 @@ namespace emerald {
 
         Stack _stack;
         Heap _heap;
+        ModuleRegistry _module_registry;
         NativePrototypes _native_prototypes;
 
         State _state;
@@ -126,6 +128,8 @@ namespace emerald {
 
         Object* new_obj(bool explicit_parent, size_t num_props);
         void call_obj(Object* obj, const std::vector<Object*>& args);
+
+        Module* import_module(const std::string& name);
 
         void pop_n_from_stack(std::vector<Object*>& vec, size_t n);
         std::vector<Object*> pop_n_from_stack(size_t n);

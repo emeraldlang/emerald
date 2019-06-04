@@ -70,7 +70,7 @@ int main(int argc, char** argv) {
 
         std::shared_ptr<emerald::Code> code = emerald::Compiler::compile(statements);
 
-        emerald::modules::add_modules_to_registry();
+        emerald::modules::add_module_inits_to_registry();
 
         emerald::VM vm;
         vm.start();

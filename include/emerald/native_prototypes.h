@@ -18,14 +18,11 @@
 #ifndef _EMERALD_NATIVE_PROTOTYPES_H
 #define _EMERALD_NATIVE_PROTOTYPES_H
 
-#include <vector>
-
-#include "emerald/heap_root_source.h"
 #include "emerald/object.h"
 
 namespace emerald {
 
-    class NativePrototypes : public HeapRootSource {
+    class NativePrototypes {
     public:
         NativePrototypes(Heap* heap);
 
@@ -43,8 +40,6 @@ namespace emerald {
 
         const String* get_string_prototype() const;
         String* get_string_prototype();
-
-        std::vector<HeapManaged*> get_roots() const override;
 
     private:
         HeapObject* _object;

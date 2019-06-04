@@ -15,6 +15,8 @@
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include "fmt/format.h"
+
 #include "emerald/module.h"
 
 namespace emerald {
@@ -22,31 +24,35 @@ namespace emerald {
     Module::Module(const std::string& name)
         : _name(name) {}
 
+    Module::Module(const std::string& name, std::shared_ptr<Code> code)
+        : _name(name),
+        _code(code) {}
+
     const std::string& Module::get_name() const {
         return _name;
     }
 
-    void Module::add_object(const std::string& name, Object* obj) {
-        _objects[name] = obj;
+    std::shared_ptr<Code> Module::get_code() const {
+        return _code;
     }
 
-    const Object* Module::get_object(const std::string& name) const {
-        return _objects.at(name);
+    bool Module::is_native_module() const {
+        return _code == nullptr;
     }
 
-    Object* Module::get_object(const std::string& name) {
-        return _objects.at(name);
+    std::string Module::as_str() const {
+        return fmt::format("<module {0}>", _name);
     }
 
-    void NativeModuleRegistry::add_module(const std::string& name, ModuleInitialization initialization) {
+    void NativeModuleInitRegistry::add_module_init(const std::string& name, ModuleInitialization initialization) {
         _modules[name] = initialization;
     }
 
-    bool NativeModuleRegistry::is_module_registered(const std::string& name) {
+    bool NativeModuleInitRegistry::is_module_init_registered(const std::string& name) {
         return _modules.find(name) != _modules.end();
     }
 
-    std::shared_ptr<Module> NativeModuleRegistry::initialize_module(
+    Module* NativeModuleInitRegistry::init_module(
         const std::string& name,
         Heap* heap,
         NativePrototypes* native_prototypes) {
@@ -54,6 +60,31 @@ namespace emerald {
         return initialization(heap, native_prototypes);
     }
 
-    std::unordered_map<std::string, NativeModuleRegistry::ModuleInitialization> NativeModuleRegistry::_modules = {};
+    std::unordered_map<std::string, NativeModuleInitRegistry::ModuleInitialization> NativeModuleInitRegistry::_modules = {};
+
+    void ModuleRegistry::add_module(Module* module) {
+        _modules[module->get_name()] = module;
+    }
+
+    bool ModuleRegistry::has_module(const std::string& name) const {
+        return _modules.find(name) != _modules.end();
+    }
+
+    const Module* ModuleRegistry::get_module(const std::string& name) const {
+        return _modules.at(name);
+    }
+    
+    Module* ModuleRegistry::get_module(const std::string& name) {
+        return _modules.at(name);
+    }
+
+    std::vector<HeapManaged*> ModuleRegistry::get_roots() const {
+        std::vector<HeapManaged*> roots;
+        for (std::pair<std::string, Module*> pair : _modules) {
+            roots.push_back(pair.second);
+        }
+
+        return roots;
+    }
 
 } // namespace emerald

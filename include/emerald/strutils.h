@@ -15,22 +15,28 @@
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "emerald/modules/core.h"
+#ifndef _EMERALD_STRUTILS_H
+#define _EMERALD_STRUTILS_H
+
+#include <string>
+#include <vector>
 
 namespace emerald {
-namespace modules {
+namespace strutils {
 
-    MODULE_INITIALIZATION_FUNC(init_core_module) {
-        Module* module = heap->allocate<Module>("io");
+    std::vector<std::string> split(const std::string& str, const std::string& delimiters) {
+        std::vector<std::string> res;
+        std::string::size_type cur = str.find_first_of(delimiters), prev = 0;
+        while (cur != std::string::npos) {
+            res.push_back(str.substr(prev, cur - prev));
+            prev = cur + 1;
+            cur = str.find_first_of(delimiters, prev);
+        }
 
-        module->set_property("Object", native_prototypes->get_object_prototype());
-        module->set_property("Array", native_prototypes->get_array_prototype());
-        module->set_property("Boolean", native_prototypes->get_boolean_prototype());
-        module->set_property("Number", native_prototypes->get_number_prototype());
-        module->set_property("String", native_prototypes->get_string_prototype());
-
-        return module;
+        return res;
     }
 
-} // namespace modules
+} // namespace strutils
 } // namespace emerald
+
+#endif // _EMERALD_STRUTILS_H

@@ -19,47 +19,67 @@
 #define _EMERALD_MODULE_H
 
 #include <functional>
-#include <memory>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
+#include "emerald/code.h"
 #include "emerald/heap.h"
+#include "emerald/heap_root_source.h"
 #include "emerald/native_prototypes.h"
 #include "emerald/object.h"
 
-#define MODULE_INITIALIZATION_FUNC(name) std::shared_ptr<Module> name(Heap* heap, NativePrototypes* native_prototypes)
+#define MODULE_INITIALIZATION_FUNC(name) Module* name(Heap* heap, NativePrototypes* native_prototypes)
 
 namespace emerald {
 
-    class Module {
+    class Module : public HeapObject {
     public:
         Module(const std::string& name);
+        Module(const std::string& name, std::shared_ptr<Code> code);
 
         const std::string& get_name() const;
+        std::shared_ptr<Code> get_code() const;
 
-        void add_object(const std::string& name, Object* obj);
+        bool is_native_module() const;
 
-        const Object* get_object(const std::string& name) const;
-        Object* get_object(const std::string& name);
+        std::string as_str() const override;
 
     private:
         std::string _name;
-        std::unordered_map<std::string, Object*> _objects;
+        std::shared_ptr<Code> _code;
     };
 
-    class NativeModuleRegistry {
+    class NativeModuleInitRegistry {
     public:
-        using ModuleInitialization = std::function<std::shared_ptr<Module>(Heap*, NativePrototypes*)>;
+        using ModuleInitialization = std::function<Module*(Heap*, NativePrototypes*)>;
 
-        static void add_module(const std::string& name, ModuleInitialization initialization);
-        static bool is_module_registered(const std::string& name);
-        static std::shared_ptr<Module> initialize_module(
+        static void add_module_init(const std::string& name, ModuleInitialization initialization);
+        static bool is_module_init_registered(const std::string& name);
+        static Module* init_module(
             const std::string& name,
             Heap* heap,
             NativePrototypes* native_prototypes);
 
     private:
         static std::unordered_map<std::string, ModuleInitialization> _modules;
+    };
+
+    class ModuleRegistry : public HeapRootSource {
+    public:
+        ModuleRegistry() = default;
+
+        void add_module(Module* module);
+
+        bool has_module(const std::string& name) const;
+
+        const Module* get_module(const std::string& name) const;
+        Module* get_module(const std::string& name);
+
+        std::vector<HeapManaged*> get_roots() const override;
+
+    private:
+        std::unordered_map<std::string, Module*> _modules;
     };
 
 } // namespace emerald
