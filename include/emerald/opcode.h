@@ -63,7 +63,7 @@ namespace emerald {
     X(ret, 0)               \
     /* Objects */           \
     X(new_obj, 2)           \
-    X(new_obj_and_init, 3)  \
+    X(init, 1)              \
     X(new_func, 1)          \
     X(new_num, 1)           \
     X(new_str, 1)           \

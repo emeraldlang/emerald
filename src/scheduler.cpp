@@ -73,12 +73,12 @@ namespace emerald {
                 process->set_running();
 
                 for (size_t i = 0; i < QUANTUM; i++) {
-                    if (process->is_terminated() || process->is_suspended()) break;
+                    if (process->is_terminated() || process->is_waiting()) break;
                     process->execute();
                 }
 
-                if (!process->is_terminated()) {
-                    process->set_suspended();
+                if (process->is_running()) {
+                    process->set_ready();
                     _run_queue->push(process);
                 }
             }

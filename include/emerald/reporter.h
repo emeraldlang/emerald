@@ -30,9 +30,9 @@
     X(illegal_token, "illegal token '{0}'", Severity::error)                                    \
     X(unexpected_token, "unexpected token '{0}'", Severity::error)                              \
     X(unexpected_eosf, "unexpected eosf", Severity::error)                                      \
-    X(duplicate_declaration, "'{0}' has already been declared in this scope", Severity::error)  \
-    X(undeclared, "'{0}' has not been declared in this scope", Severity::error)                 \
-    X(illegal_return, "return statement not in function", Severity::error)
+    X(illegal_return, "return statement not in function", Severity::error)                      \
+    X(undeclared_variable, "'{0}' has not been declared in this score", Severity::error)        \
+    X(invalid_lvalue, "invalid lvalue", Severity::error)
 
 namespace emerald {
 
@@ -60,7 +60,7 @@ namespace emerald {
         static const std::string& get_report_template(Code code);
 
         template<class... Args>
-        static std::string format_report(Code code, Args&&...);
+        static std::string format_report(Code code, Args&&... args);
 
         static Severity::Level get_severity(Code code);
 

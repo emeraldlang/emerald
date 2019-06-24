@@ -98,7 +98,7 @@ namespace emerald {
         void write_ret();
 
         void write_new_obj(bool explicit_parent, size_t num_props);
-        void write_new_obj_and_init(bool explicit_parent, size_t num_props, size_t num_args);
+        void write_init(size_t num_args);
         std::shared_ptr<Code> write_new_func(const std::string& label);
         size_t write_new_num(double val);
         size_t write_new_str(const std::string& val);
@@ -127,9 +127,15 @@ namespace emerald {
         double get_num_constant(size_t id) const;
         const std::string& get_str_constant(size_t id) const;
 
+        bool is_local_name(const std::string& name);
         const std::string& get_local_name(size_t id) const;
         const std::vector<std::string>& get_local_names() const;
         size_t get_num_locals() const;
+
+        bool is_global_name(const std::string& name);
+        const std::string& get_global_name(size_t id) const;
+        std::shared_ptr<const std::vector<std::string>> get_global_names() const;
+        size_t get_num_globals() const;
 
         const std::string& get_import_name(size_t id) const;
 

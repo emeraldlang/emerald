@@ -267,7 +267,7 @@ namespace emerald {
                 right = parse_expression(right, lookahead->get_precedence());
                 lookahead = _scanner.peek();
             }
-            
+
             left = std::make_shared<BinaryOp>(end_pos(start), left, op, right);
         }
         

@@ -59,19 +59,20 @@ namespace emerald {
         uint8_t get_priority() const;
 
         enum State {
-            start,
+            ready,
             running,
-            suspended,
+            waiting,
             terminated
         };
 
         State get_state() const;
 
-        void set_suspended();
+        void set_ready();
         void set_running();
 
+        bool is_ready() const;
         bool is_running() const;
-        bool is_suspended() const;
+        bool is_waiting() const;
         bool is_terminated() const;
 
         void receive(Object* message);

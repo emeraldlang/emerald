@@ -51,15 +51,13 @@ int main(int argc, char** argv) {
         }
     });
 
-    CLI::App* run = app.add_subcommand(
-        "run",
-        "executes the emerald code.");
+    CLI::App* compile = app.add_subcommand(
+        "compile",
+        "compiles an emerald source file into bytecode.");
 
-    // std::string configuration_file;
-    run->add_option("source_file", source_file, "specifies the emerald source file")->required();
-
-    run->callback([&]() {
+    compile->callback([&]() {
         std::shared_ptr<emerald::Reporter> reporter = std::make_shared<emerald::Reporter>();
+
         std::vector<std::shared_ptr<emerald::Statement>> statements = emerald::Parser::parse(
             emerald::Source::from_file(source_file),
             reporter);
@@ -68,19 +66,43 @@ int main(int argc, char** argv) {
             return;
         }
 
-        std::shared_ptr<emerald::Code> code = emerald::Compiler::compile(statements);
+        std::shared_ptr<emerald::Code> code = emerald::Compiler::compile(
+            statements,
+            reporter);
+        if (reporter->has_errors()) {
+            reporter->print();
+            return;
+        }
+    });
 
+    CLI::App* init = app.add_subcommand(
+        "init",
+        "initializes a new emerald project.");
+
+    init->callback([&]() {
+        std::cout
+            << "This command will create an emerald build for you." << std::endl
+            << "After the YAML file has been created for you can use" << std::endl
+            << "`emerald run [-b, --build_config_path = build.yaml]` to" << std::endl
+            << "run your program." << std::endl;
+    });
+
+
+    CLI::App* run = app.add_subcommand(
+        "run",
+        "executes the emerald code.");
+
+    // std::string configuration_file;
+    run->add_option("source_file", source_file, "specifies the emerald source file")->required();
+
+    run->callback([&]() {
         emerald::modules::add_module_inits_to_registry();
 
-        emerald::VM vm;
-        vm.start();
-        vm.create_process(code);
+        // emerald::VM vm;
+        // vm.start();
+        // vm.create_process(code);
 
-        // TODO(zvp): Wait for SIGINT
-        int x;
-        std::cin >> x;
-
-        vm.stop();
+        // vm.stop();
     });
 
     CLI11_PARSE(app, argc, argv);

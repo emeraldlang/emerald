@@ -22,19 +22,22 @@
 #include <stack>
 #include <vector>
 
-#include "emerald/code.h"
-
 #include "emerald/ast.h"
+#include "emerald/code.h"
+#include "emerald/reporter.h"
 
 namespace emerald {
 
     class Compiler : public ASTVisitor {
     public:
-        static std::shared_ptr<Code> compile(const std::vector<std::shared_ptr<Statement>>& statements);
+        static std::shared_ptr<Code> compile(
+            const std::vector<std::shared_ptr<Statement>>& statements,
+            std::shared_ptr<Reporter> reporter);
 
     private:
-        Compiler();
+        Compiler(std::shared_ptr<Reporter> reporter);
 
+        std::shared_ptr<Reporter> _reporter;
         std::shared_ptr<Code> _code;
         std::stack<std::shared_ptr<Code>> _code_stack;
 

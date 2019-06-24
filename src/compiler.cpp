@@ -21,8 +21,10 @@
 
 namespace emerald {
 
-    std::shared_ptr<Code> Compiler::compile(const std::vector<std::shared_ptr<Statement>>& statements) {
-        Compiler compiler;
+    std::shared_ptr<Code> Compiler::compile(
+            const std::vector<std::shared_ptr<Statement>>& statements,
+            std::shared_ptr<Reporter> reporter) {
+        Compiler compiler(reporter);
         for (std::shared_ptr<Statement> statement : statements) {
             statement->accept(&compiler);
         }
@@ -30,8 +32,9 @@ namespace emerald {
         return compiler._code;
     }
 
-    Compiler::Compiler()
-        : _code(new Code()) {}
+    Compiler::Compiler(std::shared_ptr<Reporter> reporter)
+        : _reporter(reporter), 
+        _code(new Code()) {}
 
     void Compiler::visit(StatementBlock* statement_block) {
         for (std::shared_ptr<Statement> statement : statement_block->get_statements()) {
@@ -122,7 +125,11 @@ namespace emerald {
             // code()->write_null();
         }
 
-        code()->write_stloc(declaration_statement->get_identifier());
+        if (is_top_level()) {
+            code()->write_stgbl(declaration_statement->get_identifier());
+        } else {
+            code()->write_stloc(declaration_statement->get_identifier());
+        }
     }
 
     void Compiler::visit(FunctionStatement* function_statement) {
@@ -136,7 +143,11 @@ namespace emerald {
 
         pop_func();
 
-        code()->write_stloc(function_statement->get_identifier());
+        if (is_top_level()) {
+            code()->write_stgbl(function_statement->get_identifier());
+        } else {
+            code()->write_stloc(function_statement->get_identifier());
+        }
     }
 
     void Compiler::visit(ObjectStatement* object_statement) {
@@ -161,10 +172,21 @@ namespace emerald {
         pop_func();
 
         code()->write_call(0);
-        code()->write_stloc(object_statement->get_identifier());
+    
+        if (is_top_level()) {
+            code()->write_stgbl(object_statement->get_identifier());
+        } else {
+            code()->write_stloc(object_statement->get_identifier());
+        }
     }
 
     void Compiler::visit(ReturnStatement* return_statement) {
+        if (is_top_level()) {
+            std::string msg = ReportCode::format_report(ReportCode::illegal_return);
+            _reporter->report(ReportCode::illegal_return, msg,
+                return_statement->get_source_position());
+        }
+
         if (std::shared_ptr<Expression> expression = return_statement->get_expression()) {
             expression->accept(this);
         }
@@ -276,7 +298,16 @@ namespace emerald {
     }
 
     void Compiler::visit(Identifier* identifier) {
-        code()->write_ldloc(identifier->get_identifier());
+        const std::string& name = identifier->get_identifier();
+        if (code()->is_local_name(name)) {
+            code()->write_ldloc(name);
+        } else if (code()->is_global_name(name)) {
+            code()->write_ldgbl(name);
+        } else {
+            std::string msg = ReportCode::format_report(ReportCode::undeclared_variable, name);
+            _reporter->report(ReportCode::undeclared_variable, msg,
+                identifier->get_source_position());
+        }
     }
 
     void Compiler::visit(NumberLiteral* number_literal) {
@@ -314,14 +345,14 @@ namespace emerald {
     }
 
     void Compiler::visit(CloneExpression* clone_expression) {
+        clone_expression->get_parent()->accept(this);
+        code()->write_new_obj(true, 0);
+
         const std::vector<std::shared_ptr<Expression>> args = clone_expression->get_args();
         for (std::shared_ptr<Expression> arg : args) {
             arg->accept(this);
         }
-
-        clone_expression->get_parent()->accept(this);
-
-        code()->write_new_obj_and_init(true, 0, args.size());
+        code()->write_init(args.size());
     }
     
     void Compiler::visit(SuperExpression* super_expression) {

@@ -15,7 +15,6 @@
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <filesystem>
 #include <iostream>
 
 #include "fmt/format.h"
@@ -37,7 +36,7 @@ namespace emerald {
         _priority(priority),
         _stack(Stack(max_stack_size)),
         _native_prototypes(&_heap),
-        _state(State::start) {
+        _state(State::ready) {
         _stack.push_frame(code);
 
         _heap.add_root_source(&_data_stack);
@@ -65,21 +64,24 @@ namespace emerald {
         return _state;
     }
 
-    void Process::set_suspended() {
-        _heap.collect(); // TODO(zvp): Collect in allocate if has mem pressure
-        _state = State::suspended;
+    void Process::set_ready() {
+        _state = State::ready;
     }
 
     void Process::set_running() {
         _state = State::running;
     }
 
-    bool Process::is_suspended() const {
-        return _state == State::suspended;
+    bool Process::is_ready() const {
+        return _state == State::ready;
     }
 
     bool Process::is_running() const {
         return _state == State::running;
+    }
+
+    bool Process::is_waiting() const {
+        return _state == State::waiting;
     }
 
     bool Process::is_terminated() const {
@@ -224,12 +226,11 @@ namespace emerald {
             _data_stack.push(new_obj(args[0], args[1]));
             break;
         }
-        case OpCode::new_obj_and_init: {
-            const std::vector<uint64_t>& args = instr.get_args();
-            Object* self = new_obj(args[0], args[1]);
+        case OpCode::init: {
+            Object* self = _data_stack.pop();
 
             std::vector<Object*> mm_args({ self });
-            pop_n_from_stack(mm_args, args[2]);
+            pop_n_from_stack(mm_args, instr.get_args()[0]);
             execute_mm(magic_methods::init, mm_args);
 
             _data_stack.push(self);
@@ -320,9 +321,9 @@ namespace emerald {
     }
 
     void Process::execute_mm(
-        const std::string& magic_method,
-        const std::vector<Object*>& args,
-        std::function<Object*(Object*)> on_missing) {
+            const std::string& magic_method,
+            const std::vector<Object*>& args,
+            std::function<Object*(Object*)> on_missing) {
         if (Object* prop = args[0]->get_property(magic_method)) {
             call_obj(prop, args);
         } else if (on_missing) {
@@ -333,8 +334,8 @@ namespace emerald {
     }
 
     void Process::execute_mm(
-        const std::string& magic_method,
-        size_t nargs,
+            const std::string& magic_method,
+            size_t nargs,
         std::function<Object*(Object*)> on_missing) {
         std::vector<Object*> args = pop_n_from_stack(nargs);
         execute_mm(magic_method, args, on_missing);
@@ -381,19 +382,8 @@ namespace emerald {
             module = NativeModuleInitRegistry::init_module(
                 name, &_heap, &_native_prototypes);
         } else {
-            std::vector<std::string> parts = strutils::split(name, ".");
-            std::filesystem::path path;
-            for (const std::string& part : parts) {
-                if (part != parts.back()) {
-                    path /= part;
-                } else {
-                    path /= part + ".em";
-                }
-            }
-
-            if (std::filesystem::is_regular_file(path)) {
-                // TODO(zvp): Change errors in parser and scanner.   
-            }
+            // something, something, load the code from disk
+            // asynchronously and suspend self
         }
 
         if (module) {

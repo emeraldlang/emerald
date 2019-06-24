@@ -189,8 +189,8 @@ namespace emerald {
         WRITE_OP_WARGS(OpCode::new_obj, { explicit_parent, num_props });
     }
 
-    void Code::write_new_obj_and_init(bool explicit_parent, size_t num_props, size_t num_args) {
-        WRITE_OP_WARGS(OpCode::new_obj_and_init, { explicit_parent, num_props, num_args });
+    void Code::write_init(size_t num_args) {
+        WRITE_OP_WARGS(OpCode::init, { num_args });
     }
 
     std::shared_ptr<Code> Code::write_new_func(const std::string& label) {
@@ -321,6 +321,10 @@ namespace emerald {
         return _str_constants.at(id);
     }
 
+    bool Code::is_local_name(const std::string& name) {
+        return std::find(_locals.begin(), _locals.end(), name) != _locals.end();
+    }
+
     const std::string& Code::get_local_name(size_t id) const {
         return _locals.at(id);
     }
@@ -331,6 +335,22 @@ namespace emerald {
 
     size_t Code::get_num_locals() const {
         return _locals.size();
+    }
+
+    bool Code::is_global_name(const std::string& name) {
+        return std::find(_globals->begin(), _globals->end(), name) != _globals->end();
+    }
+
+    const std::string& Code::get_global_name(size_t id) const {
+        return _globals->at(id);
+    }
+
+    std::shared_ptr<const std::vector<std::string>> Code::get_global_names() const {
+        return _globals;
+    }
+
+    size_t Code::get_num_globals() const {
+        return _globals->size();
     }
 
     const std::string& Code::get_import_name(size_t id) const {
