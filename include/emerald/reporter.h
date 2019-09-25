@@ -31,7 +31,7 @@
     X(unexpected_token, "unexpected token '{0}'", Severity::error)                              \
     X(unexpected_eosf, "unexpected eosf", Severity::error)                                      \
     X(illegal_return, "return statement not in function", Severity::error)                      \
-    X(undeclared_variable, "'{0}' has not been declared in this score", Severity::error)        \
+    X(undeclared_variable, "'{0}' has not been declared in this scope", Severity::error)        \
     X(invalid_lvalue, "invalid lvalue", Severity::error)
 
 namespace emerald {

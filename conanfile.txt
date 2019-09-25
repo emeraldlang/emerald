@@ -1,6 +1,7 @@
 [requires]
 fmt/5.2.1@bincrafters/stable
 CLI11/1.7.1@cliutils/stable
+cereal/1.2.2@conan/stable
 
 [generators]
 cmake

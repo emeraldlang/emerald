@@ -24,7 +24,7 @@
 namespace emerald {
 namespace strutils {
 
-    std::vector<std::string> split(const std::string& str, const std::string& delimiters) {
+    inline std::vector<std::string> split(const std::string& str, const std::string& delimiters) {
         std::vector<std::string> res;
         std::string::size_type cur = str.find_first_of(delimiters), prev = 0;
         while (cur != std::string::npos) {

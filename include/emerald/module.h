@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "emerald/code.h"
+#include "emerald/concurrent_map.h"
 #include "emerald/heap.h"
 #include "emerald/heap_root_source.h"
 #include "emerald/native_prototypes.h"
@@ -54,15 +55,15 @@ namespace emerald {
     public:
         using ModuleInitialization = std::function<Module*(Heap*, NativePrototypes*)>;
 
-        static void add_module_init(const std::string& name, ModuleInitialization initialization);
-        static bool is_module_init_registered(const std::string& name);
+        static void add_module_init(const std::string& alias, ModuleInitialization initialization);
+        static bool is_module_init_registered(const std::string& alias);
         static Module* init_module(
-            const std::string& name,
+            const std::string& alias,
             Heap* heap,
             NativePrototypes* native_prototypes);
 
     private:
-        static std::unordered_map<std::string, ModuleInitialization> _modules;
+        static ConcurrentMap<std::string, ModuleInitialization> _modules;
     };
 
     class ModuleRegistry : public HeapRootSource {

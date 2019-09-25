@@ -60,6 +60,8 @@ namespace emerald {
             return parse_object_statement();
         case Token::RET:
             return parse_return_statement();
+        case Token::IMPORT:
+            return parse_import_statement();
         default:
             return parse_expression_statement();
         }
@@ -239,6 +241,17 @@ namespace emerald {
 
         std::shared_ptr<Expression> expression = parse_expression();
         return std::make_shared<ReturnStatement>(end_pos(start), expression);
+    }
+
+    std::shared_ptr<ImportStatement> Parser::parse_import_statement() {
+        expect(Token::IMPORT);
+
+        std::shared_ptr<SourcePosition> start = start_pos();
+
+        expect(Token::IDENTIFIER);
+        std::string identifier = _scanner.current()->get_lexeme();
+
+        return std::make_shared<ImportStatement>(end_pos(start), identifier);
     }
 
     std::shared_ptr<ExpressionStatement> Parser::parse_expression_statement() {

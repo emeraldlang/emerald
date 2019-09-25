@@ -38,6 +38,7 @@ namespace emerald {
     X(FunctionStatement)        \
     X(ObjectStatement)          \
     X(ReturnStatement)          \
+    X(ImportStatement)          \
     X(ExpressionStatement)
 
 #define EXPRESSION_NODES        \
@@ -56,6 +57,10 @@ namespace emerald {
     X(ObjectLiteral)            \
     X(CloneExpression)          \
     X(SuperExpression)
+
+#define LVALUE_NODES            \
+    X(IdentifierLValue)         \
+    X(PropertyLValue)
 
 #define AST_NODES               \
     X(FunctionParameter)        \
@@ -80,6 +85,7 @@ namespace emerald {
         virtual void visit(FunctionStatement* function_statement) = 0;
         virtual void visit(ObjectStatement* object_statement) = 0;
         virtual void visit(ReturnStatement* return_statement) = 0;
+        virtual void visit(ImportStatement* import_statement) = 0;
         virtual void visit(ExpressionStatement* expression_statement) = 0;
         virtual void visit(AssignmentExpression* assignment_expression) = 0;
         virtual void visit(BinaryOp* binary_op) = 0;
@@ -124,6 +130,12 @@ namespace emerald {
     class Expression : public ASTNode {
     public:
         Expression(std::shared_ptr<SourcePosition> position)
+            : ASTNode(position) {}
+    };
+
+    class LValue : public ASTNode {
+    public:
+        LValue(std::shared_ptr<SourcePosition> position)
             : ASTNode(position) {}
     };
 
@@ -308,6 +320,20 @@ namespace emerald {
 
     private:
         std::shared_ptr<Expression> _expression;
+    };
+
+    class ImportStatement final : public Statement {
+    public:
+        ImportStatement(std::shared_ptr<SourcePosition> position, const std::string& module_name)
+            : Statement(position),
+            _module_name(module_name) {}
+
+        const std::string& get_module_name() const { return _module_name; }
+
+        void accept(ASTVisitor* visitor) override { visitor->visit(this); }
+
+    private:
+        std::string _module_name;
     };
 
     class ExpressionStatement final : public Statement {

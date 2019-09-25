@@ -17,9 +17,12 @@
 
 #include <algorithm>
 #include <fstream>
-#include <iomanip>
-#include <iterator>
 #include <sstream>
+
+#include "cereal/archives/binary.hpp"
+#include "cereal/types/memory.hpp"
+#include "cereal/types/vector.hpp"
+#include "cereal/types/unordered_map.hpp"
 
 #include "emerald/check.h"
 #include "emerald/code.h"
@@ -34,6 +37,17 @@ namespace emerald {
     Code::Code()
         : _id(0) {
         _globals = std::make_shared<std::vector<std::string>>();
+    }
+
+    Code::Code(const std::filesystem::path& path) {
+        std::ifstream ifs(path, std::ios::binary);
+
+        cereal::BinaryInputArchive archive(ifs);
+        archive(*this);
+    }
+
+    std::shared_ptr<Code> Code::from_file(const std::filesystem::path& path) {
+        return nullptr;
     }
 
     const std::string& Code::get_label() const {
@@ -353,20 +367,37 @@ namespace emerald {
         return _globals->size();
     }
 
+    const std::vector<std::string>& Code::get_import_names() const {
+        return _import_names;
+    }
+
     const std::string& Code::get_import_name(size_t id) const {
         return _import_names.at(id);
     }
 
-    std::string Code::stringify() const {
-        return stringify(0);
+    std::string Code::to_binary() const {
+        std::ostringstream oss;
+
+        cereal::BinaryOutputArchive archive(oss);
+        archive(*this);
+
+        return oss.str();
     }
 
-    void Code::write_to_file(const std::filesystem::path&) {
-        // todo(zvp): design file structure, headers with metadata
+    std::string Code::to_string() const {
+        return to_string(0);
     }
 
-    void Code::write_to_file_pretty(const std::filesystem::path&) {
-        // todo(zvp): implement me
+    void Code::write_to_file(const std::filesystem::path& path) {
+        std::ofstream ofs(path, std::ios::binary);
+
+        cereal::BinaryOutputArchive archive(ofs);
+        archive(*this);
+    }
+
+    void Code::write_to_file_pretty(const std::filesystem::path& path) {
+        std::ofstream ofs(path);
+        ofs << to_string();
     }
 
     const Code::Instruction& Code::operator[](size_t i) const {
@@ -405,21 +436,19 @@ namespace emerald {
         _instructions.at(i) = instr;
     }
 
-    std::string Code::stringify(size_t depth) const {
+    std::string Code::to_string(size_t depth) const {
         std::ostringstream oss;
-        bool include_label = depth > 0 && !_label.empty();
-        if (include_label) {
-            oss << _label << '(' << _id << "):" << std::endl;
+        if (depth > 0 && !_label.empty()) {
+            oss << std::string((depth - 1) * SPACES, ' ') << _label << '(' << _id << "):" << std::endl;
         }
 
         for (size_t i = 0; i < _instructions.size(); i++) {
             if (i > 0) oss << std::endl;
-            if (include_label) oss << std::setw(SPACES * depth) << std::setfill(' ');
-            oss << _instructions[i];
+            oss << std::string(depth * SPACES, ' ') << _instructions[i];
         }
 
         for (size_t i = 0; i < _functions.size(); i++) {
-            oss << std::endl << _functions[i]->stringify(i + 1);
+            oss << std::endl << _functions[i]->to_string(depth + 1);
         }
 
         return oss.str();
@@ -434,6 +463,15 @@ namespace emerald {
         return entry.pos;
     }
 
+    bool Code::get_global_id(const std::string& name, size_t& i) {
+        i = 0;
+        for (; i < _globals->size(); i++) {
+            if ((*_globals)[i] == name) break;
+        }
+
+        return i < _globals->size();
+    }
+
     bool Code::get_local_id(const std::string& name, size_t& i) {
         i = 0;
         for (; i < _locals.size(); i++) {
@@ -443,14 +481,8 @@ namespace emerald {
         return i < _locals.size();
     }
 
-    bool Code::get_global_id(const std::string& name, size_t& i) {
-        i = 0;
-        for (; i < _globals->size(); i++) {
-            if ((*_globals)[i] == name) break;
-        }
-
-        return i < _globals->size();
-    }
+    Code::Instruction::Instruction()
+        : _op(OpCode::nop) {}
 
     Code::Instruction::Instruction(OpCode::Value op)
         : _op(op) {
@@ -496,7 +528,7 @@ namespace emerald {
             else oss << ',';
             oss << _args[i];
         }
-        
+
         return oss.str();
     }
 

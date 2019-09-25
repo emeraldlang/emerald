@@ -44,23 +44,23 @@ namespace emerald {
         return fmt::format("<module {0}>", _name);
     }
 
-    void NativeModuleInitRegistry::add_module_init(const std::string& name, ModuleInitialization initialization) {
-        _modules[name] = initialization;
+    ConcurrentMap<std::string, NativeModuleInitRegistry::ModuleInitialization> NativeModuleInitRegistry::_modules;
+
+    void NativeModuleInitRegistry::add_module_init(const std::string& alias, ModuleInitialization initialization) {
+        _modules[alias] = initialization;
     }
 
-    bool NativeModuleInitRegistry::is_module_init_registered(const std::string& name) {
-        return _modules.find(name) != _modules.end();
+    bool NativeModuleInitRegistry::is_module_init_registered(const std::string& alias) {
+        return _modules.has(alias);
     }
 
     Module* NativeModuleInitRegistry::init_module(
-        const std::string& name,
+        const std::string& alias,
         Heap* heap,
         NativePrototypes* native_prototypes) {
-        ModuleInitialization initialization = _modules.at(name);
+        ModuleInitialization initialization = _modules.get(alias);
         return initialization(heap, native_prototypes);
     }
-
-    std::unordered_map<std::string, NativeModuleInitRegistry::ModuleInitialization> NativeModuleInitRegistry::_modules = {};
 
     void ModuleRegistry::add_module(Module* module) {
         _modules[module->get_name()] = module;

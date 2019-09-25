@@ -54,6 +54,11 @@ namespace emerald {
             return _map.size();
         }
 
+        bool has(const Key& key) {
+            std::lock_guard<std::mutex> lock(_mutex);
+            return _map.find(key) != _map.end();
+        }
+
         T& get(const Key& key) {
             std::lock_guard<std::mutex> lock(_mutex);
             return _map.at(key);

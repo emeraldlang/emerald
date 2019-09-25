@@ -15,22 +15,27 @@
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "emerald/modules/core.h"
+#ifndef _EMERALD_CODE_CACHE_H
+#define _EMERALD_CODE_CACHE_H
+
+#include <string>
+
+#include "emerald/code.h"
+#include "emerald/concurrent_map.h"
 
 namespace emerald {
-namespace modules {
 
-    MODULE_INITIALIZATION_FUNC(init_core_module) {
-        Module* module = heap->allocate<Module>("core");
+    class CodeCache {
+    public:
+        static std::shared_ptr<Code> get_code(const std::string& module_name);
+        static std::shared_ptr<Code> get_or_load_code(const std::string& module_name);
 
-        module->set_property("Object", native_prototypes->get_object_prototype());
-        module->set_property("Array", native_prototypes->get_array_prototype());
-        module->set_property("Boolean", native_prototypes->get_boolean_prototype());
-        module->set_property("Number", native_prototypes->get_number_prototype());
-        module->set_property("String", native_prototypes->get_string_prototype());
+    private:
+        static ConcurrentMap<std::string, std::shared_ptr<Code>> _code;
 
-        return module;
-    }
+        static void load_code(const std::string& module_name);
+    };
 
-} // namespace modules
 } // namespace emerald
+
+#endif // _EMERALD_CODE_CACHE_H

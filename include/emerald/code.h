@@ -25,6 +25,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "cereal/cereal.hpp"
+
 #include "emerald/opcode.h"
 
 namespace emerald {
@@ -32,9 +34,11 @@ namespace emerald {
     class Code {
     public:
         Code();
+        Code(const std::filesystem::path& path);
 
         class Instruction {
         public:
+            Instruction();
             Instruction(OpCode::Value op);
             Instruction(OpCode::Value op, std::initializer_list<uint64_t> args);
 
@@ -47,10 +51,15 @@ namespace emerald {
 
             std::string to_string() const;
 
+            template<class Archive>
+            void serialize(Archive& archive);
+
         private:
             OpCode::Value _op;
             std::vector<uint64_t> _args;
         };
+
+        static std::shared_ptr<Code> from_file(const std::filesystem::path& path);
 
         const std::string& get_label() const;
         size_t get_id() const;
@@ -137,9 +146,11 @@ namespace emerald {
         std::shared_ptr<const std::vector<std::string>> get_global_names() const;
         size_t get_num_globals() const;
 
+        const std::vector<std::string>& get_import_names() const;
         const std::string& get_import_name(size_t id) const;
 
-        std::string stringify() const;
+        std::string to_binary() const;
+        std::string to_string() const;
 
         void write_to_file(const std::filesystem::path& path);
         void write_to_file_pretty(const std::filesystem::path& path);
@@ -152,11 +163,17 @@ namespace emerald {
         std::vector<Instruction>::const_iterator begin() const;
         std::vector<Instruction>::const_iterator end() const;
 
+        template<class Archive>
+        void serialize(Archive& archive);
+
     private:
         struct LabelEntry {
             size_t pos = 0;
             bool is_bound = false;
             std::vector<size_t> unbound_rewrites;
+
+            template<class Archive>
+            void serialize(Archive& archive);
         };
 
         std::string _label;
@@ -185,7 +202,7 @@ namespace emerald {
         void write(const Instruction& instr);
         void rewrite(size_t i, const Instruction& instr);
 
-        std::string stringify(size_t depth) const;
+        std::string to_string(size_t depth) const;
 
         size_t get_label_offset(size_t label);
 
@@ -194,6 +211,36 @@ namespace emerald {
     };
 
     std::ostream& operator<<(std::ostream& os, const Code::Instruction& instr);
+
+    template<class Archive>
+    void Code::serialize(Archive& archive) {
+        archive(
+            cereal::make_nvp("label", _label),
+            cereal::make_nvp("instructions", _instructions),
+            cereal::make_nvp("functions", _functions),
+            cereal::make_nvp("function_labels", _function_labels),
+            cereal::make_nvp("num_constants", _num_constants),
+            cereal::make_nvp("str_constants", _str_constants),
+            cereal::make_nvp("labels", _labels),
+            cereal::make_nvp("locals", _locals),
+            cereal::make_nvp("globals", _globals),
+            cereal::make_nvp("import_names", _import_names));
+    }
+
+    template<class Archive>
+    void Code::Instruction::serialize(Archive& archive) {
+        archive(
+            cereal::make_nvp("op", _op),
+            cereal::make_nvp("args", _args));
+    }
+
+    template<class Archive>
+    void Code::LabelEntry::serialize(Archive& archive) {
+        archive(
+            cereal::make_nvp("pos", pos),
+            cereal::make_nvp("is_bound", is_bound),
+            cereal::make_nvp("unbound_rewrites", unbound_rewrites));
+    }
 
 } // namespace emerald
 

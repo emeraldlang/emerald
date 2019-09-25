@@ -46,7 +46,7 @@ namespace emerald {
         Process(
             PID id, 
             std::shared_ptr<Code> code, 
-            std::shared_ptr<Process> = nullptr, 
+            std::shared_ptr<Process> parent_process = nullptr, 
             uint8_t priority = 0, 
             uint16_t max_stack_size = Stack::DEFAULT_MAX_SIZE);
         NO_COPY(Process);
@@ -130,7 +130,7 @@ namespace emerald {
         Object* new_obj(bool explicit_parent, size_t num_props);
         void call_obj(Object* obj, const std::vector<Object*>& args);
 
-        Module* import_module(const std::string& name);
+        Module* get_module(const std::string& name);
 
         void pop_n_from_stack(std::vector<Object*>& vec, size_t n);
         std::vector<Object*> pop_n_from_stack(size_t n);
@@ -148,6 +148,6 @@ namespace emerald {
         }
     };
 
-}
+} // namespace emerald
 
 #endif // _EMERALD_PROCESS_H

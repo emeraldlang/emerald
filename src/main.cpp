@@ -15,6 +15,7 @@
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include <filesystem>
 #include <iostream>
 #include <memory>
 
@@ -36,13 +37,13 @@ int main(int argc, char** argv) {
         "ast", 
         "prints the abstract syntax tree of a emerald source file.");
 
-    std::string source_file;
-    ast->add_option("source_file", source_file, "specifies the emerald source file")->required();
+    std::string ast_source_file;
+    ast->add_option("source_file", ast_source_file, "specifies the emerald source file")->required();
 
     ast->callback([&]() {
         std::shared_ptr<emerald::Reporter> reporter = std::make_shared<emerald::Reporter>();
         std::vector<std::shared_ptr<emerald::Statement>> statements = emerald::Parser::parse(
-            emerald::Source::from_file(source_file),
+            emerald::Source::from_file(ast_source_file),
             reporter);
         if (reporter->has_errors()) {
             reporter->print();
@@ -51,15 +52,21 @@ int main(int argc, char** argv) {
         }
     });
 
-    CLI::App* compile = app.add_subcommand(
-        "compile",
-        "compiles an emerald source file into bytecode.");
+    CLI::App* bytecode = app.add_subcommand(
+        "bytecode", 
+        "prints the bytecode of a emerald source file.");
 
-    compile->callback([&]() {
+    std::string bytecode_source_file;
+    bytecode->add_option("source_file", bytecode_source_file, "specifies the emerald source file")->required();
+
+    bool bytecode_save;
+    bytecode->add_flag("-s,--save", bytecode_save, "indicates whether the bytecode should be persisted to desk");
+
+    bytecode->callback([&]() {
         std::shared_ptr<emerald::Reporter> reporter = std::make_shared<emerald::Reporter>();
 
         std::vector<std::shared_ptr<emerald::Statement>> statements = emerald::Parser::parse(
-            emerald::Source::from_file(source_file),
+            emerald::Source::from_file(bytecode_source_file),
             reporter);
         if (reporter->has_errors()) {
             reporter->print();
@@ -73,6 +80,42 @@ int main(int argc, char** argv) {
             reporter->print();
             return;
         }
+
+        if (bytecode_save) {
+            code->write_to_file_pretty(
+                std::filesystem::path(bytecode_source_file).replace_extension(".emb"));
+        } else {
+            std::cout << code->to_string() << std::endl;
+        }
+    });
+
+    CLI::App* compile = app.add_subcommand(
+        "compile",
+        "compiles an emerald source file into bytecode.");
+
+    std::string compile_source_file;
+    compile->add_option("source_file", compile_source_file, "specifies the emerald source file")->required();
+
+    compile->callback([&]() {
+        std::shared_ptr<emerald::Reporter> reporter = std::make_shared<emerald::Reporter>();
+
+        std::vector<std::shared_ptr<emerald::Statement>> statements = emerald::Parser::parse(
+            emerald::Source::from_file(compile_source_file),
+            reporter);
+        if (reporter->has_errors()) {
+            reporter->print();
+            return;
+        }
+
+        std::shared_ptr<emerald::Code> code = emerald::Compiler::compile(
+            statements,
+            reporter);
+        if (reporter->has_errors()) {
+            reporter->print();
+            return;
+        }
+
+        code->write_to_file(std::filesystem::path(compile_source_file).replace_extension(".emc"));
     });
 
     CLI::App* init = app.add_subcommand(
@@ -92,8 +135,8 @@ int main(int argc, char** argv) {
         "run",
         "executes the emerald code.");
 
-    // std::string configuration_file;
-    run->add_option("source_file", source_file, "specifies the emerald source file")->required();
+    std::string run_source_file;
+    run->add_option("source_file", run_source_file, "specifies the emerald source file")->required();
 
     run->callback([&]() {
         emerald::modules::add_module_inits_to_registry();

@@ -306,7 +306,8 @@ namespace emerald {
         { "clone", Token::CLONE },
         { "clones", Token::CLONES },
         { "object", Token::OBJECT },
-        { "super", Token::SUPER }
+        { "super", Token::SUPER },
+        { "import", Token::IMPORT }
     };
 
 } // namespace emerald

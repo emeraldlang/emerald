@@ -165,6 +165,10 @@ namespace emerald {
         end_indentation_block();
     }
 
+    void ASTPrinter::visit(ImportStatement* import_statement) {
+        _oss << indent() << "(import " << import_statement->get_module_name() << ")";
+    }
+
     void ASTPrinter::visit(ExpressionStatement* expression_statement) {
         start_indentation_block("expr_stmt");
         expression_statement->get_expression()->accept(this);

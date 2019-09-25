@@ -38,9 +38,10 @@ namespace emerald {
         void start();
         void stop();
 
+        size_t num_schedulers() const;
         void scale(size_t num_schedulers);
 
-        Process::PID create_process(std::shared_ptr<Code> code);
+        Process::PID create_process(const std::string& entry_module_name);
         bool get_process_state(Process::PID id, Process::State& state) const;
 
     private:
@@ -54,4 +55,4 @@ namespace emerald {
 
 } // namespace emerald
 
-#endif // _EMERALD_VM_H 
+#endif // _EMERALD_VM_H

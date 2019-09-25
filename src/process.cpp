@@ -15,11 +15,13 @@
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include <filesystem>
 #include <iostream>
 
 #include "fmt/format.h"
 
 #include "emerald/process.h"
+#include "emerald/code_cache.h"
 #include "emerald/magic_methods.h"
 #include "emerald/strutils.h"
 
@@ -274,7 +276,7 @@ namespace emerald {
             if (Object* val = obj->get_property(key->as_str())) {
                 _data_stack.push(val);
             } else {
-                 throw _heap.allocate<Exception>("");
+                 throw _heap.allocate<Exception>(fmt::format("no such property: {0}", key->as_str()));
             }
             break;
         }
@@ -313,8 +315,13 @@ namespace emerald {
             std::cout << obj->as_str() << std::endl;
             break;
         }
-        case OpCode::import:
+        case OpCode::import: {
+            const std::string& import_name = current_frame.get_code()->get_import_name(
+                instr.get_args()[0]);
+            Module* module = get_module(import_name);
+            _data_stack.push(module);
             break;
+        }
         default:
             break;
         }
@@ -372,23 +379,21 @@ namespace emerald {
         }
     }
 
-    Module* Process::import_module(const std::string& name) {
+    Module* Process::get_module(const std::string& name) {
         if (_module_registry.has_module(name)) {
             return _module_registry.get_module(name);
         }
 
         Module* module = nullptr;
         if (NativeModuleInitRegistry::is_module_init_registered(name)) {
-            module = NativeModuleInitRegistry::init_module(
-                name, &_heap, &_native_prototypes);
+            module = NativeModuleInitRegistry::init_module(name, &_heap, &_native_prototypes);
+        } else if (std::shared_ptr<Code> code = CodeCache::get_code(name)) {
+            module = _heap.allocate<Module>(name, code);
         } else {
-            // something, something, load the code from disk
-            // asynchronously and suspend self
+            throw _heap.allocate<Exception>(fmt::format("no such module: {0}", name));
         }
 
-        if (module) {
-            _module_registry.add_module(module);
-        }
+        _module_registry.add_module(module);
 
         return module;
     }

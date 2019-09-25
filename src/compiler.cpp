@@ -194,6 +194,10 @@ namespace emerald {
         code()->write_ret();
     }
 
+    void Compiler::visit(ImportStatement* import_statement) {
+        code()->write_import(import_statement->get_module_name());
+    }
+
     void Compiler::visit(ExpressionStatement* expression_statement) {
         expression_statement->get_expression()->accept(this);
     }
@@ -354,7 +358,7 @@ namespace emerald {
         }
         code()->write_init(args.size());
     }
-    
+
     void Compiler::visit(SuperExpression* super_expression) {
         super_expression->get_object()->accept(this);
         code()->write_get_parent();
