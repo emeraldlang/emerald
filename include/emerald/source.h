@@ -24,6 +24,8 @@
 
 namespace emerald {
 
+    class SourcePosition;
+
     class Source {
     public:
         Source(const std::string& name, const std::string& source);
@@ -36,7 +38,9 @@ namespace emerald {
         char at(size_t i) const;
         char operator[](size_t i) const;
 
-        static std::shared_ptr<Source> from_file(const std::string& path);
+        std::string substr(size_t start, size_t end) const;
+
+        static std::shared_ptr<Source> from_file(const std::filesystem::path& path);
 
     private:
         std::string _name;

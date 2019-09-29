@@ -25,8 +25,6 @@
 #include <unordered_map>
 #include <vector>
 
-#include "cereal/cereal.hpp"
-
 #include "emerald/opcode.h"
 
 namespace emerald {
@@ -52,17 +50,16 @@ namespace emerald {
             std::string to_string() const;
 
             template<class Archive>
-            void serialize(Archive& archive);
+            void serialize(Archive& archive, const unsigned int);
 
         private:
             OpCode::Value _op;
             std::vector<uint64_t> _args;
         };
 
-        static std::shared_ptr<Code> from_file(const std::filesystem::path& path);
-
         const std::string& get_label() const;
         size_t get_id() const;
+        bool is_top_level() const;
 
         size_t get_num_instructions() const;
 
@@ -81,10 +78,12 @@ namespace emerald {
         void write_mul();
         void write_div();
         void write_mod();
-        void write_prefix_inc();
-        void write_prefix_dec();
-        void write_postfix_inc();
-        void write_postfix_dec();
+        
+        void write_iadd();
+        void write_isub();
+        void write_imul();
+        void write_idiv();
+        void write_imod();
 
         void write_eq();
         void write_neq();
@@ -117,6 +116,7 @@ namespace emerald {
         void write_has_prop();
         void write_set_prop();
         void write_get_parent();
+        void write_get_this();
 
         void write_ldgbl(const std::string& name);
         void write_stgbl(const std::string& name);
@@ -164,7 +164,7 @@ namespace emerald {
         std::vector<Instruction>::const_iterator end() const;
 
         template<class Archive>
-        void serialize(Archive& archive);
+        void serialize(Archive& archive, const unsigned int);
 
     private:
         struct LabelEntry {
@@ -173,7 +173,7 @@ namespace emerald {
             std::vector<size_t> unbound_rewrites;
 
             template<class Archive>
-            void serialize(Archive& archive);
+            void serialize(Archive& archive, const unsigned int);
         };
 
         std::string _label;
@@ -187,12 +187,12 @@ namespace emerald {
         std::vector<double> _num_constants;
         std::vector<std::string> _str_constants;
 
+        std::vector<std::string> _import_names;
+
         std::vector<LabelEntry> _labels;
 
         std::vector<std::string> _locals;
         std::shared_ptr<std::vector<std::string>> _globals;
-
-        std::vector<std::string> _import_names;
 
         Code(  
             const std::string& label,
@@ -213,33 +213,31 @@ namespace emerald {
     std::ostream& operator<<(std::ostream& os, const Code::Instruction& instr);
 
     template<class Archive>
-    void Code::serialize(Archive& archive) {
-        archive(
-            cereal::make_nvp("label", _label),
-            cereal::make_nvp("instructions", _instructions),
-            cereal::make_nvp("functions", _functions),
-            cereal::make_nvp("function_labels", _function_labels),
-            cereal::make_nvp("num_constants", _num_constants),
-            cereal::make_nvp("str_constants", _str_constants),
-            cereal::make_nvp("labels", _labels),
-            cereal::make_nvp("locals", _locals),
-            cereal::make_nvp("globals", _globals),
-            cereal::make_nvp("import_names", _import_names));
+    void Code::serialize(Archive& archive, const unsigned int) {
+        archive & _label;
+        archive & _id;
+        archive & _instructions;
+        archive & _functions;
+        archive & _function_labels;
+        archive & _num_constants;
+        archive & _str_constants;
+        archive & _labels;
+        archive & _locals;
+        archive & _globals;
+        archive & _import_names;
     }
 
     template<class Archive>
-    void Code::Instruction::serialize(Archive& archive) {
-        archive(
-            cereal::make_nvp("op", _op),
-            cereal::make_nvp("args", _args));
+    void Code::Instruction::serialize(Archive& archive, const unsigned int) {
+        archive & _op;
+        archive & _args;
     }
 
     template<class Archive>
-    void Code::LabelEntry::serialize(Archive& archive) {
-        archive(
-            cereal::make_nvp("pos", pos),
-            cereal::make_nvp("is_bound", is_bound),
-            cereal::make_nvp("unbound_rewrites", unbound_rewrites));
+    void Code::LabelEntry::serialize(Archive& archive, const unsigned int) {
+        archive & pos;
+        archive & is_bound;
+        archive & unbound_rewrites;
     }
 
 } // namespace emerald

@@ -20,6 +20,7 @@
 #include "emerald/natives/array.h"
 #include "emerald/natives/boolean.h"
 #include "emerald/natives/number.h"
+#include "emerald/natives/object.h"
 #include "emerald/natives/string.h"
 
 namespace emerald {
@@ -74,6 +75,11 @@ namespace emerald {
 
     void NativePrototypes::initialize_object(Heap* heap) {
         _object = heap->allocate<HeapObject>();
+
+        _object->set_property(magic_methods::eq, natives::get_object_eq());
+        _object->set_property(magic_methods::neq, natives::get_object_neq());
+
+        _object->set_property(magic_methods::clone, natives::get_object_clone());
     }
 
     void NativePrototypes::initialize_array(Heap* heap) {
@@ -106,15 +112,19 @@ namespace emerald {
     void NativePrototypes::initialize_number(Heap* heap) {
         _number = heap->allocate<Number>(_object);
 
+        _number->set_property(magic_methods::neg, natives::get_number_neg());
+
         _number->set_property(magic_methods::add, natives::get_number_add());
         _number->set_property(magic_methods::sub, natives::get_number_sub());
         _number->set_property(magic_methods::mul, natives::get_number_mul());
         _number->set_property(magic_methods::div, natives::get_number_div());
         _number->set_property(magic_methods::mod, natives::get_number_mod());
-        _number->set_property(magic_methods::prefix_inc, natives::get_number_prefix_inc());
-        _number->set_property(magic_methods::prefix_dec, natives::get_number_prefix_dec());
-        _number->set_property(magic_methods::postfix_inc, natives::get_number_postfix_inc());
-        _number->set_property(magic_methods::postfix_dec, natives::get_number_postfix_dec());
+
+        _number->set_property(magic_methods::iadd, natives::get_number_iadd());
+        _number->set_property(magic_methods::isub, natives::get_number_isub());
+        _number->set_property(magic_methods::imul, natives::get_number_imul());
+        _number->set_property(magic_methods::idiv, natives::get_number_idiv());
+        _number->set_property(magic_methods::imod, natives::get_number_imod());
 
         _number->set_property(magic_methods::eq, natives::get_number_eq());
         _number->set_property(magic_methods::neq, natives::get_number_neq());

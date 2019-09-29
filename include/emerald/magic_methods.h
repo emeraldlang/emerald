@@ -21,38 +21,41 @@
 namespace emerald {
 namespace magic_methods {
 
-#define _MAGIC_METHODS  \
-    /* Arithmetic */    \
-    X(neg)              \
-    X(add)              \
-    X(sub)              \
-    X(mul)              \
-    X(div)              \
-    X(mod)              \
-    X(prefix_inc)       \
-    X(prefix_dec)       \
-    X(postfix_inc)      \
-    X(postfix_dec)      \
-    /* Comparison */    \
-    X(eq)               \
-    X(neq)              \
-    X(lt)               \
-    X(gt)               \
-    X(lte)              \
-    X(gte)              \
-    /* Bitwise */       \
-    X(bit_not)          \
-    X(bit_or)           \
-    X(bit_xor)          \
-    X(bit_and)          \
-    X(bit_shl)          \
-    X(bit_shr)          \
-    /* Casts */         \
-    X(str)              \
-    X(boolean)          \
-    /* Other */         \
-    X(call)             \
-    X(clone)            \
+#define _MAGIC_METHODS          \
+    /* Unary Operators */       \
+    X(neg)                      \
+    /* Arithmetic */            \
+    X(add)                      \
+    X(sub)                      \
+    X(mul)                      \
+    X(div)                      \
+    X(mod)                      \
+    /* Augmented Assignment */  \
+    X(iadd)                     \
+    X(isub)                     \
+    X(imul)                     \
+    X(idiv)                     \
+    X(imod)                     \
+    /* Comparison */            \
+    X(eq)                       \
+    X(neq)                      \
+    X(lt)                       \
+    X(gt)                       \
+    X(lte)                      \
+    X(gte)                      \
+    /* Bitwise */               \
+    X(bit_not)                  \
+    X(bit_or)                   \
+    X(bit_xor)                  \
+    X(bit_and)                  \
+    X(bit_shl)                  \
+    X(bit_shr)                  \
+    /* Casts */                 \
+    X(str)                      \
+    X(boolean)                  \
+    /* Other */                 \
+    X(call)                     \
+    X(clone)                    \
     X(init)
 
 #define X(name) const std::string name = "__" #name "__";

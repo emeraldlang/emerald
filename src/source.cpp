@@ -45,10 +45,14 @@ namespace emerald {
         return _source[i]; 
     }
 
-    std::shared_ptr<Source> Source::from_file(const std::string& path) {
+    std::string Source::substr(size_t start, size_t end) const {
+        return _source.substr(start, end - start);
+    }
+
+    std::shared_ptr<Source> Source::from_file(const std::filesystem::path& path) {
         std::ifstream stream(path);
         return std::make_shared<Source>(
-            path,
+            path.string(),
             std::string(std::istreambuf_iterator<char>(stream), std::istreambuf_iterator<char>()));
     }
 

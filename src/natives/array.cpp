@@ -17,6 +17,7 @@
 
 #include "emerald/natives/array.h"
 #include "emerald/natives/utils.h"
+#include <iostream>
 
 namespace emerald {
 namespace natives {
@@ -121,7 +122,7 @@ namespace natives {
 
         arr->get_value().clear();
 
-        return nullptr;
+        return arr;
     }
 
     NATIVE_FUNCTION(array_push) {

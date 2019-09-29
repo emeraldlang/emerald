@@ -31,6 +31,16 @@ namespace natives {
     NUMBER_NATIVES
 #undef X
 
+    NATIVE_FUNCTION(number_neg) {
+        EXPECT_NUM_ARGS(1);
+
+        TRY_CONVERT_RECV_TO(Number, val);
+
+        return heap->allocate<Number>(
+            native_prototypes->get_number_prototype(),
+            -val->get_value());
+    }
+
     NATIVE_FUNCTION(number_add) {
         EXPECT_NUM_ARGS(2);
 
@@ -86,54 +96,74 @@ namespace natives {
             (long)lhs->get_value() % (long)rhs->get_value());
     }
 
-    NATIVE_FUNCTION(number_prefix_inc) {
+    NATIVE_FUNCTION(number_iadd) {
         (void)heap;
         (void)native_prototypes;
         
-        EXPECT_NUM_ARGS(1);
+        EXPECT_NUM_ARGS(2);
 
-        TRY_CONVERT_RECV_TO(Number, val);
-        val->increment();
+        TRY_CONVERT_RECV_TO(Number, lhs);
+        TRY_CONVERT_ARG_TO(1, Number, rhs);
 
-        return val;
+        lhs->set_value(lhs->get_value() + rhs->get_value());
+
+        return lhs;
     }
 
-    NATIVE_FUNCTION(number_prefix_dec) {
+    NATIVE_FUNCTION(number_isub) {
         (void)heap;
         (void)native_prototypes;
         
-        EXPECT_NUM_ARGS(1);
+        EXPECT_NUM_ARGS(2);
 
-        TRY_CONVERT_RECV_TO(Number, val);
-        val->decrement();
+        TRY_CONVERT_RECV_TO(Number, lhs);
+        TRY_CONVERT_ARG_TO(1, Number, rhs);
 
-        return val;
+        lhs->set_value(lhs->get_value() - rhs->get_value());
+
+        return lhs;
     }
 
-    NATIVE_FUNCTION(number_postfix_inc) {
-        EXPECT_NUM_ARGS(1);
+    NATIVE_FUNCTION(number_imul) {
+        (void)heap;
+        (void)native_prototypes;
+        
+        EXPECT_NUM_ARGS(2);
 
-        TRY_CONVERT_RECV_TO(Number, val);
+        TRY_CONVERT_RECV_TO(Number, lhs);
+        TRY_CONVERT_ARG_TO(1, Number, rhs);
 
-        Number* prev = heap->allocate<Number>(
-            native_prototypes->get_number_prototype(),
-            val->get_value());
-        val->increment();
+        lhs->set_value(lhs->get_value() * rhs->get_value());
 
-        return prev;
+        return lhs;
     }
 
-    NATIVE_FUNCTION(number_postfix_dec) {
-        EXPECT_NUM_ARGS(1);
+    NATIVE_FUNCTION(number_idiv) {
+        (void)heap;
+        (void)native_prototypes;
+        
+        EXPECT_NUM_ARGS(2);
 
-        TRY_CONVERT_RECV_TO(Number, val);
+        TRY_CONVERT_RECV_TO(Number, lhs);
+        TRY_CONVERT_ARG_TO(1, Number, rhs);
 
-        Number* prev = heap->allocate<Number>(
-            native_prototypes->get_number_prototype(),
-            val->get_value());
-        val->decrement();
+        lhs->set_value(lhs->get_value() / rhs->get_value());
 
-        return prev;
+        return lhs;
+    }
+
+    NATIVE_FUNCTION(number_imod) {
+        (void)heap;
+        (void)native_prototypes;
+        
+        EXPECT_NUM_ARGS(2);
+
+        TRY_CONVERT_RECV_TO(Number, lhs);
+        TRY_CONVERT_ARG_TO(1, Number, rhs);
+
+        lhs->set_value((long)lhs->get_value() % (long)rhs->get_value());
+
+        return lhs;
     }
 
     NATIVE_FUNCTION(number_eq) {

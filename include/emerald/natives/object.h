@@ -15,29 +15,28 @@
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef _EMERALD_NATIVES_BOOLEAN_H
-#define _EMERALD_NATIVES_BOOLEAN_H
+#ifndef _EMERALD_NATIVES_OBJECT_H
+#define _EMERALD_NATIVES_OBJECT_H
 
 #include "emerald/object.h"
 #include "emerald/native_prototypes.h"
 
-#define BOOLEAN_NATIVES     \
-    X(boolean_eq)           \
-    X(boolean_neq)          \
-    X(boolean_clone)
+#define OBJECT_NATIVES  \
+    X(object_eq)        \
+    X(object_neq)       \
+    X(object_clone)
 
 namespace emerald {
 namespace natives {
 
 #define X(name) NativeFunction* get_##name();
-    BOOLEAN_NATIVES
+    OBJECT_NATIVES
 #undef X
 
 #define X(name) NATIVE_FUNCTION(name);
-    BOOLEAN_NATIVES
+    OBJECT_NATIVES
 #undef X
 
 } // namespace natives
 } // namespace emerald
-
-#endif // _EMERALD_NATIVES_BOOLEAN_H
+#endif // _EMERALD_NATIVES_OBJECT_H

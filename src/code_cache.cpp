@@ -19,6 +19,7 @@
 #include <string>
 
 #include "emerald/code_cache.h"
+#include "emerald/module.h"
 #include "emerald/strutils.h"
 
 namespace emerald {
@@ -43,19 +44,13 @@ namespace emerald {
     }
 
     void CodeCache::load_code(const std::string& module_name) {
-        std::filesystem::path path = std::filesystem::current_path();
-        for (const std::string& part : strutils::split(module_name, ".")) {
-            path /= part;
-        }
-        path += ".emc";
-
-        std::shared_ptr<Code> code = Code::from_file(path);
+        std::filesystem::path path = Module::get_path_for_module(module_name, ".emc");
+        std::shared_ptr<Code> code = std::make_shared<Code>(path);
+        _code[module_name] = code;
         for (const std::string& import_name : code->get_import_names()) {
             if (_code.has(import_name)) continue;
             load_code(import_name);
         }
-
-        _code[module_name] = code;
     }
 
 } // namespace emerald

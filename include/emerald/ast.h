@@ -42,13 +42,11 @@ namespace emerald {
     X(ExpressionStatement)
 
 #define EXPRESSION_NODES        \
-    X(AssignmentExpression)     \
     X(BinaryOp)                 \
     X(UnaryOp)                  \
     X(CallExpression)           \
     X(Property)                 \
     X(Identifier)               \
-    X(SelfExpression)           \
     X(NumberLiteral)            \
     X(StringLiteral)            \
     X(BooleanLiteral)           \
@@ -56,53 +54,28 @@ namespace emerald {
     X(ArrayLiteral)             \
     X(ObjectLiteral)            \
     X(CloneExpression)          \
-    X(SuperExpression)
+    X(SuperExpression)          \
+    X(ThisExpression)
 
-#define LVALUE_NODES            \
-    X(IdentifierLValue)         \
-    X(PropertyLValue)
-
-#define AST_NODES               \
-    X(FunctionParameter)        \
+#define AST_NODES           \
+    X(FunctionParameter)    \
     X(KeyValuePair)
+
+#define ALL_NODES       \
+    STATEMENT_NODES     \
+    EXPRESSION_NODES    \
+    AST_NODES
 
     /* Forward Declarations */
 #define X(NodeType) class NodeType;
-    STATEMENT_NODES
-    EXPRESSION_NODES
-    AST_NODES
+    ALL_NODES
 #undef X
 
     class ASTVisitor {
     public:
-        virtual void visit(StatementBlock* statement_block) = 0;
-        virtual void visit(DoStatement* do_statement) = 0;
-        virtual void visit(ForStatement* for_statement) = 0;
-        virtual void visit(WhileStatement* while_statement) = 0;
-        virtual void visit(IteStatement* ite_statement) = 0;
-        virtual void visit(PrintStatement* print_statement) = 0;
-        virtual void visit(DeclarationStatement* declaration_statement) = 0;
-        virtual void visit(FunctionStatement* function_statement) = 0;
-        virtual void visit(ObjectStatement* object_statement) = 0;
-        virtual void visit(ReturnStatement* return_statement) = 0;
-        virtual void visit(ImportStatement* import_statement) = 0;
-        virtual void visit(ExpressionStatement* expression_statement) = 0;
-        virtual void visit(AssignmentExpression* assignment_expression) = 0;
-        virtual void visit(BinaryOp* binary_op) = 0;
-        virtual void visit(UnaryOp* unary_op) = 0;
-        virtual void visit(CallExpression* call_expression) = 0;
-        virtual void visit(Property* property) = 0;
-        virtual void visit(Identifier* identifier) = 0;
-        virtual void visit(NumberLiteral* number_literal) = 0;
-        virtual void visit(NullLiteral* null_literal) = 0;
-        virtual void visit(StringLiteral* string_literal) = 0;
-        virtual void visit(BooleanLiteral* boolean_literal) = 0;
-        virtual void visit(ArrayLiteral* array_literal) = 0;
-        virtual void visit(ObjectLiteral* object_literal) = 0;
-        virtual void visit(CloneExpression* clone_expression) = 0;
-        virtual void visit(SuperExpression* super_expression) = 0;
-        virtual void visit(FunctionParameter* function_parameter) = 0;
-        virtual void visit(KeyValuePair* key_value_pair) = 0;
+#define X(NodeType) virtual void visit(NodeType*) = 0;
+    ALL_NODES
+#undef X
     };
 
     class ASTNode {
@@ -130,12 +103,6 @@ namespace emerald {
     class Expression : public ASTNode {
     public:
         Expression(std::shared_ptr<SourcePosition> position)
-            : ASTNode(position) {}
-    };
-
-    class LValue : public ASTNode {
-    public:
-        LValue(std::shared_ptr<SourcePosition> position)
             : ASTNode(position) {}
     };
 
@@ -350,24 +317,6 @@ namespace emerald {
         std::shared_ptr<Expression> _expression;
     };
 
-    class AssignmentExpression final : public Expression {
-    public:
-        AssignmentExpression(std::shared_ptr<SourcePosition> position, std::shared_ptr<Expression> target,
-            std::shared_ptr<Expression> value)
-            : Expression(position),
-            _target(target),
-            _value(value) {}
-
-        std::shared_ptr<Expression> get_target() const { return _target; }
-        std::shared_ptr<Expression> get_expression() const { return _value; }
-
-        void accept(ASTVisitor* visitor) override { visitor->visit(this); }
-
-    private:
-        std::shared_ptr<Expression> _target;
-        std::shared_ptr<Expression> _value;
-    };
-
     class BinaryOp final : public Expression {
     public:
         BinaryOp(std::shared_ptr<SourcePosition> position, std::shared_ptr<Expression> left, std::shared_ptr<Token> op, 
@@ -444,7 +393,7 @@ namespace emerald {
 
     class Identifier : public Expression {
     public:
-        Identifier(std::shared_ptr<SourcePosition> position, std::string identifier)
+        Identifier(std::shared_ptr<SourcePosition> position, const std::string& identifier)
             : Expression(position),
             _identifier(identifier) {}
         
@@ -566,6 +515,14 @@ namespace emerald {
 
     private:
         std::shared_ptr<Expression> _object;
+    };
+
+    class ThisExpression final : public Expression {
+    public:
+        ThisExpression(std::shared_ptr<SourcePosition> position)
+            : Expression(position) {}
+
+        void accept(ASTVisitor* visitor) override { visitor->visit(this); }
     };
 
     class FunctionParameter final : public ASTNode {

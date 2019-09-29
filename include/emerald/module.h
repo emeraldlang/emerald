@@ -18,6 +18,7 @@
 #ifndef _EMERALD_MODULE_H
 #define _EMERALD_MODULE_H
 
+#include <filesystem>
 #include <functional>
 #include <string>
 #include <unordered_map>
@@ -42,9 +43,13 @@ namespace emerald {
         const std::string& get_name() const;
         std::shared_ptr<Code> get_code() const;
 
-        bool is_native_module() const;
+        bool is_native() const;
 
         std::string as_str() const override;
+
+        static std::filesystem::path get_path_for_module(
+            const std::string& module_name,
+            const std::string& extension);
 
     private:
         std::string _name;

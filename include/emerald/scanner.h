@@ -33,7 +33,7 @@ namespace emerald {
             Scanner(std::shared_ptr<Source> source, std::shared_ptr<Reporter> reporter);
             
             std::shared_ptr<Token> current() const;
-            std::shared_ptr<Token> peek() const;
+            std::shared_ptr<Token> next() const;
 
             std::shared_ptr<Token> scan();
         
@@ -48,15 +48,16 @@ namespace emerald {
             std::shared_ptr<Token> _next;
 
             size_t _cp;
+            size_t _sp;
+            size_t _start_line;
+            size_t _start_col;
             size_t _line;
             size_t _col;
             char _c;
 
-            std::string _temp_buffer;
-
             std::shared_ptr<Token> scan_string();
             std::shared_ptr<Token> scan_keyword_or_identifier();
-            std::shared_ptr<Token> scan_number(bool seen_period);
+            std::shared_ptr<Token> scan_number();
             void scan_decimal_number();
             bool scan_hex_number();
 
@@ -65,16 +66,10 @@ namespace emerald {
 
             void advance();
 
-            void add_to_buffer(char c);
-            void add_to_buffer_advance();
-
             std::shared_ptr<Token> emit(Token::Type type);
             std::shared_ptr<Token> emit(Token::Type type, const std::string& lexeme);
-            std::shared_ptr<Token> emit_with_temp_buffer(Token::Type type);
             std::shared_ptr<Token> advance_and_emit(Token::Type token);
             std::shared_ptr<Token> advance_and_emit_cond(char next, Token::Type if_, Token::Type else_);
-
-            Token::Type get_keyword_type_or_identifier();
 
             bool ishexdigit(char c);
             bool isidentifierchar(char c);

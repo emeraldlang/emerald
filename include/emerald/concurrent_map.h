@@ -84,11 +84,13 @@ namespace emerald {
         }
 
         T& operator[](const Key& key) {
-            return get(key);
+            std::lock_guard<std::mutex> lock(_mutex);
+            return _map[key];
         }
 
         const T& operator[](const Key& key) const {
-            return get(key);
+            std::lock_guard<std::mutex> lock(_mutex);
+            return _map[key];
         }
 
         ConcurrentMap& operator=(ConcurrentMap&& other) {

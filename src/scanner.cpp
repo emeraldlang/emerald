@@ -15,8 +15,6 @@
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <locale>
-
 #include "emerald/scanner.h"
 
 namespace emerald {
@@ -35,7 +33,7 @@ namespace emerald {
         return _current;
     }
 
-    std::shared_ptr<Token> Scanner::peek() const {
+    std::shared_ptr<Token> Scanner::next() const {
         return _next;
     }
 
@@ -45,6 +43,10 @@ namespace emerald {
         }
 
         do {
+            _sp = _cp;
+            _start_line = _line;
+            _start_col = _col;
+
             switch (_c) {
             case ':':
                 return advance_and_emit(Token::COLON);
@@ -59,11 +61,7 @@ namespace emerald {
             case ']':
                 return advance_and_emit(Token::RBRACKET);
             case '.':
-                advance();
-                if (std::isdigit(_c)) {
-                    return scan_number(true);
-                }
-                return emit(Token::DOT);
+                return advance_and_emit(Token::DOT);
             case '{':
                 return advance_and_emit(Token::LBRACE);
             case '}':
@@ -95,15 +93,21 @@ namespace emerald {
             case '!':
                 return advance_and_emit_cond('=', Token::NEQ, Token::NOT);
             case '+':
-                return advance_and_emit(Token::ADD);
+                return advance_and_emit_cond('=', Token::ASSIGN_ADD, Token::ADD);
             case '-':
-                return advance_and_emit(Token::SUB);
+                advance();
+                if (std::isdigit(_c)) {
+                    return scan_number();
+                } else if (_c == '=') {
+                    return advance_and_emit(Token::ASSIGN_SUB);
+                }
+                return emit(Token::SUB);
             case '*':
-                return advance_and_emit(Token::MUL);
+                return advance_and_emit_cond('=', Token::ASSIGN_MUL, Token::MUL);
             case '/':
-                return advance_and_emit(Token::DIV);
+                return advance_and_emit_cond('=', Token::ASSIGN_DIV, Token::DIV);
             case '%':
-                return advance_and_emit(Token::MOD);
+                return advance_and_emit_cond('=', Token::ASSIGN_MOD, Token::MOD);
             case '~':
                 return advance_and_emit(Token::BIT_NOT);
             case '|':
@@ -128,7 +132,7 @@ namespace emerald {
                 } else if (std::isalpha((*_source)[_cp])) {
                     return scan_keyword_or_identifier();
                 } else if (std::isdigit((*_source)[_cp])) {
-                    return scan_number(false);
+                    return scan_number();
                 } else {
                     return advance_and_emit(Token::ILLEGAL);
                 }
@@ -146,31 +150,33 @@ namespace emerald {
                 return emit(Token::EOSF);
             }
             
-            add_to_buffer_advance();
+            advance();
         }
 
         advance();
-        return emit_with_temp_buffer(Token::STRING_LITERAL);
+        return emit(Token::STRING_LITERAL, _source->substr(_sp + 1, _cp - 1));
     }
 
     std::shared_ptr<Token> Scanner::scan_keyword_or_identifier() {
-        while (isidentifierchar(_c)) add_to_buffer_advance();
+        while (isidentifierchar(_c)) advance();
 
-        return emit_with_temp_buffer(get_keyword_type_or_identifier());
-    }
-
-    std::shared_ptr<Token> Scanner::scan_number(bool seen_period) {
-        if (seen_period) {
-            add_to_buffer('.');
-            scan_decimal_number();
-            return emit_with_temp_buffer(Token::DECIMAL_NUMBER_LITERAL);
+        Token::Type type;
+        std::string lexeme = _source->substr(_sp, _cp);
+        if (_keyword_token_map.find(lexeme) != _keyword_token_map.end()) {
+            type = _keyword_token_map.at(lexeme);
+        } else {
+            type = Token::IDENTIFIER;
         }
 
+        return emit(type, lexeme);
+    }
+
+    std::shared_ptr<Token> Scanner::scan_number() {
         if (_c == '0') {
             if (_c == 'x' || _c == 'X') {
-                add_to_buffer_advance();
+                advance();
                 if (!scan_hex_number()) return emit(Token::ILLEGAL);
-                return emit_with_temp_buffer(Token::HEX_NUMBER_LITERAL);
+                return emit(Token::HEX_NUMBER_LITERAL);
             }
             // TOOD(zvp): Add octal and binary
         }
@@ -178,35 +184,29 @@ namespace emerald {
         scan_decimal_number();
 
         if (_c == '.') {
-            add_to_buffer_advance();
+            advance();
             scan_decimal_number();
         }
-        
-        return emit_with_temp_buffer(Token::DECIMAL_NUMBER_LITERAL);
+
+        return emit(Token::DECIMAL_NUMBER_LITERAL);
     }
 
     void Scanner::scan_decimal_number() {
-        while (std::isdigit(_c)) {
-            add_to_buffer_advance();
-        }
+        while (std::isdigit(_c)) advance();
     }
 
     bool Scanner::scan_hex_number() {
         if (!ishexdigit(_c)) return false;
-        while (ishexdigit(_c)) {
-            add_to_buffer_advance();
-        }
+        while (ishexdigit(_c)) advance();
         return true;
     }
 
     void Scanner::skip_single_line_comment() {
-        while (_c != '\n')
-            advance();
+        while (_c != '\n') advance();
     }
 
     void Scanner::skip_white_space() {
-        while(std::isspace(_c))
-            advance();
+        while(std::isspace(_c)) advance();
     }
 
     void Scanner::advance() {
@@ -225,32 +225,15 @@ namespace emerald {
             }
         }
     }
-
-    void Scanner::add_to_buffer(char c) {
-        _temp_buffer += c;
-    }
-
-    void Scanner::add_to_buffer_advance() {
-        _temp_buffer += _c;
-        advance();
-    }
     
     std::shared_ptr<Token> Scanner::emit(Token::Type type) {
-        _current = _next;
-        _next = std::make_shared<Token>(get_source_position(), type);
-        return _current;
+        return emit(type, _source->substr(_sp, _cp));
     }
 
     std::shared_ptr<Token> Scanner::emit(Token::Type type, const std::string& lexeme) {
         _current = _next;
         _next = std::make_shared<Token>(get_source_position(), type, lexeme);
         return _current;
-    }
-
-    std::shared_ptr<Token> Scanner::emit_with_temp_buffer(Token::Type type) {
-        std::shared_ptr<Token> token = emit(type, _temp_buffer);
-        _temp_buffer.clear();
-        return token; 
     }
 
     std::shared_ptr<Token> Scanner::advance_and_emit(Token::Type token) {
@@ -261,19 +244,10 @@ namespace emerald {
     std::shared_ptr<Token> Scanner::advance_and_emit_cond(char next, Token::Type if_, Token::Type else_) {
         advance();
         if (_c == next) {
-            advance();
-            return emit(if_);
+            return advance_and_emit(if_);
         } else {
             return emit(else_);
         }
-    }
-
-    Token::Type Scanner::get_keyword_type_or_identifier() {
-        if (_keyword_token_map.find(_temp_buffer) != _keyword_token_map.end()) {
-            return _keyword_token_map.at(_temp_buffer);
-        }
-
-        return Token::IDENTIFIER;
     }
     
     bool Scanner::ishexdigit(char c) {
@@ -285,7 +259,7 @@ namespace emerald {
     }
 
     std::shared_ptr<SourcePosition> Scanner::get_source_position() const {
-        return std::make_shared<SourcePosition>(_source, _line, _col);
+        return std::make_shared<SourcePosition>(_source, _start_line, _start_col, _line, _col);
     }
 
     const std::unordered_map<std::string, Token::Type> Scanner::_keyword_token_map = {
@@ -307,7 +281,8 @@ namespace emerald {
         { "clones", Token::CLONES },
         { "object", Token::OBJECT },
         { "super", Token::SUPER },
-        { "import", Token::IMPORT }
+        { "import", Token::IMPORT },
+        { "this", Token::THIS }
     };
 
 } // namespace emerald

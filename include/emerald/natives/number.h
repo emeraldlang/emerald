@@ -18,30 +18,32 @@
 #ifndef _EMERALD_NATIVES_NUMBER_H
 #define _EMERALD_NATIVES_NUMBER_H
 
-#include "emerald/native_prototypes.h"
 #include "emerald/object.h"
+#include "emerald/native_prototypes.h"
 
-#define NUMBER_NATIVES      \
-    X(number_add)           \
-    X(number_sub)           \
-    X(number_mul)           \
-    X(number_div)           \
-    X(number_mod)           \
-    X(number_prefix_inc)    \
-    X(number_prefix_dec)    \
-    X(number_postfix_inc)   \
-    X(number_postfix_dec)   \
-    X(number_eq)            \
-    X(number_neq)           \
-    X(number_lt)            \
-    X(number_gt)            \
-    X(number_lte)           \
-    X(number_gte)           \
-    X(number_bit_or)        \
-    X(number_bit_xor)       \
-    X(number_bit_and)       \
-    X(number_bit_shl)       \
-    X(number_bit_shr)       \
+#define NUMBER_NATIVES  \
+    X(number_neg)       \
+    X(number_add)       \
+    X(number_sub)       \
+    X(number_mul)       \
+    X(number_div)       \
+    X(number_mod)       \
+    X(number_iadd)      \
+    X(number_isub)      \
+    X(number_imul)      \
+    X(number_idiv)      \
+    X(number_imod)      \
+    X(number_eq)        \
+    X(number_neq)       \
+    X(number_lt)        \
+    X(number_gt)        \
+    X(number_lte)       \
+    X(number_gte)       \
+    X(number_bit_or)    \
+    X(number_bit_xor)   \
+    X(number_bit_and)   \
+    X(number_bit_shl)   \
+    X(number_bit_shr)   \
     X(number_clone)
 
 namespace emerald {

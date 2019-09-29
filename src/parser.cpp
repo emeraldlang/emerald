@@ -16,6 +16,7 @@
 */
 
 #include "emerald/parser.h"
+#include "emerald/strutils.h"
 
 namespace emerald {
 
@@ -41,7 +42,7 @@ namespace emerald {
     }
 
     std::shared_ptr<Statement> Parser::parse_statement() {
-        switch (_scanner.peek()->get_type()) {
+        switch (_scanner.next()->get_type()) {
         case Token::DO:
             return parse_do_statement();
         case Token::FOR:
@@ -248,10 +249,13 @@ namespace emerald {
 
         std::shared_ptr<SourcePosition> start = start_pos();
 
-        expect(Token::IDENTIFIER);
-        std::string identifier = _scanner.current()->get_lexeme();
+        std::vector<std::string> parts;
+        do {
+            expect(Token::IDENTIFIER);
+            parts.push_back(_scanner.current()->get_lexeme()); 
+        } while (match(Token::DOT));
 
-        return std::make_shared<ImportStatement>(end_pos(start), identifier);
+        return std::make_shared<ImportStatement>(end_pos(start), strutils::join(parts, "."));
     }
 
     std::shared_ptr<ExpressionStatement> Parser::parse_expression_statement() {
@@ -266,19 +270,19 @@ namespace emerald {
     }
 
     std::shared_ptr<Expression> Parser::parse_expression(std::shared_ptr<Expression> left, int min_precedence) {
-        std::shared_ptr<Token> lookahead = _scanner.peek();
+        std::shared_ptr<Token> lookahead = _scanner.next();
         while (lookahead->is_binary_op() && lookahead->get_precedence() >= min_precedence) {
             std::shared_ptr<Token> op = _scanner.scan();
 
             std::shared_ptr<SourcePosition> start = start_pos();
 
             std::shared_ptr<Expression> right = parse_unary();
-            lookahead = _scanner.peek();
+            lookahead = _scanner.next();
 
             while (lookahead->is_binary_op() && ((lookahead->compare_precedence(op) == 1) 
                 || (lookahead->is_right_associative() && lookahead->compare_precedence(op) == 0))) {
                 right = parse_expression(right, lookahead->get_precedence());
-                lookahead = _scanner.peek();
+                lookahead = _scanner.next();
             }
 
             left = std::make_shared<BinaryOp>(end_pos(start), left, op, right);
@@ -288,7 +292,7 @@ namespace emerald {
     }
 
     std::shared_ptr<Expression> Parser::parse_unary() {
-        if (_scanner.peek()->is_unary_op()) {
+        if (_scanner.next()->is_unary_op()) {
             std::shared_ptr<SourcePosition> start = peek_start_pos();
 
             std::shared_ptr<Token> op = _scanner.scan();
@@ -407,7 +411,7 @@ namespace emerald {
             return std::make_shared<ObjectLiteral>(end_pos(start), key_value_pairs);
         }
         case Token::IDENTIFIER:
-            return std::make_shared<Identifier>(token->get_source_position(),token->get_lexeme());
+            return std::make_shared<Identifier>(token->get_source_position(), token->get_lexeme());
         case Token::LPAREN: {
             std::shared_ptr<Expression> expression = parse_expression();
             expect(Token::RPAREN);
@@ -440,6 +444,9 @@ namespace emerald {
             expect(Token::RPAREN);
 
             return std::make_shared<SuperExpression>(end_pos(start), object);
+        }
+        case Token::THIS: {
+            return std::make_shared<ThisExpression>(token->get_source_position());
         }
         default:
             report_unexpected_token(token);
@@ -508,11 +515,11 @@ namespace emerald {
     }
 
     bool Parser::lookahead(Token::Type type) {
-        return _scanner.peek()->get_type() == type;
+        return _scanner.next()->get_type() == type;
     }
 
     bool Parser::match(Token::Type type) {
-        if (_scanner.peek()->get_type() == type) {
+        if (_scanner.next()->get_type() == type) {
             _scanner.scan();
             return true;
         }
@@ -525,7 +532,7 @@ namespace emerald {
     }
 
     std::shared_ptr<SourcePosition> Parser::peek_start_pos() {
-        return _scanner.peek()->get_source_position();
+        return _scanner.next()->get_source_position();
     }
     
     std::shared_ptr<SourcePosition> Parser::end_pos(std::shared_ptr<SourcePosition> start) {

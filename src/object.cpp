@@ -18,7 +18,7 @@
 #include "fmt/format.h"
 
 #include "emerald/object.h"
-
+#include <iostream>
 namespace emerald {
 
     Object::Object()

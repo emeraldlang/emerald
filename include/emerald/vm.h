@@ -35,6 +35,8 @@ namespace emerald {
     public:
         VM(size_t num_schedulers = std::thread::hardware_concurrency());
 
+        bool running() const;
+
         void start();
         void stop();
 

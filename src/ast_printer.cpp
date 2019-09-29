@@ -166,7 +166,7 @@ namespace emerald {
     }
 
     void ASTPrinter::visit(ImportStatement* import_statement) {
-        _oss << indent() << "(import " << import_statement->get_module_name() << ")";
+        _oss << indent() << "(import " << import_statement->get_module_name() << ")" << std::endl;
     }
 
     void ASTPrinter::visit(ExpressionStatement* expression_statement) {
@@ -175,16 +175,11 @@ namespace emerald {
         end_indentation_block();
     }
 
-    void ASTPrinter::visit(AssignmentExpression* /*assignment_expression*/) {}
-
     void ASTPrinter::visit(BinaryOp* binary_op) {
         start_indentation_block("binary_op");
 
         binary_op->get_left_expression()->accept(this);
-        _oss << std::endl;
-
-        _oss << indent() << "(" << binary_op->get_operator()->get_lexeme() << ")" << std::endl;
-
+        _oss << std::endl << indent() << "(" << binary_op->get_operator()->get_lexeme() << ")" << std::endl;
         binary_op->get_right_expression()->accept(this);
 
         end_indentation_block();
@@ -291,6 +286,10 @@ namespace emerald {
         start_indentation_block("super");
         super_expression->get_object()->accept(this);
         end_indentation_block();
+    }
+
+    void ASTPrinter::visit(ThisExpression*) {
+        _oss << indent() << "(this)" << std::endl;
     }
 
     void ASTPrinter::visit(FunctionParameter* function_parameter) {

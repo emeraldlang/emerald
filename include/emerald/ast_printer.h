@@ -36,34 +36,9 @@ namespace emerald {
 
         ASTPrinter();
 
-        void visit(StatementBlock* statement_block) override;
-        void visit(DoStatement* do_statement) override;
-        void visit(ForStatement* for_statement) override;
-        void visit(WhileStatement* while_statement) override;
-        void visit(IteStatement* ite_statement) override;
-        void visit(PrintStatement* print_statement) override;
-        void visit(DeclarationStatement* declaration_statement) override;
-        void visit(FunctionStatement* function_statement) override;
-        void visit(ObjectStatement* object_statement) override;
-        void visit(ReturnStatement* return_statement) override;
-        void visit(ImportStatement* import_statement) override;
-        void visit(ExpressionStatement* expression_statement) override;
-        void visit(AssignmentExpression* assignment_expression) override;
-        void visit(BinaryOp* binary_op) override;
-        void visit(UnaryOp* unary_op) override;
-        void visit(CallExpression* call_expression) override;
-        void visit(Property* property) override;
-        void visit(Identifier* identifier) override;
-        void visit(NumberLiteral* number_literal) override;
-        void visit(NullLiteral* null_literal) override;
-        void visit(StringLiteral* string_literal) override;
-        void visit(BooleanLiteral* boolean_literal) override;
-        void visit(ArrayLiteral* array_literal) override;
-        void visit(ObjectLiteral* object_literal) override;
-        void visit(CloneExpression* clone_expression) override;
-        void visit(SuperExpression* super_expression) override;
-        void visit(FunctionParameter* function_parameter) override;
-        void visit(KeyValuePair* key_value_pair) override;
+#define X(NodeType) void visit(NodeType*) override;
+        ALL_NODES
+#undef X
 
         void start_indentation_block(const std::string& name);
         void end_indentation_block();

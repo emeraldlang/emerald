@@ -31,6 +31,10 @@ namespace emerald {
         }
     }
 
+    bool VM::running() const {
+        return _running;
+    }
+
     void VM::start() {
        CHECK_THROW_LOGIC_ERROR(!_running, "vm is already started");
 
@@ -76,10 +80,8 @@ namespace emerald {
     Process::PID VM::create_process(const std::string& entry_module_name) {
         CHECK_THROW_LOGIC_ERROR(_running, "vm is not running");
 
-        std::shared_ptr<Code> code = CodeCache::get_or_load_code(entry_module_name);
-
         Process::PID id = _current_process_id++;
-        std::shared_ptr<Process> process = std::make_shared<Process>(id, code);
+        std::shared_ptr<Process> process = std::make_shared<Process>(id, entry_module_name);
 
         _process_map->put(id, process);
         _run_queue->push(process);

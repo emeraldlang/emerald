@@ -29,6 +29,7 @@ namespace emerald {
     }
 
     void HeapManaged::mark() {
+        if (_marked) return;
         _marked = true;
         reach();
     }

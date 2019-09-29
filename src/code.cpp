@@ -17,12 +17,14 @@
 
 #include <algorithm>
 #include <fstream>
+#include <iostream>
 #include <sstream>
 
-#include "cereal/archives/binary.hpp"
-#include "cereal/types/memory.hpp"
-#include "cereal/types/vector.hpp"
-#include "cereal/types/unordered_map.hpp"
+#include "boost/archive/binary_oarchive.hpp"
+#include "boost/archive/binary_iarchive.hpp"
+#include "boost/serialization/shared_ptr.hpp"
+#include "boost/serialization/vector.hpp"
+#include "boost/serialization/unordered_map.hpp"
 
 #include "emerald/check.h"
 #include "emerald/code.h"
@@ -41,13 +43,8 @@ namespace emerald {
 
     Code::Code(const std::filesystem::path& path) {
         std::ifstream ifs(path, std::ios::binary);
-
-        cereal::BinaryInputArchive archive(ifs);
-        archive(*this);
-    }
-
-    std::shared_ptr<Code> Code::from_file(const std::filesystem::path& path) {
-        return nullptr;
+        boost::archive::binary_iarchive archive(ifs);
+        archive >> *this;
     }
 
     const std::string& Code::get_label() const {
@@ -60,6 +57,10 @@ namespace emerald {
 
     size_t Code::get_num_instructions() const { 
         return _instructions.size(); 
+    }
+
+    bool Code::is_top_level() const {
+        return _id == 0;
     }
 
     void Code::write_nop() {
@@ -119,20 +120,24 @@ namespace emerald {
         WRITE_OP(OpCode::mod);
     }
 
-    void Code::write_prefix_inc() {
-        WRITE_OP(OpCode::prefix_inc);
+    void Code::write_iadd() {
+        WRITE_OP(OpCode::iadd);
     }
 
-    void Code::write_prefix_dec() {
-        WRITE_OP(OpCode::prefix_dec);
+    void Code::write_isub() {
+        WRITE_OP(OpCode::isub);
     }
 
-    void Code::write_postfix_inc() {
-        WRITE_OP(OpCode::postfix_inc);
+    void Code::write_imul() {
+        WRITE_OP(OpCode::imod);
     }
 
-    void Code::write_postfix_dec() {
-        WRITE_OP(OpCode::postfix_dec);
+    void Code::write_idiv() {
+        WRITE_OP(OpCode::idiv);
+    }
+
+    void Code::write_imod() {
+        WRITE_OP(OpCode::imod);
     }
 
     void Code::write_eq() {
@@ -262,6 +267,10 @@ namespace emerald {
         WRITE_OP(OpCode::get_parent);
     }
 
+    void Code::write_get_this() {
+        WRITE_OP(OpCode::get_this);
+    }
+
     void Code::write_ldgbl(const std::string& name) {
         size_t i;
         CHECK_THROW_LOGIC_ERROR(get_global_id(name, i),
@@ -376,10 +385,9 @@ namespace emerald {
     }
 
     std::string Code::to_binary() const {
-        std::ostringstream oss;
-
-        cereal::BinaryOutputArchive archive(oss);
-        archive(*this);
+        std::ostringstream oss;;
+        boost::archive::binary_oarchive archive(oss);
+        archive << *this;
 
         return oss.str();
     }
@@ -390,9 +398,8 @@ namespace emerald {
 
     void Code::write_to_file(const std::filesystem::path& path) {
         std::ofstream ofs(path, std::ios::binary);
-
-        cereal::BinaryOutputArchive archive(ofs);
-        archive(*this);
+        boost::archive::binary_oarchive archive(ofs);
+        archive << *this;
     }
 
     void Code::write_to_file_pretty(const std::filesystem::path& path) {

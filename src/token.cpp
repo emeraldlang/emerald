@@ -58,15 +58,19 @@ namespace emerald {
         return compare(a, b);
     }
 
-    bool Token::is_binary_op() {
+    bool Token::is_assignment_op() const {
+        return ASSIGN <= _type && _type <= ASSIGN_MOD;
+    }
+
+    bool Token::is_binary_op() const {
         return ASSIGN <= _type && _type <= MOD; 
     }
 
-    bool Token::is_unary_op() {
-        return NOT <= _type && _type <= BIT_NOT;
+    bool Token::is_unary_op() const {
+        return (NOT <= _type && _type <= BIT_NOT) || _type == SUB;
     }
 
-    bool Token::is_right_associative() {
+    bool Token::is_right_associative() const {
         return _type == ASSIGN;
     }
 

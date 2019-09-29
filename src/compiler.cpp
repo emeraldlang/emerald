@@ -33,7 +33,7 @@ namespace emerald {
     }
 
     Compiler::Compiler(std::shared_ptr<Reporter> reporter)
-        : _reporter(reporter), 
+        : _reporter(reporter),
         _code(new Code()) {}
 
     void Compiler::visit(StatementBlock* statement_block) {
@@ -65,11 +65,9 @@ namespace emerald {
             code()->write_new_num(1);
         }
 
-        if (for_statement->increments()) {
-            code()->write_add();
-        } else {
-            code()->write_sub();
-        }
+        write_fs_load_iter(for_statement);
+
+        code()->write_iadd();
 
         write_fs_condition(for_statement);
         code()->write_jmp_true(beginning);
@@ -135,7 +133,7 @@ namespace emerald {
     void Compiler::visit(FunctionStatement* function_statement) {
         push_new_func(function_statement->get_identifier());
 
-        for (std::shared_ptr<FunctionParameter> parameter : function_statement->get_parameters()) {
+        for (std::shared_ptr<FunctionParameter> parameter : iterutils::reverse(function_statement->get_parameters())) {
             parameter->accept(this);
         }
 
@@ -183,7 +181,9 @@ namespace emerald {
     void Compiler::visit(ReturnStatement* return_statement) {
         if (is_top_level()) {
             std::string msg = ReportCode::format_report(ReportCode::illegal_return);
-            _reporter->report(ReportCode::illegal_return, msg,
+            _reporter->report(
+                ReportCode::illegal_return,
+                msg,
                 return_statement->get_source_position());
         }
 
@@ -195,25 +195,47 @@ namespace emerald {
     }
 
     void Compiler::visit(ImportStatement* import_statement) {
-        code()->write_import(import_statement->get_module_name());
+        const std::string& module_name = import_statement->get_module_name();
+
+        code()->write_import(module_name);
+
+        if (is_top_level()) {
+            code()->write_stgbl(module_name);
+        } else {
+            code()->write_stloc(module_name);
+        }
     }
 
     void Compiler::visit(ExpressionStatement* expression_statement) {
         expression_statement->get_expression()->accept(this);
     }
 
-    void Compiler::visit(AssignmentExpression* /*assignment_expression*/) {}
-
     void Compiler::visit(BinaryOp* binary_op) {
         binary_op->get_right_expression()->accept(this);
         binary_op->get_left_expression()->accept(this);
 
         switch (binary_op->get_operator()->get_type()) {
+        // case Token::ASSIGN:
+        //     code()->write_copy();
+        //     break;
+        // case Token::ASSIGN_ADD:
+        //     code()->write_iadd();
+        //     break;
+        // case Token::ASSIGN_SUB:
+        //     code()->write_isub();
+        //     break;
+        // case Token::ASSIGN_MUL:
+        //     code()->write_imul();
+        //     break;
+        // case Token::ASSIGN_DIV:
+        //     code()->write_idiv();
+        //     break;
+        // case Token::ASSIGN_MOD:
+        //     code()->write_imod();
+        //     break;
         // case Token::LOGIC_OR:
-        //     _block->write(OP_LOGIC_OR);
         //     break;
         // case Token::LOGIC_AND:
-        //     _block->write(OP_LOGIC_AND);
         //     break;
         case Token::BIT_OR:
             code()->write_bit_or();
@@ -286,17 +308,29 @@ namespace emerald {
     }
 
     void Compiler::visit(CallExpression* call_expression) {
-        call_expression->get_callee()->accept(this);
-        for (std::shared_ptr<Expression> arg : call_expression->get_args()) {
+        std::shared_ptr<Expression> callee = call_expression->get_callee();
+        size_t num_args;
+
+        for (std::shared_ptr<Expression> arg : iterutils::reverse(call_expression->get_args())) {
             arg->accept(this);
         }
 
-        code()->write_call(call_expression->get_args().size());
+        if (std::shared_ptr<Property> property = std::dynamic_pointer_cast<Property>(callee)) {
+            // HACKISH, better way of doing this ?
+            property->get_object()->accept(this);
+            num_args = call_expression->get_args().size() + 1;
+        } else {
+            num_args = call_expression->get_args().size();
+        }
+
+        callee->accept(this);
+
+        code()->write_call(num_args);
     }
 
     void Compiler::visit(Property* property) {
-        property->get_object()->accept(this);
         property->get_property()->accept(this);
+        property->get_object()->accept(this);
 
         code()->write_get_prop();
     }
@@ -309,7 +343,9 @@ namespace emerald {
             code()->write_ldgbl(name);
         } else {
             std::string msg = ReportCode::format_report(ReportCode::undeclared_variable, name);
-            _reporter->report(ReportCode::undeclared_variable, msg,
+            _reporter->report(
+                ReportCode::undeclared_variable,
+                msg,
                 identifier->get_source_position());
         }
     }
@@ -363,6 +399,10 @@ namespace emerald {
         super_expression->get_object()->accept(this);
         code()->write_get_parent();
     }
+
+    void Compiler::visit(ThisExpression*) {
+        code()->write_get_this();
+    }
     
     void Compiler::visit(FunctionParameter* function_parameter) {
         code()->write_stloc(function_parameter->get_identifier());
@@ -385,9 +425,19 @@ namespace emerald {
         return _code_stack.empty();
     }
 
+    void Compiler::write_fs_load_iter(ForStatement* for_statement) {
+        const std::string& name = for_statement->get_init_statement()->get_identifier();
+        if (is_top_level()) {
+            code()->write_ldgbl(name);
+        } else {
+            code()->write_ldloc(name);
+        }
+    }
+
     void Compiler::write_fs_condition(ForStatement* for_statement) {
         for_statement->get_to_expression()->accept(this);
-        code()->write_ldloc(for_statement->get_init_statement()->get_identifier());
+
+        write_fs_load_iter(for_statement);
 
         if (for_statement->increments()) {
             code()->write_lt();

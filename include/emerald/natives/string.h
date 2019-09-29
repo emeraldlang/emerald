@@ -18,8 +18,8 @@
 #ifndef _EMERALD_NATIVES_STRING_H
 #define _EMERALD_NATIVES_STRING_H
 
-#include "emerald/native_prototypes.h"
 #include "emerald/object.h"
+#include "emerald/native_prototypes.h"
 
 #define STRING_NATIVES      \
     X(string_add)           \

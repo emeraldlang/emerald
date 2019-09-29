@@ -36,6 +36,7 @@ add_library(emerald_s SHARED
     src/natives/array.cpp
     src/natives/boolean.cpp
     src/natives/number.cpp
+    src/natives/object.cpp
     src/natives/string.cpp
     src/native_prototypes.cpp
     src/object.cpp
@@ -53,12 +54,14 @@ add_library(emerald_s SHARED
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
 
-find_package(fmt REQUIRED CONFIG)
+find_package(fmt REQUIRED)
+find_package(Boost COMPONENTS serialization REQUIRED)
 
 target_link_libraries(emerald_s
-    PRIVATE pthread
-    PRIVATE stdc++fs
-    fmt::fmt)
+    pthread
+    stdc++fs
+    fmt::fmt
+    ${Boost_LIBRARIES})
 
 if (EMERALD_BUILD_EXECUTABLE)
     add_executable(emerald

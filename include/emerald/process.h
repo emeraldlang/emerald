@@ -44,10 +44,10 @@ namespace emerald {
         static const PID INVALID_PID = -1;
 
         Process(
-            PID id, 
-            std::shared_ptr<Code> code, 
-            std::shared_ptr<Process> parent_process = nullptr, 
-            uint8_t priority = 0, 
+            PID id,
+            const std::string& entry_module_name,
+            std::shared_ptr<Process> parent_process = nullptr,
+            uint8_t priority = 0,
             uint16_t max_stack_size = Stack::DEFAULT_MAX_SIZE);
         NO_COPY(Process);
         
@@ -93,9 +93,9 @@ namespace emerald {
         uint8_t _priority;
 
         DataStack _data_stack;
-
-        Stack _stack;
         Heap _heap;
+        Stack _stack;
+        std::stack<Module*> _globals;
         ModuleRegistry _module_registry;
         NativePrototypes _native_prototypes;
 
@@ -130,10 +130,18 @@ namespace emerald {
         Object* new_obj(bool explicit_parent, size_t num_props);
         void call_obj(Object* obj, const std::vector<Object*>& args);
 
-        Module* get_module(const std::string& name);
+        Module* get_module(const std::string& name, bool& created);
 
         void pop_n_from_stack(std::vector<Object*>& vec, size_t n);
         std::vector<Object*> pop_n_from_stack(size_t n);
+
+        Object* get_global(const std::string& name) {
+            return _globals.top()->get_property(name);
+        }
+
+        void set_global(const std::string& name, Object* value) {
+            _globals.top()->set_property(name, value);
+        }
 
         Array* allocate_array() {
             return _heap.allocate<Array>(_native_prototypes.get_array_prototype());

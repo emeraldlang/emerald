@@ -18,6 +18,7 @@
 #include "fmt/format.h"
 
 #include "emerald/module.h"
+#include "emerald/strutils.h"
 
 namespace emerald {
 
@@ -36,12 +37,24 @@ namespace emerald {
         return _code;
     }
 
-    bool Module::is_native_module() const {
+    bool Module::is_native() const {
         return _code == nullptr;
     }
 
     std::string Module::as_str() const {
         return fmt::format("<module {0}>", _name);
+    }
+
+    std::filesystem::path Module::get_path_for_module(
+            const std::string& module_name,
+            const std::string& extension) {
+        std::filesystem::path path = std::filesystem::current_path();
+        for (const std::string& part : strutils::split(module_name, ".")) {
+            path /= part;
+        }
+        path += extension;
+
+        return path;
     }
 
     ConcurrentMap<std::string, NativeModuleInitRegistry::ModuleInitialization> NativeModuleInitRegistry::_modules;

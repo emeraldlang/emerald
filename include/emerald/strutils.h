@@ -24,6 +24,16 @@
 namespace emerald {
 namespace strutils {
 
+    inline std::string join(const std::vector<std::string>& parts, const std::string& seperator) {
+        std::string res;
+        for (const std::string& part : parts) {
+            res += part;
+            if (part != parts.back()) res += seperator;
+        }
+
+        return res;
+    }
+
     inline std::vector<std::string> split(const std::string& str, const std::string& delimiters) {
         std::vector<std::string> res;
         std::string::size_type cur = str.find_first_of(delimiters), prev = 0;
@@ -32,6 +42,8 @@ namespace strutils {
             prev = cur + 1;
             cur = str.find_first_of(delimiters, prev);
         }
+
+        res.push_back(str.substr(prev, cur - prev));
 
         return res;
     }

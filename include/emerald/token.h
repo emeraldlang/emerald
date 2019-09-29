@@ -44,6 +44,7 @@
     X(OBJECT, "object", 0)              \
     X(SUPER, "super", 0)                \
     X(IMPORT, "import", 0)              \
+    X(THIS, "this", 0)                  \
     /* Seperators */                    \
     X(COLON, ":", 0)                    \
     X(LPAREN, "(", 0)                   \
@@ -61,6 +62,11 @@
     X(BIT_NOT, "~", 0)                  \
     /* Binary Operators */              \
     X(ASSIGN, "=", 1)                   \
+    X(ASSIGN_ADD, "+=", 1)              \
+    X(ASSIGN_SUB, "-=", 1)              \
+    X(ASSIGN_MUL, "*=", 1)              \
+    X(ASSIGN_DIV, "/=", 1)              \
+    X(ASSIGN_MOD, "%=", 1)              \
     X(LOGIC_OR, "||", 2)                \
     X(LOGIC_AND, "&&", 3)               \
     X(BIT_OR, "|", 4)                   \
@@ -113,9 +119,10 @@ namespace emerald {
             int compare_precedence(const Token& other);
             int compare_precedence(std::shared_ptr<Token> other);
 
-            bool is_binary_op();
-            bool is_unary_op();
-            bool is_right_associative();
+            bool is_assignment_op() const;
+            bool is_binary_op() const;
+            bool is_unary_op() const;
+            bool is_right_associative() const;
         
         private:
             static const std::string _lexemes[NUM_TOKENS];
