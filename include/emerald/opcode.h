@@ -71,11 +71,11 @@ namespace emerald {
     X(new_str, 1)               \
     X(new_boolean, 1)           \
     X(new_arr, 1)               \
-    X(get_prop, 0)              \
-    X(has_prop, 0)              \
-    X(set_prop, 0)              \
+    X(null, 0)                  \
+    X(get_prop, 1)              \
+    X(has_prop, 1)              \
+    X(set_prop, 1)              \
     X(get_parent, 0)            \
-    X(get_this, 0)              \
     /* Loads & Stores */        \
     X(ldgbl, 1)                 \
     X(stgbl, 1)                 \

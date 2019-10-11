@@ -23,8 +23,11 @@ namespace emerald {
 
     void ASTPrinter::print(const std::vector<std::shared_ptr<Statement>>& statements) {
         ASTPrinter printer;
-        for (std::shared_ptr<Statement> statement : statements) {
-            statement->accept(&printer);
+        for (const std::shared_ptr<Statement>& statement : statements) {
+            printer.Visit(statement);
+            if (statement != statements.back()) {
+                printer._oss << std::endl;
+            }
         }
         std::cout << printer._oss.str() << std::endl;
     }
@@ -32,14 +35,14 @@ namespace emerald {
     ASTPrinter::ASTPrinter()
         : _indentation(0) {}
 
-    void ASTPrinter::visit(StatementBlock* statement_block) {
+    void ASTPrinter::VisitStatementBlock(const std::shared_ptr<StatementBlock>& statement_block) {
         if (statement_block->get_statements().empty()) {
             _oss << indent() << "(empty_block)";
         } else {
             start_indentation_block("block");
 
             for (const auto& statement : statement_block->get_statements()) {
-                statement->accept(this);
+                Visit(statement);
                 if (statement != statement_block->get_statements().back()) {
                     _oss << std::endl;
                 }
@@ -49,65 +52,65 @@ namespace emerald {
         }
     }
 
-    void ASTPrinter::visit(DoStatement* do_statement) {
+    void ASTPrinter::VisitDoStatement(const std::shared_ptr<DoStatement>& do_statement) {
         start_indentation_block("do");
 
-        do_statement->get_block()->accept(this);
+        Visit(do_statement->get_block());
 
         end_indentation_block();
     }
 
-    void ASTPrinter::visit(ForStatement* for_statement) {
+    void ASTPrinter::VisitForStatement(const std::shared_ptr<ForStatement>& for_statement) {
         start_indentation_block("for");
 
-        for_statement->get_init_statement()->accept(this);
+        Visit(for_statement->get_init_statement());
         _oss << std::endl;
 
-        for_statement->get_to_expression()->accept(this);
+        Visit(for_statement->get_to_expression());
         _oss << std::endl;
 
-        if (std::shared_ptr<Expression> by_expr = for_statement->get_by_expression()) {
+        if (const std::shared_ptr<Expression>& by_expr = for_statement->get_by_expression()) {
             _oss << std::endl;
-            by_expr->accept(this);
+            Visit(by_expr);
         }
 
-        for_statement->get_block()->accept(this);
+        Visit(for_statement->get_block());
 
         end_indentation_block();
     }
 
-    void ASTPrinter::visit(WhileStatement* while_statement) {
+    void ASTPrinter::VisitWhileStatement(const std::shared_ptr<WhileStatement>& while_statement) {
         start_indentation_block("while");
 
-        while_statement->get_conditional_expression()->accept(this);
+        Visit(while_statement->get_conditional_expression());
         _oss << std::endl;
 
-        while_statement->get_block()->accept(this);
+        Visit(while_statement->get_block());
 
         end_indentation_block();
     }
 
-    void ASTPrinter::visit(IteStatement* ite_statement) {
+    void ASTPrinter::VisitIteStatement(const std::shared_ptr<IteStatement>& ite_statement) {
         start_indentation_block("if");
 
-        ite_statement->get_conditional_expression()->accept(this);
+        Visit(ite_statement->get_conditional_expression());
         _oss << std::endl;
 
-        ite_statement->get_then_block()->accept(this);
+        Visit(ite_statement->get_then_block());
 
-        if (std::shared_ptr<Statement> else_statement = ite_statement->get_else_statement()) {
+        if (const std::shared_ptr<Statement>& else_statement = ite_statement->get_else_statement()) {
             _oss << std::endl;
-            else_statement->accept(this);
+            Visit(else_statement);
         }
 
         end_indentation_block();
     }
 
-    void ASTPrinter::visit(PrintStatement* print_statement) {
+    void ASTPrinter::VisitPrintStatement(const std::shared_ptr<PrintStatement>& print_statement) {
         start_indentation_block("print");
 
-        for (std::shared_ptr<Expression> expr : print_statement->get_expressions()) {
-            expr->accept(this);
+        for (const std::shared_ptr<Expression>& expr : print_statement->get_expressions()) {
+            Visit(expr);
             if (expr != print_statement->get_expressions().back()) {
                 _oss << std::endl;
             }
@@ -116,136 +119,149 @@ namespace emerald {
         end_indentation_block();
     }
 
-    void ASTPrinter::visit(DeclarationStatement* declaration_statement) {
+    void ASTPrinter::VisitDeclarationStatement(const std::shared_ptr<DeclarationStatement>& declaration_statement) {
         start_indentation_block("let");
 
-        _oss << indent() << "(" << declaration_statement->get_identifier() << ")"  << std::endl;
+        _oss << indent() << "(" << declaration_statement->get_identifier() << ")";
 
-        if (std::shared_ptr<Expression> init = declaration_statement->get_init_expression()) {
+        if (const std::shared_ptr<Expression>& init = declaration_statement->get_init_expression()) {
             _oss << std::endl;
-            init->accept(this);
+            Visit(init);
         }
 
         end_indentation_block();
     }
 
-    void ASTPrinter::visit(FunctionStatement* function_statement) {
+    void ASTPrinter::VisitFunctionStatement(const std::shared_ptr<FunctionStatement>& function_statement) {
         start_indentation_block("func");
 
         _oss << indent() << "(" << function_statement->get_identifier() << ")" << std::endl;
 
-        for (std::shared_ptr<FunctionParameter> parameter : function_statement->get_parameters()) {
-            parameter->accept(this);
+        for (const std::shared_ptr<FunctionParameter>& parameter : function_statement->get_parameters()) {
+            Visit(parameter);
             _oss << std::endl;
         }
 
-        function_statement->get_block()->accept(this);
+        Visit(function_statement->get_block());
         
         end_indentation_block();
     }
 
-    void ASTPrinter::visit(ObjectStatement* object_statement) {
+    void ASTPrinter::VisitObjectStatement(const std::shared_ptr<ObjectStatement>& object_statement) {
         start_indentation_block("object");
 
         _oss << indent() << "(" << object_statement->get_identifier() << ")"  << std::endl;
 
-        if (std::shared_ptr<Expression> parent = object_statement->get_parent()) {
+        if (const std::shared_ptr<LValueExpression>& parent = object_statement->get_parent()) {
             _oss << std::endl;
-            parent->accept(this);
+            Visit(parent);
         }
 
-        object_statement->get_block()->accept(this);
+        Visit(object_statement->get_block());
 
         end_indentation_block();
     }
 
-    void ASTPrinter::visit(ReturnStatement* return_statement) {
+    void ASTPrinter::VisitReturnStatement(const std::shared_ptr<ReturnStatement>& return_statement) {
         start_indentation_block("return");
-        return_statement->get_expression()->accept(this);
+
+        Visit(return_statement->get_expression());
+
         end_indentation_block();
     }
 
-    void ASTPrinter::visit(ImportStatement* import_statement) {
-        _oss << indent() << "(import " << import_statement->get_module_name() << ")" << std::endl;
+    void ASTPrinter::VisitImportStatement(const std::shared_ptr<ImportStatement>& import_statement) {
+        _oss << indent() << "(import " << import_statement->get_module_name() << ")";
     }
 
-    void ASTPrinter::visit(ExpressionStatement* expression_statement) {
+    void ASTPrinter::VisitExpressionStatement(const std::shared_ptr<ExpressionStatement>& expression_statement) {
         start_indentation_block("expr_stmt");
-        expression_statement->get_expression()->accept(this);
+
+        Visit(expression_statement->get_expression());
+
         end_indentation_block();
     }
 
-    void ASTPrinter::visit(BinaryOp* binary_op) {
+    void ASTPrinter::VisitAssignmentExpression(const std::shared_ptr<AssignmentExpression>& assignment_expression) {
+        start_indentation_block("assignment_expression");
+
+        Visit(assignment_expression->get_lvalue_expression());
+        _oss << std::endl;
+        Visit(assignment_expression->get_right_expression());
+
+        end_indentation_block();
+    }
+
+    void ASTPrinter::VisitBinaryOp(const std::shared_ptr<BinaryOp>& binary_op) {
         start_indentation_block("binary_op");
 
-        binary_op->get_left_expression()->accept(this);
+        Visit(binary_op->get_left_expression());
         _oss << std::endl << indent() << "(" << binary_op->get_operator()->get_lexeme() << ")" << std::endl;
-        binary_op->get_right_expression()->accept(this);
+        Visit(binary_op->get_right_expression());
 
         end_indentation_block();
     }
 
-    void ASTPrinter::visit(UnaryOp* unary_op) {
+    void ASTPrinter::VisitUnaryOp(const std::shared_ptr<UnaryOp>& unary_op) {
         start_indentation_block("unary_op");
 
         _oss << indent() << "(" << unary_op->get_operator()->get_lexeme() << ")" << std::endl;
-
-        unary_op->get_expression()->accept(this);
+        Visit(unary_op->get_expression());
 
         end_indentation_block();
     }
 
-    void ASTPrinter::visit(CallExpression* call_expression) {
+    void ASTPrinter::VisitCallExpression(const std::shared_ptr<CallExpression>& call_expression) {
         start_indentation_block("call");
 
-        call_expression->get_callee()->accept(this);
+        Visit(call_expression->get_callee());
 
-        for (std::shared_ptr<Expression> arg : call_expression->get_args()) {
+        for (const std::shared_ptr<Expression>& arg : call_expression->get_args()) {
             _oss << std::endl;
-            arg->accept(this);
+            Visit(arg);
         }
 
         end_indentation_block();
     }
 
-    void ASTPrinter::visit(Property* property) {
+    void ASTPrinter::VisitProperty(const std::shared_ptr<Property>& property) {
         start_indentation_block("property");
 
-        property->get_object()->accept(this);
+        Visit(property->get_object());
         _oss << std::endl;
-        property->get_property()->accept(this);
+        Visit(property->get_property());
 
         end_indentation_block();
     }
 
-    void ASTPrinter::visit(Identifier* identifier) {
+    void ASTPrinter::VisitIdentifier(const std::shared_ptr<Identifier>& identifier) {
         _oss << indent() << "(identifier " << identifier->get_identifier() << ")";
     }
 
-    void ASTPrinter::visit(NumberLiteral* number_literal) {
+    void ASTPrinter::VisitNumberLiteral(const std::shared_ptr<NumberLiteral>& number_literal) {
         _oss << indent() << "(number " << number_literal->get_value() << ")";
     }
 
-    void ASTPrinter::visit(NullLiteral*) {
+    void ASTPrinter::VisitNullLiteral(const std::shared_ptr<NullLiteral>&) {
         _oss << indent() << "(null)" << std::endl;
     }
 
-    void ASTPrinter::visit(StringLiteral* string_literal) {
+    void ASTPrinter::VisitStringLiteral(const std::shared_ptr<StringLiteral>& string_literal) {
         _oss << indent() << "(string " << string_literal->get_value() << ")";
     }
 
-    void ASTPrinter::visit(BooleanLiteral* boolean_literal) {
+    void ASTPrinter::VisitBooleanLiteral(const std::shared_ptr<BooleanLiteral>& boolean_literal) {
         _oss << indent() << "(bool " << boolean_literal->get_value() << ")";
     }
 
-    void ASTPrinter::visit(ArrayLiteral* array_literal) {
+    void ASTPrinter::VisitArrayLiteral(const std::shared_ptr<ArrayLiteral>& array_literal) {
         if (array_literal->get_elements().empty()) {
             _oss << indent() << "(empty_array)";
         } else {
             start_indentation_block("array");
 
-            for (std::shared_ptr<Expression> elem : array_literal->get_elements()) {
-                elem->accept(this);
+            for (const std::shared_ptr<Expression>& elem : array_literal->get_elements()) {
+                Visit(elem);
                 if (elem != array_literal->get_elements().back()) {
                     _oss << std::endl;
                 }
@@ -255,60 +271,57 @@ namespace emerald {
         }
     }
 
-    void ASTPrinter::visit(ObjectLiteral* object_literal) {
+    void ASTPrinter::VisitObjectLiteral(const std::shared_ptr<ObjectLiteral>& object_literal) {
         if (object_literal->get_key_value_pairs().empty()) {
             _oss << indent() << "(empty_object)" << std::endl;
         } else {
             start_indentation_block("object");
 
-            for (std::shared_ptr<KeyValuePair> key_value_pair: object_literal->get_key_value_pairs()) {
-                key_value_pair->accept(this);
+            for (const std::shared_ptr<KeyValuePair>& key_value_pair: object_literal->get_key_value_pairs()) {
+                Visit(key_value_pair);
             }
 
             end_indentation_block();
         }
     }
 
-    void ASTPrinter::visit(CloneExpression* clone_expression) {
+    void ASTPrinter::VisitCloneExpression(const std::shared_ptr<CloneExpression>& clone_expression) {
         start_indentation_block("clone");
         
-        clone_expression->get_parent()->accept(this);
+        Visit(clone_expression->get_parent());
 
-        for (std::shared_ptr<Expression> arg : clone_expression->get_args()) {
+        for (const std::shared_ptr<Expression>& arg : clone_expression->get_args()) {
             _oss << std::endl;
-            arg->accept(this);
+            Visit(arg);
         }
 
         end_indentation_block();
     }
     
-    void ASTPrinter::visit(SuperExpression* super_expression) {
+    void ASTPrinter::VisitSuperExpression(const std::shared_ptr<SuperExpression>& super_expression) {
         start_indentation_block("super");
-        super_expression->get_object()->accept(this);
+        Visit(super_expression->get_object());
         end_indentation_block();
     }
 
-    void ASTPrinter::visit(ThisExpression*) {
-        _oss << indent() << "(this)" << std::endl;
-    }
-
-    void ASTPrinter::visit(FunctionParameter* function_parameter) {
+    void ASTPrinter::VisitFunctionParameter(const std::shared_ptr<FunctionParameter>& function_parameter) {
         start_indentation_block("function_parameter");
 
-        _oss << indent() << "(" << function_parameter->get_identifier() << ")"  << std::endl;
-        if (std::shared_ptr<Expression> default_expr = function_parameter->get_default_expr()) {
-            default_expr->accept(this);
+        _oss << indent() << "(" << function_parameter->get_identifier() << ")";
+        if (const std::shared_ptr<Expression>& default_expr = function_parameter->get_default_expr()) {
+            Visit(default_expr);
+            _oss << std::endl;
         }
 
         end_indentation_block();
     }
 
-    void ASTPrinter::visit(KeyValuePair* key_value_pair) {
+    void ASTPrinter::VisitKeyValuePair(const std::shared_ptr<KeyValuePair>& key_value_pair) {
         start_indentation_block("key_value_pair");
 
-        key_value_pair->get_key()->accept(this);
+        Visit(key_value_pair->get_key());
         _oss << std::endl;
-        key_value_pair->get_value()->accept(this);
+        Visit(key_value_pair->get_value());
 
         end_indentation_block();
     }

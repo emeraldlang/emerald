@@ -19,7 +19,7 @@
 #define _EMERALD_NATIVES_ARRAY_H
 
 #include "emerald/object.h"
-#include "emerald/native_prototypes.h"
+#include "emerald/native_objects.h"
 
 #define ARRAY_NATIVES   \
     X(array_eq)         \

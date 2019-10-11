@@ -112,11 +112,11 @@ namespace emerald {
         size_t write_new_str(const std::string& val);
         void write_new_boolean(bool val);
         void write_new_arr(size_t num_elems);
-        void write_get_prop();
-        void write_has_prop();
-        void write_set_prop();
+        void write_null();
+        void write_get_prop(bool push_self_back = false);
+        void write_has_prop(bool push_self_back = false);
+        void write_set_prop(bool push_self_back = false);
         void write_get_parent();
-        void write_get_this();
 
         void write_ldgbl(const std::string& name);
         void write_stgbl(const std::string& name);

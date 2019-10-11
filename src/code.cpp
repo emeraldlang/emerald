@@ -17,7 +17,6 @@
 
 #include <algorithm>
 #include <fstream>
-#include <iostream>
 #include <sstream>
 
 #include "boost/archive/binary_oarchive.hpp"
@@ -251,24 +250,24 @@ namespace emerald {
         WRITE_OP_WARGS(OpCode::new_arr, { num_elems });
     }
 
-    void Code::write_get_prop() {
-        WRITE_OP(OpCode::get_prop);
+    void Code::write_null() {
+        WRITE_OP(OpCode::null);
     }
 
-    void Code::write_has_prop() {
-        WRITE_OP(OpCode::has_prop);
+    void Code::write_get_prop(bool push_self_back) {
+        WRITE_OP_WARGS(OpCode::get_prop, { push_self_back });
     }
 
-    void Code::write_set_prop() {
-        WRITE_OP(OpCode::set_prop);
+    void Code::write_has_prop(bool push_self_back) {
+        WRITE_OP_WARGS(OpCode::has_prop, { push_self_back });
+    }
+
+    void Code::write_set_prop(bool push_self_back) {
+        WRITE_OP_WARGS(OpCode::set_prop, { push_self_back });
     }
 
     void Code::write_get_parent() {
         WRITE_OP(OpCode::get_parent);
-    }
-
-    void Code::write_get_this() {
-        WRITE_OP(OpCode::get_this);
     }
 
     void Code::write_ldgbl(const std::string& name) {

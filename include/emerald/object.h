@@ -28,11 +28,12 @@
 #include "emerald/heap.h"
 #include "emerald/heap_managed.h"
 
-#define NATIVE_FUNCTION(name) Object* name(Heap* heap, NativePrototypes* native_prototypes, const std::vector<Object*>& args)
+#define NATIVE_FUNCTION(name) Object* name(Heap* heap, NativeObjects* native_objects, const std::vector<Object*>& args)
 
 // Inheritance Hierarchy
 // - Object
 //      - NativeFunction
+//      - Null
 //      - HeapObject
 //          - Array
 //          - Boolean
@@ -43,7 +44,7 @@
 
 namespace emerald {
 
-    class NativePrototypes;
+    class NativeObjects;
 
     class Object {
     public:
@@ -58,13 +59,13 @@ namespace emerald {
 
         const std::unordered_map<std::string, Object*>& get_properties() const;
 
-        Object* get_property(const std::string& key);
-        Object* get_own_property(const std::string& key);
+        virtual Object* get_property(const std::string& key);
+        virtual Object* get_own_property(const std::string& key);
 
-        bool has_property(const std::string& key) const;
-        bool has_own_property(const std::string& key) const;
+        virtual bool has_property(const std::string& key) const;
+        virtual bool has_own_property(const std::string& key) const;
 
-        void set_property(const std::string& key, Object* value);
+        virtual bool set_property(const std::string& key, Object* value);
 
     private:
         Object* _parent;
@@ -73,7 +74,7 @@ namespace emerald {
 
     class NativeFunction final : public Object {
     public:
-        using Callable = std::function<Object*(Heap*, NativePrototypes*, const std::vector<Object*>&)>;
+        using Callable = std::function<Object*(Heap*, NativeObjects*, const std::vector<Object*>&)>;
 
         NativeFunction(Callable callable);
         NativeFunction(Object* parent, Callable callable);
@@ -82,11 +83,27 @@ namespace emerald {
 
         const Callable& get_callable() const;
 
-        Object* invoke(Heap* heap, NativePrototypes* native_prototypes, const std::vector<Object*>& args);
-        Object* operator()(Heap* heap, NativePrototypes* native_prototypes, const std::vector<Object*>& args);
+        Object* invoke(Heap* heap, NativeObjects* native_objects, const std::vector<Object*>& args);
+        Object* operator()(Heap* heap, NativeObjects* native_objects, const std::vector<Object*>& args);
 
     private:
         Callable _callable;
+    };
+
+    class Null final : public Object {
+    public:
+        Null();
+
+        bool as_bool() const override;
+        std::string as_str() const override;
+
+        Object* get_property(const std::string& key) override;
+        Object* get_own_property(const std::string& key) override;
+
+        bool has_property(const std::string& key) const override;
+        bool has_own_property(const std::string& key) const override;
+
+        bool set_property(const std::string& key, Object* value) override;
     };
 
     class HeapObject : public Object, public HeapManaged {

@@ -41,9 +41,12 @@ namespace emerald {
         std::shared_ptr<Code> _code;
         std::stack<std::shared_ptr<Code>> _code_stack;
 
-#define X(NodeType) void visit(NodeType*) override;
+#define X(NodeType) void Visit##NodeType(const std::shared_ptr<NodeType>& node) override;
         ALL_NODES
 #undef X
+
+        void VisitPropertyLoad(const std::shared_ptr<Property>& property, bool push_self_back = false);
+        void VisitPropertyStore(const std::shared_ptr<Property>& property, const std::shared_ptr<Expression>& val, bool push_self_back = false);
 
         void push_new_func(const std::string& label);
         void pop_func();
@@ -57,8 +60,10 @@ namespace emerald {
             return _code;
         }
         
-        void write_fs_load_iter(ForStatement* for_statement);
-        void write_fs_condition(ForStatement* for_statement);
+        void write_fs_load_iter(const std::shared_ptr<ForStatement>& for_statement);
+        void write_fs_condition(const std::shared_ptr<ForStatement>& for_statement);
+
+        void write_st(const std::string& identifier);
     };
 
 } // namespace emerald

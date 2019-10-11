@@ -30,26 +30,56 @@ namespace natives {
 #undef X
 
     NATIVE_FUNCTION(object_eq) {
+        (void)heap;
+
         EXPECT_NUM_ARGS(2);
 
-        return heap->allocate<Boolean>(
-            native_prototypes->get_boolean_prototype(),
-            args[0] == args[1]);
+        return native_objects->get_boolean(args[0] == args[1]);
     }
 
     NATIVE_FUNCTION(object_neq) {
+        (void)heap;
+
         EXPECT_NUM_ARGS(2);
 
-        return heap->allocate<Boolean>(
-            native_prototypes->get_boolean_prototype(),
-            args[0] != args[1]);
+        return native_objects->get_boolean(args[0] != args[1]);
+    }
+
+    NATIVE_FUNCTION(object_str) {
+        EXPECT_NUM_ARGS(1);
+
+        return heap->allocate<String>(
+            native_objects->get_string_prototype(),
+            args[0]->as_str());
+    }
+
+    NATIVE_FUNCTION(object_boolean) {
+        (void)heap;
+
+        EXPECT_NUM_ARGS(1);
+
+        return native_objects->get_boolean(args[0]->as_bool());
     }
 
     NATIVE_FUNCTION(object_clone) {
-        EXPECT_NUM_ARGS(0);
+        (void)native_objects;
 
-        return heap->allocate<HeapObject>(
-            native_prototypes->get_object_prototype());
+        EXPECT_NUM_ARGS(1);
+
+        TRY_CONVERT_RECV_TO(HeapObject, self);
+
+        return heap->allocate<HeapObject>(self);
+    }
+
+    NATIVE_FUNCTION(object_init) {
+        (void)native_objects;
+        (void)heap;
+
+        EXPECT_NUM_ARGS(1);
+
+        TRY_CONVERT_RECV_TO(HeapObject, self);
+
+        return self;
     }
 
 } // namespace natives

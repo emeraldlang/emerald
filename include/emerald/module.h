@@ -28,10 +28,10 @@
 #include "emerald/concurrent_map.h"
 #include "emerald/heap.h"
 #include "emerald/heap_root_source.h"
-#include "emerald/native_prototypes.h"
+#include "emerald/native_objects.h"
 #include "emerald/object.h"
 
-#define MODULE_INITIALIZATION_FUNC(name) Module* name(Heap* heap, NativePrototypes* native_prototypes)
+#define MODULE_INITIALIZATION_FUNC(name) Module* name(Heap* heap, NativeObjects* native_objects)
 
 namespace emerald {
 
@@ -56,16 +56,16 @@ namespace emerald {
         std::shared_ptr<Code> _code;
     };
 
-    class NativeModuleInitRegistry {
+    class NativeModuleRegistry {
     public:
-        using ModuleInitialization = std::function<Module*(Heap*, NativePrototypes*)>;
+        using ModuleInitialization = std::function<Module*(Heap*, NativeObjects*)>;
 
-        static void add_module_init(const std::string& alias, ModuleInitialization initialization);
-        static bool is_module_init_registered(const std::string& alias);
+        static void add_module(const std::string& alias, ModuleInitialization initialization);
+        static bool has_module(const std::string& alias);
         static Module* init_module(
             const std::string& alias,
             Heap* heap,
-            NativePrototypes* native_prototypes);
+            NativeObjects* native_objects);
 
     private:
         static ConcurrentMap<std::string, ModuleInitialization> _modules;
@@ -76,9 +76,7 @@ namespace emerald {
         ModuleRegistry() = default;
 
         void add_module(Module* module);
-
         bool has_module(const std::string& name) const;
-
         const Module* get_module(const std::string& name) const;
         Module* get_module(const std::string& name);
 

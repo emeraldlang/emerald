@@ -15,6 +15,8 @@
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include "fmt/format.h"
+
 #include "emerald/natives/boolean.h"
 #include "emerald/natives/utils.h"
 
@@ -30,26 +32,29 @@ namespace natives {
 #undef X
 
     NATIVE_FUNCTION(boolean_eq) {
+        (void)heap;
+
         EXPECT_NUM_ARGS(2);
 
-        return heap->allocate<Boolean>(
-            native_prototypes->get_boolean_prototype(),
-            args[0]->as_bool() == args[1]->as_bool());
+        return native_objects->get_boolean(args[0]->as_bool() == args[1]->as_bool());
     }
 
     NATIVE_FUNCTION(boolean_neq) {
+        (void)heap;
+
         EXPECT_NUM_ARGS(2);
 
-        return heap->allocate<Boolean>(
-            native_prototypes->get_boolean_prototype(),
-            args[0]->as_bool() != args[1]->as_bool());
+        return native_objects->get_boolean(args[0]->as_bool() != args[1]->as_bool());
     }
 
     NATIVE_FUNCTION(boolean_clone) {
-        EXPECT_NUM_ARGS(0);
+        (void)native_objects;
 
-        return heap->allocate<Boolean>(
-            native_prototypes->get_boolean_prototype());
+        EXPECT_NUM_ARGS(1);
+
+        TRY_CONVERT_RECV_TO(Boolean, self);
+
+        return heap->allocate<Boolean>(self);
     }
 
 } // namespace natives

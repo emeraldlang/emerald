@@ -23,11 +23,11 @@ namespace modules {
     MODULE_INITIALIZATION_FUNC(init_core_module) {
         Module* module = heap->allocate<Module>("core");
 
-        module->set_property("Object", native_prototypes->get_object_prototype());
-        module->set_property("Array", native_prototypes->get_array_prototype());
-        module->set_property("Boolean", native_prototypes->get_boolean_prototype());
-        module->set_property("Number", native_prototypes->get_number_prototype());
-        module->set_property("String", native_prototypes->get_string_prototype());
+        module->set_property("Object", native_objects->get_object_prototype());
+        module->set_property("Array", native_objects->get_array_prototype());
+        module->set_property("Boolean", native_objects->get_boolean_prototype());
+        module->set_property("Number", native_objects->get_number_prototype());
+        module->set_property("String", native_objects->get_string_prototype());
 
         return module;
     }

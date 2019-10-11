@@ -44,6 +44,10 @@ namespace emerald {
     }
 
     void CodeCache::load_code(const std::string& module_name) {
+        if (NativeModuleRegistry::has_module(module_name)) {
+            return;
+        }
+
         std::filesystem::path path = Module::get_path_for_module(module_name, ".emc");
         std::shared_ptr<Code> code = std::make_shared<Code>(path);
         _code[module_name] = code;

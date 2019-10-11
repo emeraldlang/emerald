@@ -19,7 +19,7 @@
 #define _EMERALD_NATIVES_NUMBER_H
 
 #include "emerald/object.h"
-#include "emerald/native_prototypes.h"
+#include "emerald/native_objects.h"
 
 #define NUMBER_NATIVES  \
     X(number_neg)       \

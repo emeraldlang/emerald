@@ -64,6 +64,7 @@ namespace emerald {
         std::shared_ptr<Expression> parse_unary();
         std::shared_ptr<Expression> parse_trailer();
         std::shared_ptr<Expression> parse_primary();
+        std::shared_ptr<LValueExpression> parse_lvalue_expression();
 
         std::shared_ptr<FunctionParameter> parse_function_parameter();
         std::shared_ptr<KeyValuePair> parse_key_value_pair();

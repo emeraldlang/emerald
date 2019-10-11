@@ -18,7 +18,7 @@
 #include "fmt/format.h"
 
 #include "emerald/object.h"
-#include <iostream>
+
 namespace emerald {
 
     Object::Object()
@@ -77,8 +77,9 @@ namespace emerald {
         return _properties.find(key) != _properties.end();
     }
 
-    void Object::set_property(const std::string& key, Object* value) {
+    bool Object::set_property(const std::string& key, Object* value) {
         _properties[key] = value;
+        return true;
     }
 
     NativeFunction::NativeFunction(Callable callable)
@@ -96,12 +97,43 @@ namespace emerald {
         return _callable;
     }
 
-    Object* NativeFunction::invoke(Heap* heap, NativePrototypes* native_prototypes, const std::vector<Object*>& args) {
-        return _callable(heap, native_prototypes, args);
+    Object* NativeFunction::invoke(Heap* heap, NativeObjects* native_objects, const std::vector<Object*>& args) {
+        return _callable(heap, native_objects, args);
     }
 
-    Object* NativeFunction::operator()(Heap* heap, NativePrototypes* native_prototypes, const std::vector<Object*>& args) {
-        return _callable(heap, native_prototypes, args);
+    Object* NativeFunction::operator()(Heap* heap, NativeObjects* native_objects, const std::vector<Object*>& args) {
+        return _callable(heap, native_objects, args);
+    }
+
+    Null::Null()
+        : Object() {}
+
+    bool Null::as_bool() const {
+        return false;
+    }
+
+    std::string Null::as_str() const {
+        return "None";
+    }
+
+    Object* Null::get_property(const std::string&) {
+        return nullptr;
+    }
+
+    Object* Null::get_own_property(const std::string&) {
+        return nullptr;
+    }
+
+    bool Null::has_property(const std::string&) const {
+        return false;
+    }
+
+    bool Null::has_own_property(const std::string&) const {
+        return false;
+    }
+
+    bool Null::set_property(const std::string&, Object*) {
+        return false;
     }
 
     HeapObject::HeapObject()
@@ -171,7 +203,7 @@ namespace emerald {
     }
 
     std::string Boolean::as_str() const {
-        return (_value) ? "true" : "false";
+        return (_value) ? "True" : "False";
     }
 
     bool Boolean::get_value() const {

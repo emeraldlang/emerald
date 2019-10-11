@@ -36,7 +36,7 @@ namespace emerald {
 
         ASTPrinter();
 
-#define X(NodeType) void visit(NodeType*) override;
+#define X(NodeType) void Visit##NodeType(const std::shared_ptr<NodeType>& node) override;
         ALL_NODES
 #undef X
 

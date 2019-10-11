@@ -16,7 +16,6 @@
 */
 
 #include <chrono>
-#include <iostream>
 
 #include "emerald/scheduler.h"
 #include "emerald/check.h"

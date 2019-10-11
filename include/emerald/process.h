@@ -30,7 +30,7 @@
 #include "emerald/data_stack.h"
 #include "emerald/heap.h"
 #include "emerald/module.h"
-#include "emerald/native_prototypes.h"
+#include "emerald/native_objects.h"
 #include "emerald/no_copy.h"
 #include "emerald/object.h"
 #include "emerald/stack.h"
@@ -97,7 +97,7 @@ namespace emerald {
         Stack _stack;
         std::stack<Module*> _globals;
         ModuleRegistry _module_registry;
-        NativePrototypes _native_prototypes;
+        NativeObjects _native_objects;
 
         State _state;
 
@@ -106,25 +106,15 @@ namespace emerald {
 
         void dispatch();
 
-        void execute_mm(
-            const std::string& magic_method,
-            const std::vector<Object*>& args,
-            std::function<Object*(Object*)> on_missing = nullptr);
-        void execute_mm(
-            const std::string& magic_method,
-            size_t nargs,
-            std::function<Object*(Object*)> on_missing = nullptr);
+        void execute_mm(const std::string& magic_method, const std::vector<Object*>& args);
+        void execute_mm(const std::string& magic_method, size_t nargs);
 
-        void execute_mm1(
-            const std::string& magic_method,
-            std::function<Object*(Object*)> on_missing = nullptr) {
-            execute_mm(magic_method, 1, on_missing);
+        void execute_mm1(const std::string& magic_method) {
+            execute_mm(magic_method, 1);
         }
 
-        void execute_mm2(
-            const std::string& magic_method,
-            std::function<Object*(Object*)> on_missing = nullptr) {
-            execute_mm(magic_method, 2, on_missing);
+        void execute_mm2(const std::string& magic_method) {
+            execute_mm(magic_method, 2);
         }
 
         Object* new_obj(bool explicit_parent, size_t num_props);
@@ -144,15 +134,15 @@ namespace emerald {
         }
 
         Array* allocate_array() {
-            return _heap.allocate<Array>(_native_prototypes.get_array_prototype());
+            return _heap.allocate<Array>(_native_objects.get_array_prototype());
         }
         
         Number* allocate_number(double value) {
-            return _heap.allocate<Number>(_native_prototypes.get_number_prototype(), value);
+            return _heap.allocate<Number>(_native_objects.get_number_prototype(), value);
         }
         
         String* allocate_string(const std::string& value) {
-            return _heap.allocate<String>(_native_prototypes.get_string_prototype(), value);
+            return _heap.allocate<String>(_native_objects.get_string_prototype(), value);
         }
     };
 

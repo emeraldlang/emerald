@@ -44,7 +44,6 @@
     X(OBJECT, "object", 0)              \
     X(SUPER, "super", 0)                \
     X(IMPORT, "import", 0)              \
-    X(THIS, "this", 0)                  \
     /* Seperators */                    \
     X(COLON, ":", 0)                    \
     X(LPAREN, "(", 0)                   \

@@ -17,7 +17,6 @@
 
 #include "emerald/natives/array.h"
 #include "emerald/natives/utils.h"
-#include <iostream>
 
 namespace emerald {
 namespace natives {
@@ -31,37 +30,40 @@ namespace natives {
 #undef X
 
     NATIVE_FUNCTION(array_eq) {
+        (void)heap;
+
         EXPECT_NUM_ARGS(2);
 
         TRY_CONVERT_RECV_TO(Array, lhs);
         TRY_CONVERT_ARG_TO(1, Array, rhs);
 
-        return heap->allocate<Boolean>(
-            native_prototypes->get_boolean_prototype(),
-            lhs->get_value() == rhs->get_value());
+        return native_objects->get_boolean(lhs->get_value() == rhs->get_value());
     }
 
     NATIVE_FUNCTION(array_neq) {
+        (void)heap;
+
         EXPECT_NUM_ARGS(2);
 
         TRY_CONVERT_RECV_TO(Array, lhs);
         TRY_CONVERT_ARG_TO(1, Array, rhs);
 
-        return heap->allocate<Boolean>(
-            native_prototypes->get_boolean_prototype(),
-            lhs->get_value() != rhs->get_value());
+        return native_objects->get_boolean(lhs->get_value() != rhs->get_value());
     }
 
     NATIVE_FUNCTION(array_clone) {
-        EXPECT_NUM_ARGS(0);
+        (void)native_objects;
 
-        return heap->allocate<Array>(
-            native_prototypes->get_array_prototype());
+        EXPECT_NUM_ARGS(1);
+
+        TRY_CONVERT_RECV_TO(Array, self);
+
+        return heap->allocate<Array>(self);
     }
 
     NATIVE_FUNCTION(array_at) {
         (void)heap;
-        (void)native_prototypes;
+        (void)native_objects;
 
         EXPECT_NUM_ARGS(2);
 
@@ -73,7 +75,7 @@ namespace natives {
 
     NATIVE_FUNCTION(array_front) {
         (void)heap;
-        (void)native_prototypes;
+        (void)native_objects;
 
         EXPECT_NUM_ARGS(1);
 
@@ -84,7 +86,7 @@ namespace natives {
 
     NATIVE_FUNCTION(array_back) {
         (void)heap;
-        (void)native_prototypes;
+        (void)native_objects;
 
         EXPECT_NUM_ARGS(1);
 
@@ -94,13 +96,13 @@ namespace natives {
     }
 
     NATIVE_FUNCTION(array_empty) {
+        (void)heap;
+
         EXPECT_NUM_ARGS(1);
 
         TRY_CONVERT_RECV_TO(Array, arr);
 
-        return heap->allocate<Boolean>(
-            native_prototypes->get_boolean_prototype(),
-            arr->get_value().empty());
+        return native_objects->get_boolean(arr->get_value().empty());
     }
 
     NATIVE_FUNCTION(array_size) {
@@ -109,12 +111,12 @@ namespace natives {
         TRY_CONVERT_RECV_TO(Array, arr);
 
         return heap->allocate<Number>(
-            native_prototypes->get_number_prototype(),
+            native_objects->get_number_prototype(),
             arr->get_value().size());
     }
 
     NATIVE_FUNCTION(array_clear) {
-        (void)native_prototypes;
+        (void)native_objects;
 
         EXPECT_NUM_ARGS(1);
 
@@ -136,13 +138,13 @@ namespace natives {
         }
 
         return heap->allocate<Number>(
-            native_prototypes->get_number_prototype(),
+            native_objects->get_number_prototype(),
             val.size());
     }
 
     NATIVE_FUNCTION(array_pop) {
         (void)heap;
-        (void)native_prototypes;
+        (void)native_objects;
 
         EXPECT_NUM_ARGS(1);
 

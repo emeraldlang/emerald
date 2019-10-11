@@ -26,7 +26,7 @@ namespace emerald {
             std::shared_ptr<Reporter> reporter) {
         Compiler compiler(reporter);
         for (std::shared_ptr<Statement> statement : statements) {
-            statement->accept(&compiler);
+            compiler.Visit(statement);
         }
 
         return compiler._code;
@@ -36,18 +36,18 @@ namespace emerald {
         : _reporter(reporter),
         _code(new Code()) {}
 
-    void Compiler::visit(StatementBlock* statement_block) {
+    void Compiler::VisitStatementBlock(const std::shared_ptr<StatementBlock>& statement_block) {
         for (std::shared_ptr<Statement> statement : statement_block->get_statements()) {
-            statement->accept(this);
+            Visit(statement);
         }
     }
 
-    void Compiler::visit(DoStatement* do_statement) {
-        do_statement->get_block()->accept(this);
+    void Compiler::VisitDoStatement(const std::shared_ptr<DoStatement>& do_statement) {
+        Visit(do_statement->get_block());
     }
 
-    void Compiler::visit(ForStatement* for_statement) {
-        for_statement->get_init_statement()->accept(this);
+    void Compiler::VisitForStatement(const std::shared_ptr<ForStatement>& for_statement) {
+        Visit(for_statement->get_init_statement());
 
         size_t beginning = code()->create_label();
         size_t end = code()->create_label();
@@ -57,17 +57,18 @@ namespace emerald {
 
         code()->bind_label(beginning);
         
-        for_statement->get_block()->accept(this);
+        Visit(for_statement->get_block());
 
         if (for_statement->get_by_expression()) {
-            for_statement->get_by_expression()->accept(this);
+            Visit(for_statement->get_by_expression());
         } else {
             code()->write_new_num(1);
         }
 
         write_fs_load_iter(for_statement);
 
-        code()->write_iadd();
+        code()->write_add();
+        write_st(for_statement->get_init_statement()->get_identifier());
 
         write_fs_condition(for_statement);
         code()->write_jmp_true(beginning);
@@ -75,83 +76,78 @@ namespace emerald {
         code()->bind_label(end);
     }
 
-    void Compiler::visit(WhileStatement* while_statement) {
+    void Compiler::VisitWhileStatement(const std::shared_ptr<WhileStatement>& while_statement) {
         size_t beginning = code()->create_label();
         size_t end = code()->create_label();
 
-        while_statement->get_conditional_expression()->accept(this);
+        Visit(while_statement->get_conditional_expression());
         code()->write_jmp_false(end);
 
         code()->bind_label(beginning);
-        while_statement->get_block()->accept(this);
-        while_statement->get_conditional_expression()->accept(this);
+        Visit(while_statement->get_block());
+        Visit(while_statement->get_conditional_expression());
         code()->write_jmp_true(beginning);
 
         code()->bind_label(end);
     }
 
-    void Compiler::visit(IteStatement* ite_statement) {
+    void Compiler::VisitIteStatement(const std::shared_ptr<IteStatement>& ite_statement) {
         size_t next = code()->create_label();
         size_t end = code()->create_label();
 
-        ite_statement->get_conditional_expression()->accept(this);
+        Visit(ite_statement->get_conditional_expression());
         code()->write_jmp_false(next);
 
-        ite_statement->get_then_block()->accept(this);
+        Visit(ite_statement->get_then_block());
         code()->write_jmp(end);
 
         code()->bind_label(next);
 
-        if (std::shared_ptr<Statement> else_statement = ite_statement->get_else_statement()) {
-            else_statement->accept(this);
+        if (const std::shared_ptr<Statement>& else_statement = ite_statement->get_else_statement()) {
+            Visit(else_statement);
         }
 
         code()->bind_label(end);
     }
 
-    void Compiler::visit(PrintStatement* print_statement) {
-        for (std::shared_ptr<Expression> expression : print_statement->get_expressions()) {
-            expression->accept(this);
+    void Compiler::VisitPrintStatement(const std::shared_ptr<PrintStatement>& print_statement) {
+        for (const std::shared_ptr<Expression>& expression : print_statement->get_expressions()) {
+            Visit(expression);
             code()->write_print();
         }
     }
 
-    void Compiler::visit(DeclarationStatement* declaration_statement) {
-        if (std::shared_ptr<Expression> init = declaration_statement->get_init_expression()) {
-            init->accept(this);
+    void Compiler::VisitDeclarationStatement(const std::shared_ptr<DeclarationStatement>& declaration_statement) {
+        if (const std::shared_ptr<Expression>& init = declaration_statement->get_init_expression()) {
+            Visit(init);
         } else {
-            // code()->write_null();
+            code()->write_null();
         }
 
-        if (is_top_level()) {
-            code()->write_stgbl(declaration_statement->get_identifier());
-        } else {
-            code()->write_stloc(declaration_statement->get_identifier());
-        }
+        write_st(declaration_statement->get_identifier());
     }
 
-    void Compiler::visit(FunctionStatement* function_statement) {
+    void Compiler::VisitFunctionStatement(const std::shared_ptr<FunctionStatement>& function_statement) {
         push_new_func(function_statement->get_identifier());
 
-        for (std::shared_ptr<FunctionParameter> parameter : iterutils::reverse(function_statement->get_parameters())) {
-            parameter->accept(this);
+        for (const std::shared_ptr<FunctionParameter>& parameter : iterutils::reverse(function_statement->get_parameters())) {
+            Visit(parameter);
         }
 
-        function_statement->get_block()->accept(this);
+        Visit(function_statement->get_block());
+
+        code()->write_null();
+        code()->write_ret();
 
         pop_func();
 
-        if (is_top_level()) {
-            code()->write_stgbl(function_statement->get_identifier());
-        } else {
-            code()->write_stloc(function_statement->get_identifier());
-        }
+        write_st(function_statement->get_identifier());
     }
 
-    void Compiler::visit(ObjectStatement* object_statement) {
+    void Compiler::VisitObjectStatement(const std::shared_ptr<ObjectStatement>& object_statement) {
         push_new_func(object_statement->get_identifier());
 
-        object_statement->get_block()->accept(this);
+        Visit(object_statement->get_block());
 
         const std::vector<std::string>& locals = code()->get_local_names();
         for (const std::string& local : locals) {
@@ -159,9 +155,9 @@ namespace emerald {
             code()->write_ldloc(local);
         }
 
-        std::shared_ptr<Expression> parent = object_statement->get_parent();
+        const std::shared_ptr<LValueExpression>& parent = object_statement->get_parent();
         if (parent) {
-            parent->accept(this);
+            Visit(parent);
         }
 
         code()->write_new_obj(parent != nullptr, locals.size());
@@ -171,14 +167,10 @@ namespace emerald {
 
         code()->write_call(0);
     
-        if (is_top_level()) {
-            code()->write_stgbl(object_statement->get_identifier());
-        } else {
-            code()->write_stloc(object_statement->get_identifier());
-        }
+        write_st(object_statement->get_identifier());
     }
 
-    void Compiler::visit(ReturnStatement* return_statement) {
+    void Compiler::VisitReturnStatement(const std::shared_ptr<ReturnStatement>& return_statement) {
         if (is_top_level()) {
             std::string msg = ReportCode::format_report(ReportCode::illegal_return);
             _reporter->report(
@@ -187,52 +179,41 @@ namespace emerald {
                 return_statement->get_source_position());
         }
 
-        if (std::shared_ptr<Expression> expression = return_statement->get_expression()) {
-            expression->accept(this);
+        if (const std::shared_ptr<Expression>& expression = return_statement->get_expression()) {
+            Visit(expression);
         }
 
         code()->write_ret();
     }
 
-    void Compiler::visit(ImportStatement* import_statement) {
+    void Compiler::VisitImportStatement(const std::shared_ptr<ImportStatement>& import_statement) {
         const std::string& module_name = import_statement->get_module_name();
 
         code()->write_import(module_name);
 
-        if (is_top_level()) {
-            code()->write_stgbl(module_name);
-        } else {
-            code()->write_stloc(module_name);
+        write_st(module_name);
+    }
+
+    void Compiler::VisitExpressionStatement(const std::shared_ptr<ExpressionStatement>& expression_statement) {
+        Visit(expression_statement->get_expression());
+    }
+
+    void Compiler::VisitAssignmentExpression(const std::shared_ptr<AssignmentExpression>& assignment_expression) {
+        const std::shared_ptr<LValueExpression>& lvalue = assignment_expression->get_lvalue_expression();
+
+        if (std::shared_ptr<Property> property = ASTNode::as<Property>(lvalue)) {
+            VisitPropertyStore(property, assignment_expression->get_right_expression());
+        } else if (std::shared_ptr<Identifier> identifer = ASTNode::as<Identifier>(lvalue)) {
+            Visit(assignment_expression->get_right_expression());
+            write_st(identifer->get_identifier());
         }
     }
 
-    void Compiler::visit(ExpressionStatement* expression_statement) {
-        expression_statement->get_expression()->accept(this);
-    }
-
-    void Compiler::visit(BinaryOp* binary_op) {
-        binary_op->get_right_expression()->accept(this);
-        binary_op->get_left_expression()->accept(this);
+    void Compiler::VisitBinaryOp(const std::shared_ptr<BinaryOp>& binary_op) {
+        Visit(binary_op->get_right_expression());
+        Visit(binary_op->get_left_expression());
 
         switch (binary_op->get_operator()->get_type()) {
-        // case Token::ASSIGN:
-        //     code()->write_copy();
-        //     break;
-        // case Token::ASSIGN_ADD:
-        //     code()->write_iadd();
-        //     break;
-        // case Token::ASSIGN_SUB:
-        //     code()->write_isub();
-        //     break;
-        // case Token::ASSIGN_MUL:
-        //     code()->write_imul();
-        //     break;
-        // case Token::ASSIGN_DIV:
-        //     code()->write_idiv();
-        //     break;
-        // case Token::ASSIGN_MOD:
-        //     code()->write_imod();
-        //     break;
         // case Token::LOGIC_OR:
         //     break;
         // case Token::LOGIC_AND:
@@ -290,8 +271,8 @@ namespace emerald {
         }
     }
 
-    void Compiler::visit(UnaryOp* unary_op) {
-        unary_op->get_expression()->accept(this);
+    void Compiler::VisitUnaryOp(const std::shared_ptr<UnaryOp>& unary_op) {
+        Visit(unary_op->get_expression());
 
         switch (unary_op->get_operator()->get_type()) {
         case Token::NOT:
@@ -307,35 +288,46 @@ namespace emerald {
         }
     }
 
-    void Compiler::visit(CallExpression* call_expression) {
-        std::shared_ptr<Expression> callee = call_expression->get_callee();
+    void Compiler::VisitCallExpression(const std::shared_ptr<CallExpression>& call_expression) {
+        const std::shared_ptr<Expression>& callee = call_expression->get_callee();
         size_t num_args;
 
-        for (std::shared_ptr<Expression> arg : iterutils::reverse(call_expression->get_args())) {
-            arg->accept(this);
+        for (const std::shared_ptr<Expression>& arg : iterutils::reverse(call_expression->get_args())) {
+            Visit(arg);
         }
 
-        if (std::shared_ptr<Property> property = std::dynamic_pointer_cast<Property>(callee)) {
-            // HACKISH, better way of doing this ?
-            property->get_object()->accept(this);
+        if (std::shared_ptr<Property> property = ASTNode::as<Property>(callee)) {
             num_args = call_expression->get_args().size() + 1;
+            VisitPropertyLoad(property, true);
         } else {
             num_args = call_expression->get_args().size();
+            Visit(callee);
         }
-
-        callee->accept(this);
 
         code()->write_call(num_args);
     }
 
-    void Compiler::visit(Property* property) {
-        property->get_property()->accept(this);
-        property->get_object()->accept(this);
-
-        code()->write_get_prop();
+    void Compiler::VisitProperty(const std::shared_ptr<Property>& property) {
+        VisitPropertyLoad(property, false);
     }
 
-    void Compiler::visit(Identifier* identifier) {
+    void Compiler::VisitPropertyLoad(const std::shared_ptr<Property>& property, bool push_self_back) {
+        Visit(property->get_property());
+        Visit(property->get_object());
+
+        code()->write_get_prop(push_self_back);
+    }
+
+    void Compiler::VisitPropertyStore(const std::shared_ptr<Property>& property, const std::shared_ptr<Expression>& val, bool push_self_back) {
+        Visit(val);
+
+        Visit(property->get_property());
+        Visit(property->get_object());
+
+        code()->write_set_prop(push_self_back);
+    }
+
+    void Compiler::VisitIdentifier(const std::shared_ptr<Identifier>& identifier) {
         const std::string& name = identifier->get_identifier();
         if (code()->is_local_name(name)) {
             code()->write_ldloc(name);
@@ -350,67 +342,63 @@ namespace emerald {
         }
     }
 
-    void Compiler::visit(NumberLiteral* number_literal) {
+    void Compiler::VisitNumberLiteral(const std::shared_ptr<NumberLiteral>& number_literal) {
         code()->write_new_num(number_literal->get_value());
     }
 
-    void Compiler::visit(NullLiteral*) {
-        // code()->write_null();
+    void Compiler::VisitNullLiteral(const std::shared_ptr<NullLiteral>&) {
+        code()->write_null();
     }
 
-    void Compiler::visit(StringLiteral* string_literal) {
+    void Compiler::VisitStringLiteral(const std::shared_ptr<StringLiteral>& string_literal) {
         code()->write_new_str(string_literal->get_value());
     }
 
-    void Compiler::visit(BooleanLiteral* boolean_literal) {
+    void Compiler::VisitBooleanLiteral(const std::shared_ptr<BooleanLiteral>& boolean_literal) {
         code()->write_new_boolean(boolean_literal->get_value());
     }
 
-    void Compiler::visit(ArrayLiteral* array_literal) {
+    void Compiler::VisitArrayLiteral(const std::shared_ptr<ArrayLiteral>& array_literal) {
         const std::vector<std::shared_ptr<Expression>> elements = array_literal->get_elements();
-        for (std::shared_ptr<Expression> element : iterutils::reverse(elements)) {
-            element->accept(this);
+        for (const std::shared_ptr<Expression>& element : iterutils::reverse(elements)) {
+            Visit(element);
         }
 
         code()->write_new_arr(elements.size());
     }
 
-    void Compiler::visit(ObjectLiteral* object_literal) {
+    void Compiler::VisitObjectLiteral(const std::shared_ptr<ObjectLiteral>& object_literal) {
         const std::vector<std::shared_ptr<KeyValuePair>>& key_value_pairs = object_literal->get_key_value_pairs();
-        for (std::shared_ptr<KeyValuePair> key_value_pair : iterutils::reverse(key_value_pairs)) {
-            key_value_pair->accept(this);
+        for (const std::shared_ptr<KeyValuePair>& key_value_pair : iterutils::reverse(key_value_pairs)) {
+            Visit(key_value_pair);
         }
 
         code()->write_new_obj(false, key_value_pairs.size());
     }
 
-    void Compiler::visit(CloneExpression* clone_expression) {
-        clone_expression->get_parent()->accept(this);
+    void Compiler::VisitCloneExpression(const std::shared_ptr<CloneExpression>& clone_expression) {
+        Visit(clone_expression->get_parent());
         code()->write_new_obj(true, 0);
 
         const std::vector<std::shared_ptr<Expression>> args = clone_expression->get_args();
-        for (std::shared_ptr<Expression> arg : args) {
-            arg->accept(this);
+        for (const std::shared_ptr<Expression>& arg : args) {
+            Visit(arg);
         }
         code()->write_init(args.size());
     }
 
-    void Compiler::visit(SuperExpression* super_expression) {
-        super_expression->get_object()->accept(this);
+    void Compiler::VisitSuperExpression(const std::shared_ptr<SuperExpression>& super_expression) {
+        Visit(super_expression->get_object());
         code()->write_get_parent();
     }
-
-    void Compiler::visit(ThisExpression*) {
-        code()->write_get_this();
-    }
     
-    void Compiler::visit(FunctionParameter* function_parameter) {
+    void Compiler::VisitFunctionParameter(const std::shared_ptr<FunctionParameter>& function_parameter) {
         code()->write_stloc(function_parameter->get_identifier());
     }
 
-    void Compiler::visit(KeyValuePair* key_value_pair) {
-        key_value_pair->get_value()->accept(this);
-        key_value_pair->get_key()->accept(this);
+    void Compiler::VisitKeyValuePair(const std::shared_ptr<KeyValuePair>& key_value_pair) {
+        Visit(key_value_pair->get_value());
+        Visit(key_value_pair->get_key());
     }
 
     void Compiler::push_new_func(const std::string& label) {
@@ -425,7 +413,7 @@ namespace emerald {
         return _code_stack.empty();
     }
 
-    void Compiler::write_fs_load_iter(ForStatement* for_statement) {
+    void Compiler::write_fs_load_iter(const std::shared_ptr<ForStatement>& for_statement) {
         const std::string& name = for_statement->get_init_statement()->get_identifier();
         if (is_top_level()) {
             code()->write_ldgbl(name);
@@ -434,8 +422,8 @@ namespace emerald {
         }
     }
 
-    void Compiler::write_fs_condition(ForStatement* for_statement) {
-        for_statement->get_to_expression()->accept(this);
+    void Compiler::write_fs_condition(const std::shared_ptr<ForStatement>& for_statement) {
+        Visit(for_statement->get_to_expression());
 
         write_fs_load_iter(for_statement);
 
@@ -443,6 +431,14 @@ namespace emerald {
             code()->write_lt();
         } else {
             code()->write_gt();
+        }
+    }
+
+    void Compiler::write_st(const std::string& identifier) {
+        if (is_top_level()) {
+            code()->write_stgbl(identifier);
+        } else {
+            code()->write_stloc(identifier);
         }
     }
 

@@ -42,6 +42,7 @@ namespace emerald {
     X(ExpressionStatement)
 
 #define EXPRESSION_NODES        \
+    X(AssignmentExpression)     \
     X(BinaryOp)                 \
     X(UnaryOp)                  \
     X(CallExpression)           \
@@ -54,8 +55,7 @@ namespace emerald {
     X(ArrayLiteral)             \
     X(ObjectLiteral)            \
     X(CloneExpression)          \
-    X(SuperExpression)          \
-    X(ThisExpression)
+    X(SuperExpression)
 
 #define AST_NODES           \
     X(FunctionParameter)    \
@@ -71,50 +71,59 @@ namespace emerald {
     ALL_NODES
 #undef X
 
-    class ASTVisitor {
-    public:
-#define X(NodeType) virtual void visit(NodeType*) = 0;
-    ALL_NODES
-#undef X
-    };
-
     class ASTNode {
     public:
-        ASTNode(std::shared_ptr<SourcePosition> position)
-            : _position(position) {}
+#define X(NodeType) n##NodeType,
+        enum Type {
+            ALL_NODES
+        };
+#undef X
+
         virtual ~ASTNode() = default;
 
-        std::shared_ptr<SourcePosition> get_source_position() const {
-            return _position;
+        std::shared_ptr<SourcePosition> get_source_position() const { return _position; }
+        Type get_type() const { return _type; }
+
+        template <class T>
+        static std::shared_ptr<T> as(const std::shared_ptr<ASTNode>& node) {
+            return std::dynamic_pointer_cast<T>(node);
         }
 
-        virtual void accept(ASTVisitor* visitor) = 0;
+    protected:
+        ASTNode(std::shared_ptr<SourcePosition> position, Type type)
+            : _position(position),
+            _type(type) {}
 
     private:
         std::shared_ptr<SourcePosition> _position;
+        Type _type;
     };
 
     class Statement : public ASTNode {
-    public:
-        Statement(std::shared_ptr<SourcePosition> position)
-            : ASTNode(position) {}
+    protected:
+        Statement(std::shared_ptr<SourcePosition> position, Type type)
+            : ASTNode(position, type) {}
     };
 
     class Expression : public ASTNode {
-    public:
-        Expression(std::shared_ptr<SourcePosition> position)
-            : ASTNode(position) {}
+    protected:
+        Expression(std::shared_ptr<SourcePosition> position, Type type)
+            : ASTNode(position, type) {}
+    };
+
+    class LValueExpression : public Expression {
+    protected:
+        LValueExpression(std::shared_ptr<SourcePosition> position, Type type)
+            : Expression(position, type) {}
     };
 
     class StatementBlock final : public Statement {
     public:
         StatementBlock(std::shared_ptr<SourcePosition> position, std::vector<std::shared_ptr<Statement>> statements) 
-            : Statement(position),
+            : Statement(position, nStatementBlock),
             _statements(statements) {}
         
         const std::vector<std::shared_ptr<Statement>>& get_statements() const { return _statements; }
-
-        void accept(ASTVisitor* visitor) override { visitor->visit(this); }
 
     private:
         std::vector<std::shared_ptr<Statement>> _statements;
@@ -123,12 +132,10 @@ namespace emerald {
     class DoStatement final : public Statement {
     public:
         DoStatement(std::shared_ptr<SourcePosition> position, std::shared_ptr<StatementBlock> block)
-            : Statement(position),
+            : Statement(position, nDoStatement),
             _block(block) {}
 
-        std::shared_ptr<StatementBlock> get_block() const { return _block; }
-
-        void accept(ASTVisitor* visitor) override { visitor->visit(this); }
+        const std::shared_ptr<StatementBlock>& get_block() const { return _block; }
 
     private:
         std::shared_ptr<StatementBlock> _block;
@@ -138,20 +145,18 @@ namespace emerald {
     public:
         ForStatement(std::shared_ptr<SourcePosition> position, std::shared_ptr<DeclarationStatement> init, 
             std::shared_ptr<Expression> to, bool increments, std::shared_ptr<Expression> by, std::shared_ptr<StatementBlock> block) 
-            : Statement(position),
+            : Statement(position, nForStatement),
             _init(init),
             _to(to),
             _increments(increments),
             _by(by),
             _block(block) {}
         
-        std::shared_ptr<DeclarationStatement> get_init_statement() const { return _init; }
-        std::shared_ptr<Expression> get_to_expression() const { return _to; }
+        const std::shared_ptr<DeclarationStatement>& get_init_statement() const { return _init; }
+        const std::shared_ptr<Expression>& get_to_expression() const { return _to; }
         bool increments() const { return _increments; }
-        std::shared_ptr<Expression> get_by_expression() const { return _by; }
-        std::shared_ptr<StatementBlock> get_block() const { return _block; }
-
-        void accept(ASTVisitor* visitor) override { visitor->visit(this); }
+        const std::shared_ptr<Expression>& get_by_expression() const { return _by; }
+        const std::shared_ptr<StatementBlock>& get_block() const { return _block; }
 
     private:
         std::shared_ptr<DeclarationStatement> _init;
@@ -165,14 +170,12 @@ namespace emerald {
     public:
         WhileStatement(std::shared_ptr<SourcePosition> position, std::shared_ptr<Expression> conditional, 
             std::shared_ptr<StatementBlock> block) 
-            : Statement(position),
+            : Statement(position, nWhileStatement),
             _conditional(conditional),
             _block(block) {}
         
-        std::shared_ptr<Expression> get_conditional_expression() const { return _conditional; }
-        std::shared_ptr<StatementBlock> get_block() const { return _block; }
-
-        void accept(ASTVisitor* visitor) override { visitor->visit(this); }
+        const std::shared_ptr<Expression>& get_conditional_expression() const { return _conditional; }
+        const std::shared_ptr<StatementBlock>& get_block() const { return _block; }
 
     private:
         std::shared_ptr<Expression> _conditional;
@@ -183,16 +186,14 @@ namespace emerald {
     public:
         IteStatement(std::shared_ptr<SourcePosition> position, std::shared_ptr<Expression> conditional, std::shared_ptr<StatementBlock> then_block, 
             std::shared_ptr<Statement> else_statement) 
-            : Statement(position),
+            : Statement(position, nIteStatement),
             _conditional(conditional),
             _then_block(then_block),
             _else_statement(else_statement) {}
         
-        std::shared_ptr<Expression> get_conditional_expression() const { return _conditional; }
-        std::shared_ptr<StatementBlock> get_then_block() const { return _then_block; }
-        std::shared_ptr<Statement> get_else_statement() const { return _else_statement; }
-
-        void accept(ASTVisitor* visitor) override { visitor->visit(this); }
+        const std::shared_ptr<Expression>& get_conditional_expression() const { return _conditional; }
+        const std::shared_ptr<StatementBlock>& get_then_block() const { return _then_block; }
+        const std::shared_ptr<Statement>& get_else_statement() const { return _else_statement; }
 
     private:
         std::shared_ptr<Expression> _conditional;
@@ -203,12 +204,10 @@ namespace emerald {
     class PrintStatement final : public Statement {
     public:
         PrintStatement(std::shared_ptr<SourcePosition> position, std::vector<std::shared_ptr<Expression>> expressions) 
-            : Statement(position),
+            : Statement(position, nPrintStatement),
             _expressions(expressions) {}
         
         const std::vector<std::shared_ptr<Expression>>& get_expressions() const { return _expressions; }
-
-        void accept(ASTVisitor* visitor) override { visitor->visit(this); }
 
     private:
         std::vector<std::shared_ptr<Expression>> _expressions;
@@ -218,14 +217,12 @@ namespace emerald {
     public:
         DeclarationStatement(std::shared_ptr<SourcePosition> position, const std::string& identifier, 
             std::shared_ptr<Expression> init_expression)
-            : Statement(position),
+            : Statement(position, nDeclarationStatement),
             _identifier(identifier),
             _init_expression(init_expression) {}
         
         const std::string& get_identifier() const { return _identifier; }
-        std::shared_ptr<Expression> get_init_expression() const { return _init_expression; }
-
-        void accept(ASTVisitor* visitor) override { visitor->visit(this); }
+        const std::shared_ptr<Expression>& get_init_expression() const { return _init_expression; }
 
     private:
         std::string _identifier;
@@ -236,7 +233,7 @@ namespace emerald {
     public:
         FunctionStatement(std::shared_ptr<SourcePosition> position, const std::string& identifier, 
             std::vector<std::shared_ptr<FunctionParameter>> parameters, std::shared_ptr<StatementBlock> block) 
-            : Statement(position),
+            : Statement(position, nFunctionStatement),
             _identifier(identifier),
             _parameters(parameters),
             _block(block) {}
@@ -244,9 +241,7 @@ namespace emerald {
         const std::string& get_identifier() const { return _identifier; }
         const std::vector<std::shared_ptr<FunctionParameter>>& get_parameters() const { return _parameters; }
         size_t get_arity() const { return _parameters.size(); }
-        std::shared_ptr<StatementBlock> get_block() const { return _block; }
-
-        void accept(ASTVisitor* visitor) override { visitor->visit(this); }
+        const std::shared_ptr<StatementBlock>& get_block() const { return _block; }
         
     private:
         std::string _identifier;
@@ -257,33 +252,28 @@ namespace emerald {
     class ObjectStatement final : public Statement {
     public:
         ObjectStatement(std::shared_ptr<SourcePosition> position, const std::string& identifier, 
-            std::shared_ptr<Expression> parent, std::shared_ptr<StatementBlock> block)
-            : Statement(position),
+            std::shared_ptr<LValueExpression> parent, std::shared_ptr<StatementBlock> block)
+            : Statement(position, nObjectStatement),
             _identifier(identifier),
             _parent(parent),
             _block(block) {}
 
         const std::string& get_identifier() const { return _identifier; }
-        std::shared_ptr<Expression> get_parent() const { return _parent; }
-        std::shared_ptr<StatementBlock> get_block() const { return _block; }
-
-        void accept(ASTVisitor* visitor) override { visitor->visit(this); }
-
+        const std::shared_ptr<LValueExpression>& get_parent() const { return _parent; }
+        const std::shared_ptr<StatementBlock>& get_block() const { return _block; }
     private:
         std::string _identifier;
-        std::shared_ptr<Expression> _parent;
+        std::shared_ptr<LValueExpression> _parent;
         std::shared_ptr<StatementBlock> _block;
     };
 
     class ReturnStatement final : public Statement {
     public:
         ReturnStatement(std::shared_ptr<SourcePosition> position, std::shared_ptr<Expression> expression)
-            : Statement(position),
+            : Statement(position, nReturnStatement),
             _expression(expression) {}
         
-        std::shared_ptr<Expression> get_expression() const { return _expression; }
-
-        void accept(ASTVisitor* visitor) override { visitor->visit(this); }
+        const std::shared_ptr<Expression>& get_expression() const { return _expression; }
 
     private:
         std::shared_ptr<Expression> _expression;
@@ -292,12 +282,10 @@ namespace emerald {
     class ImportStatement final : public Statement {
     public:
         ImportStatement(std::shared_ptr<SourcePosition> position, const std::string& module_name)
-            : Statement(position),
+            : Statement(position, nImportStatement),
             _module_name(module_name) {}
 
         const std::string& get_module_name() const { return _module_name; }
-
-        void accept(ASTVisitor* visitor) override { visitor->visit(this); }
 
     private:
         std::string _module_name;
@@ -306,31 +294,43 @@ namespace emerald {
     class ExpressionStatement final : public Statement {
     public:
         ExpressionStatement(std::shared_ptr<SourcePosition> position, std::shared_ptr<Expression> expression)
-            : Statement(position),
+            : Statement(position, nExpressionStatement),
             _expression(expression) {}
 
-        std::shared_ptr<Expression> get_expression() const { return _expression; }
-
-        void accept(ASTVisitor* visitor) override { visitor->visit(this); }
+        const std::shared_ptr<Expression>& get_expression() const { return _expression; }
 
     private:
         std::shared_ptr<Expression> _expression;
+    };
+
+    class AssignmentExpression : public Expression {
+    public:
+        AssignmentExpression(std::shared_ptr<SourcePosition> position, std::shared_ptr<LValueExpression> lvalue_expression,
+            std::shared_ptr<Expression> right)
+            : Expression(position, nAssignmentExpression),
+            _lvalue_expression(lvalue_expression),
+            _right(right) {}
+
+        const std::shared_ptr<LValueExpression>& get_lvalue_expression() const { return _lvalue_expression; }
+        const std::shared_ptr<Expression>& get_right_expression() const { return _right; }
+
+    private:
+        std::shared_ptr<LValueExpression> _lvalue_expression;
+        std::shared_ptr<Expression> _right;
     };
 
     class BinaryOp final : public Expression {
     public:
         BinaryOp(std::shared_ptr<SourcePosition> position, std::shared_ptr<Expression> left, std::shared_ptr<Token> op, 
             std::shared_ptr<Expression> right) 
-            : Expression(position),
+            : Expression(position, nBinaryOp),
             _left(left),
             _op(op),
             _right(right) {}
          
-        std::shared_ptr<Expression> get_left_expression() const { return _left; }
-        std::shared_ptr<Token> get_operator() const { return _op; }
-        std::shared_ptr<Expression> get_right_expression() const { return _right; }
-
-        void accept(ASTVisitor* visitor) override { visitor->visit(this); }
+        const std::shared_ptr<Expression>& get_left_expression() const { return _left; }
+        const std::shared_ptr<Token>& get_operator() const { return _op; }
+        const std::shared_ptr<Expression>& get_right_expression() const { return _right; }
 
     private:
         std::shared_ptr<Expression> _left;
@@ -341,14 +341,12 @@ namespace emerald {
     class UnaryOp final : public Expression {
     public:
         UnaryOp(std::shared_ptr<SourcePosition> position, std::shared_ptr<Token> op, std::shared_ptr<Expression> expression)
-            : Expression(position),
+            : Expression(position, nUnaryOp),
             _op(op),
             _expression(expression) {}
         
-        std::shared_ptr<Token> get_operator() const { return _op; }
-        std::shared_ptr<Expression> get_expression() const { return _expression; }
-
-        void accept(ASTVisitor* visitor) override { visitor->visit(this); }
+        const std::shared_ptr<Token>& get_operator() const { return _op; }
+        const std::shared_ptr<Expression>& get_expression() const { return _expression; }
     
     private:
         std::shared_ptr<Token> _op;
@@ -359,47 +357,41 @@ namespace emerald {
     public:
         CallExpression(std::shared_ptr<SourcePosition> position, std::shared_ptr<Expression> callee,
             std::vector<std::shared_ptr<Expression>> args)
-            : Expression(position),
+            : Expression(position, nCallExpression),
             _callee(callee),
             _args(args) {}
 
-        std::shared_ptr<Expression> get_callee() const { return _callee; }
+        const std::shared_ptr<Expression>& get_callee() const { return _callee; }
         const std::vector<std::shared_ptr<Expression>>& get_args() const { return _args; }
-
-        void accept(ASTVisitor* visitor) override { visitor->visit(this); }
 
     private:
         std::shared_ptr<Expression> _callee;
         std::vector<std::shared_ptr<Expression>> _args;
     };
 
-    class Property : public Expression {
+    class Property : public LValueExpression {
     public:
         Property(std::shared_ptr<SourcePosition> position, std::shared_ptr<Expression> object,
             std::shared_ptr<Expression> property)
-            : Expression(position),
+            : LValueExpression(position, nProperty),
             _object(object),
             _property(property) {}
 
-        std::shared_ptr<Expression> get_object() const { return _object; }
-        std::shared_ptr<Expression> get_property() const { return _property; }
-
-        virtual void accept(ASTVisitor* visitor) override { visitor->visit(this); }
+        const std::shared_ptr<Expression>& get_object() const { return _object; }
+        const std::shared_ptr<Expression>& get_property() const { return _property; }
 
     private:
         std::shared_ptr<Expression> _object;
         std::shared_ptr<Expression> _property;
     };
 
-    class Identifier : public Expression {
+    class Identifier : public LValueExpression {
     public:
         Identifier(std::shared_ptr<SourcePosition> position, const std::string& identifier)
-            : Expression(position),
+            : LValueExpression(position, nIdentifier),
             _identifier(identifier) {}
         
         const std::string& get_identifier() const { return _identifier; }
-
-        virtual void accept(ASTVisitor* visitor) override { visitor->visit(this); }
 
     private:
         std::string _identifier;
@@ -408,12 +400,10 @@ namespace emerald {
     class NumberLiteral final : public Expression {
     public:
         NumberLiteral(std::shared_ptr<SourcePosition> position, double value) 
-            : Expression(position),
+            : Expression(position, nNumberLiteral),
             _value(value) {}
         
         double get_value() const { return _value; }
-
-        void accept(ASTVisitor* visitor) override { visitor->visit(this); }
 
     private:
         double _value;
@@ -422,12 +412,10 @@ namespace emerald {
     class StringLiteral final : public Expression {
     public:
         StringLiteral(std::shared_ptr<SourcePosition> position, std::string value) 
-            : Expression(position),
+            : Expression(position, nStringLiteral),
             _value(value) {}
         
         const std::string& get_value() const { return _value; }
-
-        void accept(ASTVisitor* visitor) override { visitor->visit(this); }
 
     private:
         std::string _value;
@@ -436,12 +424,10 @@ namespace emerald {
     class BooleanLiteral final : public Expression {
     public:
         BooleanLiteral(std::shared_ptr<SourcePosition> position, bool value) 
-            : Expression(position),
+            : Expression(position, nBooleanLiteral),
             _value(value) {}
         
         bool get_value() const { return _value; }
-
-        void accept(ASTVisitor* visitor) override { visitor->visit(this); }
 
     private:
         bool _value;
@@ -450,21 +436,17 @@ namespace emerald {
     class NullLiteral final : public Expression {
     public:
         NullLiteral(std::shared_ptr<SourcePosition> position)
-            : Expression(position) {}
-
-        void accept(ASTVisitor* visitor) override { visitor->visit(this); }
+            : Expression(position, nNullLiteral) {}
     };
 
     class ArrayLiteral final : public Expression {
     public:
         ArrayLiteral(std::shared_ptr<SourcePosition> position, std::vector<std::shared_ptr<Expression>> elements)
-            : Expression(position),
+            : Expression(position, nArrayLiteral),
             _elements(elements) {}
 
         const std::vector<std::shared_ptr<Expression>>& get_elements() const { return _elements; }
         int get_length() const { return _elements.size(); }
-
-        void accept(ASTVisitor* visitor) override { visitor->visit(this); }
 
     private:
         std::vector<std::shared_ptr<Expression>> _elements;
@@ -473,13 +455,11 @@ namespace emerald {
     class ObjectLiteral final : public Expression {
     public:
         ObjectLiteral(std::shared_ptr<SourcePosition> position, std::vector<std::shared_ptr<KeyValuePair>> key_value_pairs)
-            : Expression(position),
+            : Expression(position, nObjectLiteral),
             _key_value_pairs(key_value_pairs) {}
 
         const std::vector<std::shared_ptr<KeyValuePair>>& get_key_value_pairs() { return _key_value_pairs; }
         int get_size() const { return _key_value_pairs.size(); }
-
-        void accept(ASTVisitor* visitor) override { visitor->visit(this); }
 
     private:
         std::vector<std::shared_ptr<KeyValuePair>> _key_value_pairs;
@@ -487,56 +467,42 @@ namespace emerald {
 
     class CloneExpression final : public Expression {
     public:
-        CloneExpression(std::shared_ptr<SourcePosition> position, std::shared_ptr<Expression> parent,
+        CloneExpression(std::shared_ptr<SourcePosition> position, std::shared_ptr<LValueExpression> parent,
             std::vector<std::shared_ptr<Expression>> args)
-            : Expression(position),
+            : Expression(position, nCloneExpression),
             _parent(parent),
             _args(args) {}
 
-        std::shared_ptr<Expression> get_parent() const { return _parent; }
+        const std::shared_ptr<LValueExpression>& get_parent() const { return _parent; }
         const std::vector<std::shared_ptr<Expression>>& get_args() const { return _args; }
 
-        void accept(ASTVisitor* visitor) override { visitor->visit(this); }
-
     private:
-        std::shared_ptr<Expression> _parent;
+        std::shared_ptr<LValueExpression> _parent;
         std::vector<std::shared_ptr<Expression>> _args;
     };
 
     class SuperExpression final : public Expression {
     public:
         SuperExpression(std::shared_ptr<SourcePosition> position, std::shared_ptr<Expression> object)
-            : Expression(position),
+            : Expression(position, nSuperExpression),
             _object(object) {}
 
-        std::shared_ptr<Expression> get_object() const { return _object; }
-
-        void accept(ASTVisitor* visitor) override { visitor->visit(this); }
+        const std::shared_ptr<Expression>& get_object() const { return _object; }
 
     private:
         std::shared_ptr<Expression> _object;
-    };
-
-    class ThisExpression final : public Expression {
-    public:
-        ThisExpression(std::shared_ptr<SourcePosition> position)
-            : Expression(position) {}
-
-        void accept(ASTVisitor* visitor) override { visitor->visit(this); }
     };
 
     class FunctionParameter final : public ASTNode {
     public:
         FunctionParameter(std::shared_ptr<SourcePosition> position, const std::string& identifier,
             std::shared_ptr<Expression> default_expr)
-            : ASTNode(position), 
+            : ASTNode(position, nFunctionParameter), 
             _identifier(identifier),
             _default_expr(default_expr) {}
 
         const std::string& get_identifier() const { return _identifier; }
-        std::shared_ptr<Expression> get_default_expr() const { return _default_expr; }
-
-        void accept(ASTVisitor* visitor) override { visitor->visit(this); }
+        const std::shared_ptr<Expression>& get_default_expr() const { return _default_expr; }
 
     private:
         std::string _identifier;
@@ -547,18 +513,34 @@ namespace emerald {
     public:
         KeyValuePair(std::shared_ptr<SourcePosition> position, std::shared_ptr<Expression> key, 
             std::shared_ptr<Expression> value)
-            : ASTNode(position),
+            : ASTNode(position, nKeyValuePair),
             _key(key),
             _value(value) {}
 
-        std::shared_ptr<Expression> get_key() const { return _key; }
-        std::shared_ptr<Expression> get_value() const { return _value; }
-
-        void accept(ASTVisitor* visitor) override { visitor->visit(this); }
+        const std::shared_ptr<Expression>& get_key() const { return _key; }
+        const std::shared_ptr<Expression>& get_value() const { return _value; }
 
         private:
             std::shared_ptr<Expression> _key;
             std::shared_ptr<Expression> _value;
+    };
+
+    class ASTVisitor {
+    protected:
+        void Visit(const std::shared_ptr<ASTNode>& node) {
+            switch (node->get_type()) {
+#define X(NodeType) \
+            case ASTNode::n##NodeType:  \
+                Visit##NodeType(std::dynamic_pointer_cast<NodeType>(node));    \
+                break;
+            ALL_NODES
+#undef X
+            }
+        }
+
+#define X(NodeType) virtual void Visit##NodeType(const std::shared_ptr<NodeType>& node) = 0;
+        ALL_NODES
+#undef X
     };
 
 } // namespace emerald

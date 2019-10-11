@@ -80,7 +80,7 @@ namespace modules {
 #undef X
 
     NATIVE_FUNCTION(file_stream_clone) {
-        (void)native_prototypes;
+        (void)native_objects;
 
         EXPECT_NUM_ARGS(1);
 
@@ -90,7 +90,7 @@ namespace modules {
     }
 
     NATIVE_FUNCTION(file_stream_open) {
-        (void)native_prototypes;
+        (void)heap;
 
         EXPECT_NUM_ARGS(3);
 
@@ -117,17 +117,17 @@ namespace modules {
 
         stream->open(filename->get_value(), openmode);
 
-        return heap->allocate<Boolean>(stream->is_open());
+        return native_objects->get_boolean(stream->is_open());
     }
     
     NATIVE_FUNCTION(file_stream_is_open) {
-        (void)native_prototypes;
+        (void)native_objects;
 
         EXPECT_NUM_ARGS(1);
 
         TRY_CONVERT_RECV_TO(FileStream, stream);
 
-        return heap->allocate<Boolean>(stream->is_open());
+        return native_objects->get_boolean(stream->is_open());
     }
 
     NATIVE_FUNCTION(file_stream_read) {
@@ -137,7 +137,7 @@ namespace modules {
         TRY_CONVERT_ARG_TO(1, Number, count);
 
         return heap->allocate<String>(
-            native_prototypes->get_string_prototype(),
+            native_objects->get_string_prototype(),
             stream->read((long)count->get_value()));
     }
 
@@ -150,12 +150,12 @@ namespace modules {
         stream->write(s->get_value());
 
         return heap->allocate<Number>(
-            native_prototypes->get_number_prototype(),
+            native_objects->get_number_prototype(),
             s->get_value().length());
     }
 
     NATIVE_FUNCTION(string_stream_clone) {
-        (void)native_prototypes;
+        (void)native_objects;
         
         EXPECT_NUM_ARGS(1);
 
@@ -171,7 +171,7 @@ namespace modules {
         TRY_CONVERT_ARG_TO(1, Number, count);
 
         return heap->allocate<String>(
-            native_prototypes->get_string_prototype(),
+            native_objects->get_string_prototype(),
             stream->read((long)count->get_value()));
     }
 
@@ -184,7 +184,7 @@ namespace modules {
         stream->write(s->get_value());
 
         return heap->allocate<Number>(
-            native_prototypes->get_number_prototype(),
+            native_objects->get_number_prototype(),
             s->get_value().length());
     }
 
@@ -192,7 +192,7 @@ namespace modules {
         Module* module = heap->allocate<Module>("io");
 
         FileStream* file_stream = heap->allocate<FileStream>(
-            native_prototypes->get_object_prototype());
+            native_objects->get_object_prototype());
         file_stream->set_property(magic_methods::clone, get_file_stream_clone());
         file_stream->set_property("open", get_file_stream_open());
         file_stream->set_property("is_open", get_file_stream_is_open());
@@ -201,7 +201,7 @@ namespace modules {
         module->set_property("FileStream", file_stream);
 
         StringStream* string_stream = heap->allocate<StringStream>(
-            native_prototypes->get_object_prototype());
+            native_objects->get_object_prototype());
         string_stream->set_property(magic_methods::clone, get_string_stream_clone());
         string_stream->set_property("read", get_string_stream_read());
         string_stream->set_property("write", get_string_stream_write());

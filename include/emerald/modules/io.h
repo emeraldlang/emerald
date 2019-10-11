@@ -23,7 +23,7 @@
 #include <string>
 
 #include "emerald/module.h"
-#include "emerald/native_prototypes.h"
+#include "emerald/native_objects.h"
 #include "emerald/object.h"
 
 #define FILE_STREAM_NATIVES \

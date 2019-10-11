@@ -15,7 +15,7 @@
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "emerald/native_prototypes.h"
+#include "emerald/native_objects.h"
 #include "emerald/magic_methods.h"
 #include "emerald/natives/array.h"
 #include "emerald/natives/boolean.h"
@@ -25,64 +25,86 @@
 
 namespace emerald {
 
-    NativePrototypes::NativePrototypes(Heap* heap) {
+    NativeObjects::NativeObjects(Heap* heap) {
         initialize_object(heap);
-        initialize_boolean(heap);
         initialize_array(heap);
         initialize_number(heap);
         initialize_string(heap);
+
+        initialize_booleans(heap);
+        _null = Null();
     }
 
-    const HeapObject* NativePrototypes::get_object_prototype() const {
+    const HeapObject* NativeObjects::get_object_prototype() const {
         return _object;
     }
 
-    HeapObject* NativePrototypes::get_object_prototype() {
+    HeapObject* NativeObjects::get_object_prototype() {
         return _object;
     }
 
-    const Array* NativePrototypes::get_array_prototype() const {
+    const Array* NativeObjects::get_array_prototype() const {
         return _array;
     }
 
-    Array* NativePrototypes::get_array_prototype() {
+    Array* NativeObjects::get_array_prototype() {
         return _array;
     }
 
-    const Boolean* NativePrototypes::get_boolean_prototype() const {
-        return _boolean;
-    }
-
-    Boolean* NativePrototypes::get_boolean_prototype() {
-        return _boolean;
-    }
-
-    const Number* NativePrototypes::get_number_prototype() const {
+    const Number* NativeObjects::get_number_prototype() const {
         return _number;
     }
 
-    Number* NativePrototypes::get_number_prototype() {
+    Number* NativeObjects::get_number_prototype() {
         return _number;
     }
 
-    const String* NativePrototypes::get_string_prototype() const {
+    const String* NativeObjects::get_string_prototype() const {
         return _string;
     }
 
-    String* NativePrototypes::get_string_prototype() {
+    String* NativeObjects::get_string_prototype() {
         return _string;
     }
 
-    void NativePrototypes::initialize_object(Heap* heap) {
+    const Boolean* NativeObjects::get_boolean_prototype() const {
+        return _boolean;
+    }
+
+    Boolean* NativeObjects::get_boolean_prototype() {
+        return _boolean;
+    }
+
+    const Boolean* NativeObjects::get_boolean(bool val) const {
+        return (val) ? _true : _false;
+    }
+
+    Boolean* NativeObjects::get_boolean(bool val) {
+        return (val) ? _true : _false;
+    }
+
+    const Null* NativeObjects::get_null() const {
+        return &_null;
+    }
+    
+    Null* NativeObjects::get_null() {
+        return &_null;
+    }
+
+    void NativeObjects::initialize_object(Heap* heap) {
         _object = heap->allocate<HeapObject>();
 
         _object->set_property(magic_methods::eq, natives::get_object_eq());
         _object->set_property(magic_methods::neq, natives::get_object_neq());
 
+        _object->set_property(magic_methods::str, natives::get_object_str());
+        _object->set_property(magic_methods::boolean, natives::get_object_boolean());
+
         _object->set_property(magic_methods::clone, natives::get_object_clone());
+        _object->set_property(magic_methods::init, natives::get_object_init());
     }
 
-    void NativePrototypes::initialize_array(Heap* heap) {
+    void NativeObjects::initialize_array(Heap* heap) {
         _array = heap->allocate<Array>(_object);
 
         _array->set_property(magic_methods::eq, natives::get_array_eq());
@@ -100,16 +122,7 @@ namespace emerald {
         _array->set_property("pop", natives::get_array_pop());
     }
 
-    void NativePrototypes::initialize_boolean(Heap* heap) {
-        _boolean = heap->allocate<Boolean>(_object);
-
-        _boolean->set_property(magic_methods::eq, natives::get_boolean_eq());
-        _boolean->set_property(magic_methods::neq, natives::get_boolean_neq());
-
-        _boolean->set_property(magic_methods::clone, natives::get_boolean_clone());
-     }
-
-    void NativePrototypes::initialize_number(Heap* heap) {
+    void NativeObjects::initialize_number(Heap* heap) {
         _number = heap->allocate<Number>(_object);
 
         _number->set_property(magic_methods::neg, natives::get_number_neg());
@@ -142,7 +155,7 @@ namespace emerald {
         _number->set_property(magic_methods::clone, natives::get_number_clone());
     }
 
-    void NativePrototypes::initialize_string(Heap* heap) {
+    void NativeObjects::initialize_string(Heap* heap) {
         _string = heap->allocate<String>(_object);
 
         _string->set_property(magic_methods::add, natives::get_string_add());
@@ -166,5 +179,17 @@ namespace emerald {
         _string->set_property("format", natives::get_string_format());
         _string->set_property("substr", natives::get_string_substr());
     }
+
+    void NativeObjects::initialize_booleans(Heap* heap) {
+        _boolean = heap->allocate<Boolean>(_object);
+
+        _boolean->set_property(magic_methods::eq, natives::get_boolean_eq());
+        _boolean->set_property(magic_methods::neq, natives::get_boolean_neq());
+
+        _boolean->set_property(magic_methods::clone, natives::get_boolean_clone());
+
+        _true = heap->allocate<Boolean>(_boolean, true);
+        _false = heap->allocate<Boolean>(_boolean, false);
+     }
 
 } // namespace emerald

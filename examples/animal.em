@@ -1,5 +1,3 @@
-import helloworld
-
 object Test
 
     def __init__ : self

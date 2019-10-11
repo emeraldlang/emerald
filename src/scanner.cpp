@@ -282,7 +282,9 @@ namespace emerald {
         { "object", Token::OBJECT },
         { "super", Token::SUPER },
         { "import", Token::IMPORT },
-        { "this", Token::THIS }
+        { "None", Token::NULL_LITERAL },
+        { "True", Token::TRUE_LITERAL },
+        { "False", Token::FALSE_LITERAL }
     };
 
 } // namespace emerald

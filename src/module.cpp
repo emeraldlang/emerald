@@ -57,22 +57,22 @@ namespace emerald {
         return path;
     }
 
-    ConcurrentMap<std::string, NativeModuleInitRegistry::ModuleInitialization> NativeModuleInitRegistry::_modules;
+    ConcurrentMap<std::string, NativeModuleRegistry::ModuleInitialization> NativeModuleRegistry::_modules;
 
-    void NativeModuleInitRegistry::add_module_init(const std::string& alias, ModuleInitialization initialization) {
+    void NativeModuleRegistry::add_module(const std::string& alias, ModuleInitialization initialization) {
         _modules[alias] = initialization;
     }
 
-    bool NativeModuleInitRegistry::is_module_init_registered(const std::string& alias) {
+    bool NativeModuleRegistry::has_module(const std::string& alias) {
         return _modules.has(alias);
     }
 
-    Module* NativeModuleInitRegistry::init_module(
+    Module* NativeModuleRegistry::init_module(
         const std::string& alias,
         Heap* heap,
-        NativePrototypes* native_prototypes) {
+        NativeObjects* native_objects) {
         ModuleInitialization initialization = _modules.get(alias);
-        return initialization(heap, native_prototypes);
+        return initialization(heap, native_objects);
     }
 
     void ModuleRegistry::add_module(Module* module) {

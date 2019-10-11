@@ -37,7 +37,7 @@ namespace emerald {
         _parent_process(parent_process),
         _priority(priority),
         _stack(Stack(max_stack_size)),
-        _native_prototypes(&_heap),
+        _native_objects(&_heap),
         _state(State::ready) {
         _heap.add_root_source(&_module_registry);
         _heap.add_root_source(&_data_stack);
@@ -216,14 +216,10 @@ namespace emerald {
             execute_mm2(magic_methods::bit_shr);
             break;
         case OpCode::str:
-            execute_mm1(magic_methods::str, [this](Object* obj){
-                return this->allocate_string(obj->as_str());
-            });
+            execute_mm1(magic_methods::str);
             break;
         case OpCode::boolean:
-            execute_mm1(magic_methods::boolean, [this](Object* obj){
-                return this->_heap.allocate<Boolean>(obj->as_bool());
-            });
+            execute_mm1(magic_methods::boolean);
             break;
         case OpCode::call: {
             Object* obj = _data_stack.pop();
@@ -269,7 +265,7 @@ namespace emerald {
         }
         case OpCode::new_boolean: {
             bool value = instr.get_args()[0];
-            Boolean* boolean = _heap.allocate<Boolean>(value);
+            Boolean* boolean = _native_objects.get_boolean(value);
             _data_stack.push(boolean);
             break;
         }
@@ -281,10 +277,17 @@ namespace emerald {
             _data_stack.push(array);
             break;
         }
+        case OpCode::null: {
+            _data_stack.push(_native_objects.get_null());
+            break;
+        }
         case OpCode::get_prop: {
             Object* obj = _data_stack.pop();
             Object* key = _data_stack.pop();
             if (Object* val = obj->get_property(key->as_str())) {
+                if (instr.get_args()[0]) {
+                    _data_stack.push(obj);
+                }
                 _data_stack.push(val);
             } else {
                  throw _heap.allocate<Exception>(fmt::format("no such property: {0}", key->as_str()));
@@ -294,14 +297,23 @@ namespace emerald {
         case OpCode::has_prop: {
             Object* obj = _data_stack.pop();
             Object* key = _data_stack.pop();
-            _data_stack.push(_heap.allocate<Boolean>(obj->has_property(key->as_str())));
+            if (instr.get_args()[0]) {
+                _data_stack.push(obj);
+            }
+            _data_stack.push(_native_objects.get_boolean(obj->has_property(key->as_str())));
             break;
         }
         case OpCode::set_prop: {
             Object* obj = _data_stack.pop();
             Object* key = _data_stack.pop();
             Object* val = _data_stack.pop();
-            obj->set_property(key->as_str(), val);
+            if (instr.get_args()[0]) {
+                _data_stack.push(obj);
+            }
+            if (!obj->set_property(key->as_str(), val)) {
+                throw _heap.allocate<Exception>(
+                    fmt::format("could not set property: {0} of {1}", key->as_str(), obj->as_str()));
+            }
             break;
         }
         case OpCode::get_parent: {
@@ -356,38 +368,30 @@ namespace emerald {
         }
     }
 
-    void Process::execute_mm(
-            const std::string& magic_method,
-            const std::vector<Object*>& args,
-            std::function<Object*(Object*)> on_missing) {
+    void Process::execute_mm(const std::string& magic_method, const std::vector<Object*>& args) {
         if (Object* prop = args[0]->get_property(magic_method)) {
             call_obj(prop, args);
-        } else if (on_missing) {
-            _data_stack.push(on_missing(prop));
         } else {
             throw _heap.allocate<Exception>(fmt::format("unsupported method: {0}", magic_method));
         }
     }
 
-    void Process::execute_mm(
-            const std::string& magic_method,
-            size_t nargs,
-        std::function<Object*(Object*)> on_missing) {
+    void Process::execute_mm(const std::string& magic_method, size_t nargs) {
         std::vector<Object*> args = pop_n_from_stack(nargs);
-        execute_mm(magic_method, args, on_missing);
+        execute_mm(magic_method, args);
     }
 
     Object* Process::new_obj(bool explicit_parent, size_t num_props) {
         if (!explicit_parent) {
-            _data_stack.push(_native_prototypes.get_object_prototype());
+            _data_stack.push(_native_objects.get_object_prototype());
         }
 
         execute_mm1(magic_methods::clone);
 
         Object* self = _data_stack.pop();
         for (size_t i = 0; i < num_props; i++) {
-            Object* key = _data_stack.pop();
             Object* val = _data_stack.pop();
+            Object* key = _data_stack.pop();
             self->set_property(key->as_str(), val);
         }
 
@@ -403,7 +407,7 @@ namespace emerald {
 
             _stack.push_frame(func->get_code());
         } else if (NativeFunction* func = dynamic_cast<NativeFunction*>(obj)) {
-            _data_stack.push((*func)(&_heap, &_native_prototypes, args));
+            _data_stack.push((*func)(&_heap, &_native_objects, args));
         } else if (Object* func = obj->get_property(magic_methods::call)) {
             call_obj(func, args);
         } else {
@@ -418,8 +422,8 @@ namespace emerald {
         }
 
         Module* module = nullptr;
-        if (NativeModuleInitRegistry::is_module_init_registered(name)) {
-            module = NativeModuleInitRegistry::init_module(name, &_heap, &_native_prototypes);
+        if (NativeModuleRegistry::has_module(name)) {
+            module = NativeModuleRegistry::init_module(name, &_heap, &_native_objects);
         } else if (std::shared_ptr<Code> code = CodeCache::get_code(name)) {
             module = _heap.allocate<Module>(name, code);
         } else {

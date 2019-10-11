@@ -15,16 +15,16 @@
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef _EMERALD_NATIVE_PROTOTYPES_H
-#define _EMERALD_NATIVE_PROTOTYPES_H
+#ifndef _EMERALD_NATIVE_OBJECTS_H
+#define _EMERALD_NATIVE_OBJECTS_H
 
 #include "emerald/object.h"
 
 namespace emerald {
 
-    class NativePrototypes {
+    class NativeObjects {
     public:
-        NativePrototypes(Heap* heap);
+        NativeObjects(Heap* heap);
 
         const HeapObject* get_object_prototype() const;
         HeapObject* get_object_prototype();
@@ -32,29 +32,40 @@ namespace emerald {
         const Array* get_array_prototype() const;
         Array* get_array_prototype();
 
-        const Boolean* get_boolean_prototype() const;
-        Boolean* get_boolean_prototype();
-
         const Number* get_number_prototype() const;
         Number* get_number_prototype();
 
         const String* get_string_prototype() const;
         String* get_string_prototype();
 
+        const Boolean* get_boolean_prototype() const;
+        Boolean* get_boolean_prototype();
+
+        const Boolean* get_boolean(bool val) const;
+        Boolean* get_boolean(bool val);
+
+        const Null* get_null() const;
+        Null* get_null();
+
     private:
         HeapObject* _object;
         Array* _array;
-        Boolean* _boolean;
         Number* _number;
         String* _string;
 
+        Boolean* _boolean;
+        Boolean* _true;
+        Boolean* _false;
+
+        Null _null;
+
         void initialize_object(Heap* heap);
         void initialize_array(Heap* heap);
-        void initialize_boolean(Heap* heap);
         void initialize_number(Heap* heap);
         void initialize_string(Heap* heap);
+        void initialize_booleans(Heap* heap);
     };
 
 } // namespace emerald
 
-#endif // _EMERALD_NATIVE_PROTOTYPES_H
+#endif // _EMERALD_NATIVE_OBJECTS_H

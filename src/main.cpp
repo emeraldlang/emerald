@@ -45,8 +45,9 @@ int main(int argc, char** argv) {
 
     ast->callback([&]() {
         std::shared_ptr<emerald::Reporter> reporter = std::make_shared<emerald::Reporter>();
+        std::filesystem::path path = emerald::Module::get_path_for_module(ast_module_name, ".em");
         std::vector<std::shared_ptr<emerald::Statement>> statements = emerald::Parser::parse(
-            emerald::Source::from_file(ast_module_name),
+            emerald::Source::from_file(path),
             reporter);
         if (reporter->has_errors()) {
             reporter->print();

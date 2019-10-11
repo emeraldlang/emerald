@@ -224,9 +224,9 @@ namespace emerald {
         expect(Token::IDENTIFIER);
         std::string identifier = _scanner.current()->get_lexeme();
 
-        std::shared_ptr<Identifier> parent;
+        std::shared_ptr<LValueExpression> parent;
         if (match(Token::CLONES)) {
-            parent = parse_identifier();
+            parent = parse_lvalue_expression();
         }
 
         std::shared_ptr<StatementBlock> block = parse_statement_block({ Token::END });
@@ -285,9 +285,21 @@ namespace emerald {
                 lookahead = _scanner.next();
             }
 
-            left = std::make_shared<BinaryOp>(end_pos(start), left, op, right);
+            if (op->is_assignment_op()) {
+                if (std::shared_ptr<LValueExpression> lvalue_expression = ASTNode::as<LValueExpression>(left)) {
+                    left = std::make_shared<AssignmentExpression>(end_pos(start), lvalue_expression, right);
+                } else {
+                    _reporter->report(
+                        ReportCode::invalid_lvalue,
+                        ReportCode::format_report(ReportCode::invalid_lvalue),
+                        left->get_source_position());
+                    left = nullptr;
+                }
+            } else {
+                left = std::make_shared<BinaryOp>(end_pos(start), left, op, right);
+            }
         }
-        
+
         return left;
     }
 
@@ -420,7 +432,7 @@ namespace emerald {
         case Token::CLONE: {
             std::shared_ptr<SourcePosition> start = start_pos();
 
-            std::shared_ptr<Identifier> parent = parse_identifier();
+            std::shared_ptr<LValueExpression> parent = parse_lvalue_expression();
 
             std::vector<std::shared_ptr<Expression>> args;
             if (match(Token::LPAREN)) {
@@ -445,13 +457,30 @@ namespace emerald {
 
             return std::make_shared<SuperExpression>(end_pos(start), object);
         }
-        case Token::THIS: {
-            return std::make_shared<ThisExpression>(token->get_source_position());
-        }
         default:
             report_unexpected_token(token);
             return nullptr;
         }
+    }
+
+    std::shared_ptr<LValueExpression> Parser::parse_lvalue_expression() {
+        expect(Token::IDENTIFIER);
+
+        std::shared_ptr<SourcePosition> start = start_pos();
+        std::shared_ptr<LValueExpression> lvalue = std::make_shared<Identifier>(
+            _scanner.current()->get_source_position(),
+            _scanner.current()->get_lexeme());
+        
+        while (match(Token::DOT)) {
+            expect(Token::IDENTIFIER);
+            std::shared_ptr<Expression> property = std::make_shared<StringLiteral>(
+                _scanner.current()->get_source_position(),
+                _scanner.current()->get_lexeme());
+
+            lvalue = std::make_shared<Property>(end_pos(start), lvalue, property);
+        }
+
+        return lvalue;
     }
 
     std::shared_ptr<FunctionParameter> Parser::parse_function_parameter() {
@@ -534,7 +563,7 @@ namespace emerald {
     std::shared_ptr<SourcePosition> Parser::peek_start_pos() {
         return _scanner.next()->get_source_position();
     }
-    
+
     std::shared_ptr<SourcePosition> Parser::end_pos(std::shared_ptr<SourcePosition> start) {
         return start->span_to(_scanner.current()->get_source_position());
     }

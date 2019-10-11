@@ -19,12 +19,15 @@
 #define _EMERALD_NATIVES_OBJECT_H
 
 #include "emerald/object.h"
-#include "emerald/native_prototypes.h"
+#include "emerald/native_objects.h"
 
 #define OBJECT_NATIVES  \
     X(object_eq)        \
     X(object_neq)       \
-    X(object_clone)
+    X(object_str)       \
+    X(object_boolean)   \
+    X(object_clone)     \
+    X(object_init)
 
 namespace emerald {
 namespace natives {
