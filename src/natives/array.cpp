@@ -37,7 +37,7 @@ namespace natives {
         TRY_CONVERT_RECV_TO(Array, lhs);
         TRY_CONVERT_ARG_TO(1, Array, rhs);
 
-        return native_objects->get_boolean(lhs->get_value() == rhs->get_value());
+        return BOOLEAN(lhs->get_value() == rhs->get_value());
     }
 
     NATIVE_FUNCTION(array_neq) {
@@ -48,7 +48,7 @@ namespace natives {
         TRY_CONVERT_RECV_TO(Array, lhs);
         TRY_CONVERT_ARG_TO(1, Array, rhs);
 
-        return native_objects->get_boolean(lhs->get_value() != rhs->get_value());
+        return BOOLEAN(lhs->get_value() != rhs->get_value());
     }
 
     NATIVE_FUNCTION(array_clone) {
@@ -110,9 +110,7 @@ namespace natives {
 
         TRY_CONVERT_RECV_TO(Array, arr);
 
-        return heap->allocate<Number>(
-            native_objects->get_number_prototype(),
-            arr->get_value().size());
+        return ALLOC_NUMBER(arr->get_value().size());
     }
 
     NATIVE_FUNCTION(array_clear) {
@@ -137,9 +135,7 @@ namespace natives {
             val.push_back(args[i]);
         }
 
-        return heap->allocate<Number>(
-            native_objects->get_number_prototype(),
-            val.size());
+        return ALLOC_NUMBER(val.size());
     }
 
     NATIVE_FUNCTION(array_pop) {

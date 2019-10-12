@@ -51,6 +51,7 @@ namespace modules {
         void open(const std::string& filename, std::fstream::openmode mode);
         bool is_open() const;
 
+        std::string read();
         std::string read(size_t n);
         void write(const std::string& s);
 

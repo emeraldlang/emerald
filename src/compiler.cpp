@@ -203,9 +203,20 @@ namespace emerald {
 
         if (std::shared_ptr<Property> property = ASTNode::as<Property>(lvalue)) {
             VisitPropertyStore(property, assignment_expression->get_right_expression());
-        } else if (std::shared_ptr<Identifier> identifer = ASTNode::as<Identifier>(lvalue)) {
+        } else if (std::shared_ptr<Identifier> identifier = ASTNode::as<Identifier>(lvalue)) {
             Visit(assignment_expression->get_right_expression());
-            write_st(identifer->get_identifier());
+            const std::string& name = identifier->get_identifier();
+            if (code()->is_local_name(name)) {
+                code()->write_stloc(name);
+            } else if (code()->is_global_name(name)) {
+                code()->write_stgbl(name);
+            } else {
+                std::string msg = ReportCode::format_report(ReportCode::undeclared_variable, name);
+                _reporter->report(
+                    ReportCode::undeclared_variable,
+                    msg,
+                    identifier->get_source_position());
+            }
         }
     }
 

@@ -18,8 +18,6 @@
 #include <filesystem>
 #include <iostream>
 
-#include "fmt/format.h"
-
 #include "emerald/process.h"
 #include "emerald/code_cache.h"
 #include "emerald/magic_methods.h"
@@ -46,8 +44,7 @@ namespace emerald {
         std::shared_ptr<Code> code = CodeCache::get_or_load_code(entry_module_name);
         Module* entry_module = _heap.allocate<Module>(entry_module_name, code);
         _module_registry.add_module(entry_module);
-        _globals.push(entry_module);
-        _stack.push_frame(entry_module->get_code());
+        _stack.push_frame(entry_module->get_code(), entry_module);
     }
 
     Process::PID Process::get_id() const {
@@ -103,26 +100,22 @@ namespace emerald {
     void Process::execute() {
         if (is_terminated()) return;
 
-        // TODO(zvp): Add try-catch and set exception for current stack frame.
         dispatch();
     }
 
     void Process::dispatch() {
-        Stack::Frame& current_frame = _stack.peek();
-        while (!current_frame.has_instructions_left()) {
-            bool is_top_level = current_frame.get_code()->is_top_level();
+        while (!_stack.peek().has_instructions_left()) {
             _stack.pop_frame();
+
             if (_stack.empty()) {
+                _stack.pop_frame();
                 _heap.collect();
                 _state = State::terminated;
                 return;
-            } else if (is_top_level) {
-                Module* imported_module = _globals.top();
-                _globals.pop();
-                _data_stack.push(imported_module);
             }
         }
 
+        Stack::Frame& current_frame = _stack.peek();
         const Code::Instruction& instr = current_frame.get_next_instruction();
         current_frame.increment_instruction_pointer();
 
@@ -324,13 +317,14 @@ namespace emerald {
         case OpCode::ldgbl: {
             const std::string& name = current_frame.get_code()->get_global_name(
                 instr.get_args()[0]);
-            _data_stack.push(get_global(name));
+            _data_stack.push(current_frame.get_global(name));
             break;
         }
         case OpCode::stgbl: {
             const std::string& name = current_frame.get_code()->get_global_name(
                 instr.get_args()[0]);
-            set_global(name, _data_stack.pop());
+            Object* val = _data_stack.pop();
+            current_frame.set_global(name, val);
             break;
         }
         case OpCode::ldloc: {
@@ -355,11 +349,9 @@ namespace emerald {
                 instr.get_args()[0]);
             bool created;
             Module* module = get_module(import_name, created);
+            _data_stack.push(module);
             if (created && !module->is_native()) {
-                _globals.push(module);
-                _stack.push_frame(module->get_code());
-            } else {
-                _data_stack.push(module);
+                _stack.push_frame(module->get_code(), module);
             }
             break;
         }
@@ -405,7 +397,7 @@ namespace emerald {
                 _data_stack.push(arg);
             }
 
-            _stack.push_frame(func->get_code());
+            _stack.push_frame(func->get_code(), _stack.peek_globals());
         } else if (NativeFunction* func = dynamic_cast<NativeFunction*>(obj)) {
             _data_stack.push((*func)(&_heap, &_native_objects, args));
         } else if (Object* func = obj->get_property(magic_methods::call)) {

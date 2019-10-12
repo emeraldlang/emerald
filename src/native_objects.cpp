@@ -126,7 +126,6 @@ namespace emerald {
         _number = heap->allocate<Number>(_object);
 
         _number->set_property(magic_methods::neg, natives::get_number_neg());
-
         _number->set_property(magic_methods::add, natives::get_number_add());
         _number->set_property(magic_methods::sub, natives::get_number_sub());
         _number->set_property(magic_methods::mul, natives::get_number_mul());

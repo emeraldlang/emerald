@@ -29,7 +29,7 @@
 #define EXPECT_ATLEAST_NUM_ARGS(count) EXPECT_NUM_ARGS_OP(count, <)
 
 #define TRY_CONVERT_ARG_TO(i, Type, name)           \
-    Type* name;                                     \
+    Type* name  = nullptr;                          \
     do {                                            \
         name = dynamic_cast<Type*>(args[i]);        \
         if (name == nullptr) {                      \
@@ -38,5 +38,20 @@
     } while (false)
 
 #define TRY_CONVERT_RECV_TO(Type, name) TRY_CONVERT_ARG_TO(0, Type, name)
+
+#define TRY_CONVERT_OPTIONAL_ARG_TO(i, Type, name)  \
+    Type* name;                                     \
+    do {                                            \
+        if (i < args.size()) {                      \
+            name = dynamic_cast<Type*>(args[i]);    \
+        } else {                                    \
+            name = nullptr;                         \
+        }                                           \
+    } while (false)
+
+
+#define BOOLEAN(val) native_objects->get_boolean(val)
+#define ALLOC_NUMBER(num) heap->allocate<Number>(native_objects->get_number_prototype(), num)
+#define ALLOC_STRING(str) heap->allocate<String>(native_objects->get_string_prototype(), str)
 
 #endif // EMERALD_NATIVES_UTILS_H

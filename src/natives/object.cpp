@@ -34,7 +34,7 @@ namespace natives {
 
         EXPECT_NUM_ARGS(2);
 
-        return native_objects->get_boolean(args[0] == args[1]);
+        return BOOLEAN(args[0] == args[1]);
     }
 
     NATIVE_FUNCTION(object_neq) {
@@ -42,15 +42,13 @@ namespace natives {
 
         EXPECT_NUM_ARGS(2);
 
-        return native_objects->get_boolean(args[0] != args[1]);
+        return BOOLEAN(args[0] != args[1]);
     }
 
     NATIVE_FUNCTION(object_str) {
         EXPECT_NUM_ARGS(1);
 
-        return heap->allocate<String>(
-            native_objects->get_string_prototype(),
-            args[0]->as_str());
+        return ALLOC_STRING(args[0]->as_str());
     }
 
     NATIVE_FUNCTION(object_boolean) {
@@ -58,7 +56,7 @@ namespace natives {
 
         EXPECT_NUM_ARGS(1);
 
-        return native_objects->get_boolean(args[0]->as_bool());
+        return BOOLEAN(args[0]->as_bool());
     }
 
     NATIVE_FUNCTION(object_clone) {

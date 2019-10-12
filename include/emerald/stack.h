@@ -27,6 +27,7 @@
 #include "emerald/heap_managed.h"
 #include "emerald/heap_root_source.h"
 #include "emerald/object.h"
+#include "emerald/module.h"
 
 namespace emerald {
 
@@ -38,7 +39,7 @@ namespace emerald {
 
         class Frame {
         public:
-            Frame(std::shared_ptr<const Code> code);
+            Frame(std::shared_ptr<const Code> code, Module* globals);
 
             std::shared_ptr<const Code> get_code() const;
 
@@ -51,12 +52,20 @@ namespace emerald {
 
             const Code::Instruction& get_next_instruction() const;
 
+            const Module* get_globals() const;
+            Module* get_globals();
+
+            const Object* get_global(const std::string& name) const;
+            Object* get_global(const std::string& name);
+
+            void set_global(const std::string& name, Object* val);
+
             const std::unordered_map<std::string, Object*>& get_locals() const;
 
             const Object* get_local(const std::string& name) const;
             Object* get_local(const std::string& name);
 
-            void set_local(const std::string& name, Object* obj);
+            void set_local(const std::string& name, Object* val);
 
             size_t num_locals() const;
 
@@ -64,6 +73,7 @@ namespace emerald {
             std::shared_ptr<const Code> _code;
             size_t _ip;
 
+            Module* _globals;
             std::unordered_map<std::string, Object*> _locals;
         };
 
@@ -76,7 +86,10 @@ namespace emerald {
         Frame& peek();
 
         bool pop_frame();
-        void push_frame(std::shared_ptr<const Code> code);
+        void push_frame(std::shared_ptr<const Code> code, Module* globals);
+
+        const Module* peek_globals() const;
+        Module* peek_globals();
 
         std::vector<HeapManaged*> get_roots() const override;
 

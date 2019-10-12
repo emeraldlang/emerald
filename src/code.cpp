@@ -79,7 +79,7 @@ namespace emerald {
 
         entry.pos = _instructions.size();
         for (size_t rewrite_pos : entry.unbound_rewrites) {
-            _instructions.at(rewrite_pos).set_arg(0, entry.pos - rewrite_pos);
+            _instructions.at(rewrite_pos).set_arg(0, entry.pos);
         }
     }
 

@@ -41,8 +41,8 @@ namespace emerald {
         return _properties;
     }
 
-    Object* Object::get_property(const std::string& key) {
-        if (Object* property = get_own_property(key)) {
+    const Object* Object::get_property(const std::string& key) const {
+        if (const Object* property = get_own_property(key)) {
             return property;
         }
 
@@ -52,13 +52,21 @@ namespace emerald {
 
         return nullptr;
     }
-
-    Object* Object::get_own_property(const std::string& key) {
-        if (_properties.find(key) != _properties.end()) {
-            return _properties[key];
+    
+    const Object* Object::get_own_property(const std::string& key) const {
+        if (has_own_property(key)) {
+            return _properties.at(key);
         }
 
         return nullptr;
+    }
+
+    Object* Object::get_property(const std::string& key) {
+        return const_cast<Object*>(static_cast<const Object&>(*this).get_property(key));
+    }
+
+    Object* Object::get_own_property(const std::string& key) {
+        return const_cast<Object*>(static_cast<const Object&>(*this).get_own_property(key));
     }
 
     bool Object::has_property(const std::string& key) const {
@@ -116,11 +124,11 @@ namespace emerald {
         return "None";
     }
 
-    Object* Null::get_property(const std::string&) {
+    const Object* Null::get_property(const std::string&) const {
         return nullptr;
     }
 
-    Object* Null::get_own_property(const std::string&) {
+    const Object* Null::get_own_property(const std::string&) const {
         return nullptr;
     }
 

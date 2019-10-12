@@ -36,7 +36,7 @@ namespace natives {
 
         EXPECT_NUM_ARGS(2);
 
-        return native_objects->get_boolean(args[0]->as_bool() == args[1]->as_bool());
+        return BOOLEAN(args[0]->as_bool() == args[1]->as_bool());
     }
 
     NATIVE_FUNCTION(boolean_neq) {
@@ -44,7 +44,7 @@ namespace natives {
 
         EXPECT_NUM_ARGS(2);
 
-        return native_objects->get_boolean(args[0]->as_bool() != args[1]->as_bool());
+        return BOOLEAN(args[0]->as_bool() != args[1]->as_bool());
     }
 
     NATIVE_FUNCTION(boolean_clone) {

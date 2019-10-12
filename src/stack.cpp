@@ -54,8 +54,20 @@ namespace emerald {
         return true;
     }
 
-    void Stack::push_frame(std::shared_ptr<const Code> code) {
-        _stack.emplace_back(code);
+    void Stack::push_frame(std::shared_ptr<const Code> code, Module* globals) {
+        _stack.emplace_back(code, globals);
+    }
+
+    const Module* Stack::peek_globals() const {
+        CHECK_THROW_LOGIC_ERROR(!_stack.empty(), "cannot peek an empty stack");
+
+        return _stack.back().get_globals();
+    }
+
+    Module* Stack::peek_globals() {
+        CHECK_THROW_LOGIC_ERROR(!_stack.empty(), "cannot peek an empty stack");
+        
+        return _stack.back().get_globals();
     }
 
     std::vector<HeapManaged*> Stack::get_roots() const {
@@ -71,9 +83,10 @@ namespace emerald {
         return roots;
     }
 
-    Stack::Frame::Frame(std::shared_ptr<const Code> code)
+    Stack::Frame::Frame(std::shared_ptr<const Code> code, Module* globals)
         : _code(code), 
-        _ip(0) {}
+        _ip(0),
+        _globals(globals) {}
 
     std::shared_ptr<const Code> Stack::Frame::get_code() const {
         return _code;
@@ -99,6 +112,26 @@ namespace emerald {
         return (*_code)[_ip];
     }
 
+    const Module* Stack::Frame::get_globals() const {
+        return _globals;
+    }
+
+    Module* Stack::Frame::get_globals() {
+        return _globals;
+    }
+
+    const Object* Stack::Frame::get_global(const std::string& name) const {
+        return _globals->get_property(name);
+    }
+
+    Object* Stack::Frame::get_global(const std::string& name) {
+        return _globals->get_property(name);
+    }
+
+    void Stack::Frame::set_global(const std::string& name, Object* val) {
+        _globals->set_property(name, val);
+    }
+
     const std::unordered_map<std::string, Object*>& Stack::Frame::get_locals() const {
         return _locals;
     }
@@ -111,8 +144,8 @@ namespace emerald {
         return _locals.at(name);
     }
 
-    void Stack::Frame::set_local(const std::string& name, Object* obj) {
-        _locals[name] = obj;
+    void Stack::Frame::set_local(const std::string& name, Object* val) {
+        _locals[name] = val;
     }
 
     size_t Stack::Frame::num_locals() const {

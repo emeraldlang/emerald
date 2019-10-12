@@ -25,6 +25,8 @@
 #include <queue>
 #include <vector>
 
+#include "fmt/format.h"
+
 #include "emerald/code.h"
 #include "emerald/concurrent_map.h"
 #include "emerald/data_stack.h"
@@ -95,7 +97,6 @@ namespace emerald {
         DataStack _data_stack;
         Heap _heap;
         Stack _stack;
-        std::stack<Module*> _globals;
         ModuleRegistry _module_registry;
         NativeObjects _native_objects;
 
@@ -124,14 +125,6 @@ namespace emerald {
 
         void pop_n_from_stack(std::vector<Object*>& vec, size_t n);
         std::vector<Object*> pop_n_from_stack(size_t n);
-
-        Object* get_global(const std::string& name) {
-            return _globals.top()->get_property(name);
-        }
-
-        void set_global(const std::string& name, Object* value) {
-            _globals.top()->set_property(name, value);
-        }
 
         Array* allocate_array() {
             return _heap.allocate<Array>(_native_objects.get_array_prototype());

@@ -15,6 +15,8 @@
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include "fmt/format.h"
+
 #include "emerald/modules/io.h"
 #include "emerald/natives/utils.h"
 #include "emerald/magic_methods.h"
@@ -38,6 +40,15 @@ namespace modules {
 
     bool FileStream::is_open() const {
         return _stream.is_open();
+    }
+
+    std::string FileStream::read() {
+        size_t cp = _stream.tellg();
+        _stream.seekg(0, _stream.end);
+        size_t size = _stream.tellg();
+        _stream.seekg(cp);
+
+        return read(size);
     }
 
     std::string FileStream::read(size_t n) {
@@ -96,28 +107,23 @@ namespace modules {
 
         TRY_CONVERT_RECV_TO(FileStream, stream);
         TRY_CONVERT_ARG_TO(1, String, filename);
-        TRY_CONVERT_ARG_TO(2, String, mode);
+        TRY_CONVERT_ARG_TO(2, String, access);
 
         std::fstream::openmode openmode;
-        for (char c : mode->get_value()) {
-            switch (c) {
-            case 'r':
-                openmode |= std::fstream::in;
-                break;
-            case 'w':
-                openmode |= std::fstream::out | std::fstream::trunc;
-                break;
-            case 'a':
-                openmode |= std::fstream::app;
-                break;
-            default:
-                break;
-            }
+        const std::string& access_str = access->get_value();
+        if (access_str == "read") {
+            openmode = std::fstream::in;
+        } else if (access_str == "write") {
+            openmode = std::fstream::out;
+        } else if (access_str == "read_write") {
+            openmode = std::fstream::in | std::fstream::out;
+        } else {
+            throw heap->allocate<Exception>(fmt::format("unknown file access: {0}", access_str));
         }
 
         stream->open(filename->get_value(), openmode);
 
-        return native_objects->get_boolean(stream->is_open());
+        return BOOLEAN(stream->is_open());
     }
     
     NATIVE_FUNCTION(file_stream_is_open) {
@@ -127,18 +133,23 @@ namespace modules {
 
         TRY_CONVERT_RECV_TO(FileStream, stream);
 
-        return native_objects->get_boolean(stream->is_open());
+        return BOOLEAN(stream->is_open());
     }
 
     NATIVE_FUNCTION(file_stream_read) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_ATLEAST_NUM_ARGS(1);
 
         TRY_CONVERT_RECV_TO(FileStream, stream);
-        TRY_CONVERT_ARG_TO(1, Number, count);
 
-        return heap->allocate<String>(
-            native_objects->get_string_prototype(),
-            stream->read((long)count->get_value()));
+        TRY_CONVERT_OPTIONAL_ARG_TO(1, Number, count);
+        std::string result;
+        if (count) {
+            result = stream->read((long)count->get_value());
+        } else {
+            result = stream->read();
+        }
+
+        return ALLOC_STRING(result);
     }
 
     NATIVE_FUNCTION(file_stream_write) {
@@ -149,9 +160,7 @@ namespace modules {
 
         stream->write(s->get_value());
 
-        return heap->allocate<Number>(
-            native_objects->get_number_prototype(),
-            s->get_value().length());
+        return ALLOC_NUMBER(s->get_value().length());
     }
 
     NATIVE_FUNCTION(string_stream_clone) {
@@ -170,9 +179,7 @@ namespace modules {
         TRY_CONVERT_RECV_TO(StringStream, stream);
         TRY_CONVERT_ARG_TO(1, Number, count);
 
-        return heap->allocate<String>(
-            native_objects->get_string_prototype(),
-            stream->read((long)count->get_value()));
+        return ALLOC_STRING(stream->read((long)count->get_value()));
     }
 
     NATIVE_FUNCTION(string_stream_write) {
@@ -183,16 +190,13 @@ namespace modules {
 
         stream->write(s->get_value());
 
-        return heap->allocate<Number>(
-            native_objects->get_number_prototype(),
-            s->get_value().length());
+        return ALLOC_NUMBER(s->get_value().length());
     }
 
     MODULE_INITIALIZATION_FUNC(init_io_module) {
         Module* module = heap->allocate<Module>("io");
 
-        FileStream* file_stream = heap->allocate<FileStream>(
-            native_objects->get_object_prototype());
+        FileStream* file_stream = heap->allocate<FileStream>(native_objects->get_object_prototype());
         file_stream->set_property(magic_methods::clone, get_file_stream_clone());
         file_stream->set_property("open", get_file_stream_open());
         file_stream->set_property("is_open", get_file_stream_is_open());
@@ -200,8 +204,13 @@ namespace modules {
         file_stream->set_property("write", get_file_stream_write());
         module->set_property("FileStream", file_stream);
 
-        StringStream* string_stream = heap->allocate<StringStream>(
-            native_objects->get_object_prototype());
+        HeapObject* file_access = heap->allocate<HeapObject>(native_objects->get_object_prototype());
+        file_access->set_property("read", ALLOC_STRING("read"));
+        file_access->set_property("write", ALLOC_STRING("write"));
+        file_access->set_property("read_write", ALLOC_STRING("read_write"));
+        module->set_property("FileAccess", file_access);
+
+        StringStream* string_stream = heap->allocate<StringStream>(native_objects->get_object_prototype());
         string_stream->set_property(magic_methods::clone, get_string_stream_clone());
         string_stream->set_property("read", get_string_stream_read());
         string_stream->set_property("write", get_string_stream_write());

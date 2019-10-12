@@ -59,8 +59,10 @@ namespace emerald {
 
         const std::unordered_map<std::string, Object*>& get_properties() const;
 
-        virtual Object* get_property(const std::string& key);
-        virtual Object* get_own_property(const std::string& key);
+        virtual const Object* get_property(const std::string& key) const;
+        virtual const Object* get_own_property(const std::string& key) const;
+        Object* get_property(const std::string& key);
+        Object* get_own_property(const std::string& key);
 
         virtual bool has_property(const std::string& key) const;
         virtual bool has_own_property(const std::string& key) const;
@@ -97,8 +99,8 @@ namespace emerald {
         bool as_bool() const override;
         std::string as_str() const override;
 
-        Object* get_property(const std::string& key) override;
-        Object* get_own_property(const std::string& key) override;
+        const Object* get_property(const std::string& key) const override;
+        const Object* get_own_property(const std::string& key) const override;
 
         bool has_property(const std::string& key) const override;
         bool has_own_property(const std::string& key) const override;
