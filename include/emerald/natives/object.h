@@ -19,7 +19,6 @@
 #define _EMERALD_NATIVES_OBJECT_H
 
 #include "emerald/object.h"
-#include "emerald/native_objects.h"
 
 #define OBJECT_NATIVES  \
     X(object_eq)        \

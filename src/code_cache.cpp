@@ -20,15 +20,16 @@
 
 #include "emerald/code_cache.h"
 #include "emerald/module.h"
+#include "emerald/module_registry.h"
 #include "emerald/strutils.h"
 
 namespace emerald {
 
-    ConcurrentMap<std::string, std::shared_ptr<Code>> CodeCache::_code;
+    std::unordered_map<std::string, std::shared_ptr<Code>> CodeCache::_code;
 
     std::shared_ptr<Code> CodeCache::get_code(const std::string& module_name) {
-        if (_code.has(module_name)) {
-            return _code.get(module_name);
+        if (_code.find(module_name) != _code.end()) {
+            return _code.at(module_name);
         }
 
         return nullptr;
@@ -40,11 +41,11 @@ namespace emerald {
         }
 
         load_code(module_name);
-        return _code.get(module_name);
+        return _code.at(module_name);
     }
 
     void CodeCache::load_code(const std::string& module_name) {
-        if (NativeModuleRegistry::has_module(module_name)) {
+        if (NativeModuleInitRegistry::has_module_init(module_name)) {
             return;
         }
 
@@ -52,7 +53,7 @@ namespace emerald {
         std::shared_ptr<Code> code = std::make_shared<Code>(path);
         _code[module_name] = code;
         for (const std::string& import_name : code->get_import_names()) {
-            if (_code.has(import_name)) continue;
+            if (_code.find(import_name) != _code.end()) continue;
             load_code(import_name);
         }
     }

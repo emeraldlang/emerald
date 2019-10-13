@@ -130,7 +130,7 @@ namespace emerald {
     void Compiler::VisitFunctionStatement(const std::shared_ptr<FunctionStatement>& function_statement) {
         push_new_func(function_statement->get_identifier());
 
-        for (const std::shared_ptr<FunctionParameter>& parameter : iterutils::reverse(function_statement->get_parameters())) {
+        for (const std::shared_ptr<FunctionParameter>& parameter : function_statement->get_parameters()) {
             Visit(parameter);
         }
 
@@ -383,7 +383,6 @@ namespace emerald {
         for (const std::shared_ptr<KeyValuePair>& key_value_pair : iterutils::reverse(key_value_pairs)) {
             Visit(key_value_pair);
         }
-
         code()->write_new_obj(false, key_value_pairs.size());
     }
 

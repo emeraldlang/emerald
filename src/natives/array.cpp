@@ -15,8 +15,13 @@
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include <algorithm>
+
+#include "emerald/execution_context.h"
+#include "emerald/interpreter.h"
 #include "emerald/natives/array.h"
 #include "emerald/natives/utils.h"
+#include "emerald/magic_methods.h"
 
 namespace emerald {
 namespace natives {
@@ -30,19 +35,22 @@ namespace natives {
 #undef X
 
     NATIVE_FUNCTION(array_eq) {
-        (void)heap;
-
         EXPECT_NUM_ARGS(2);
 
         TRY_CONVERT_RECV_TO(Array, lhs);
         TRY_CONVERT_ARG_TO(1, Array, rhs);
 
-        return BOOLEAN(lhs->get_value() == rhs->get_value());
+        return BOOLEAN(std::equal(
+            std::begin(lhs->get_value()),
+            std::end(lhs->get_value()),
+            std::end(rhs->get_value()), 
+            [&context](Object* lhs, Object* rhs) {
+                std::vector<Object*> args({ lhs, rhs });
+                return Interpreter::execute_method(magic_methods::eq, args, context)->as_bool();
+            }));
     }
 
     NATIVE_FUNCTION(array_neq) {
-        (void)heap;
-
         EXPECT_NUM_ARGS(2);
 
         TRY_CONVERT_RECV_TO(Array, lhs);
@@ -52,19 +60,14 @@ namespace natives {
     }
 
     NATIVE_FUNCTION(array_clone) {
-        (void)native_objects;
-
         EXPECT_NUM_ARGS(1);
 
         TRY_CONVERT_RECV_TO(Array, self);
 
-        return heap->allocate<Array>(self);
+        return context.get_heap().allocate<Array>(self);
     }
 
     NATIVE_FUNCTION(array_at) {
-        (void)heap;
-        (void)native_objects;
-
         EXPECT_NUM_ARGS(2);
 
         TRY_CONVERT_RECV_TO(Array, arr);
@@ -74,9 +77,6 @@ namespace natives {
     }
 
     NATIVE_FUNCTION(array_front) {
-        (void)heap;
-        (void)native_objects;
-
         EXPECT_NUM_ARGS(1);
 
         TRY_CONVERT_RECV_TO(Array, arr);
@@ -85,9 +85,6 @@ namespace natives {
     }
 
     NATIVE_FUNCTION(array_back) {
-        (void)heap;
-        (void)native_objects;
-
         EXPECT_NUM_ARGS(1);
 
         TRY_CONVERT_RECV_TO(Array, arr);
@@ -96,13 +93,11 @@ namespace natives {
     }
 
     NATIVE_FUNCTION(array_empty) {
-        (void)heap;
-
         EXPECT_NUM_ARGS(1);
 
         TRY_CONVERT_RECV_TO(Array, arr);
 
-        return native_objects->get_boolean(arr->get_value().empty());
+        return BOOLEAN(arr->get_value().empty());
     }
 
     NATIVE_FUNCTION(array_size) {
@@ -114,8 +109,6 @@ namespace natives {
     }
 
     NATIVE_FUNCTION(array_clear) {
-        (void)native_objects;
-
         EXPECT_NUM_ARGS(1);
 
         TRY_CONVERT_RECV_TO(Array, arr);
@@ -139,9 +132,6 @@ namespace natives {
     }
 
     NATIVE_FUNCTION(array_pop) {
-        (void)heap;
-        (void)native_objects;
-
         EXPECT_NUM_ARGS(1);
 
         TRY_CONVERT_RECV_TO(Array, arr);

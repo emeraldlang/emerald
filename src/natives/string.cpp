@@ -15,10 +15,9 @@
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <functional>
-
 #include "fmt/format.h"
 
+#include "emerald/execution_context.h"
 #include "emerald/natives/string.h"
 #include "emerald/natives/utils.h"
 
@@ -40,66 +39,50 @@ namespace natives {
     }
 
     NATIVE_FUNCTION(string_eq) {
-        (void)heap;
-
         EXPECT_NUM_ARGS(2);
 
         return BOOLEAN(args[0]->as_str() == args[1]->as_str());
     }
 
     NATIVE_FUNCTION(string_neq) {
-        (void)heap;
-
         EXPECT_NUM_ARGS(2);
 
         return BOOLEAN(args[0]->as_str() != args[1]->as_str());
     }
 
     NATIVE_FUNCTION(string_lt) {
-        (void)heap;
-
         EXPECT_NUM_ARGS(2);
 
         return BOOLEAN(args[0]->as_str() < args[1]->as_str());
     }
 
     NATIVE_FUNCTION(string_gt) {
-        (void)heap;
-
         EXPECT_NUM_ARGS(2);
 
         return BOOLEAN(args[0]->as_str() > args[1]->as_str());
     }
 
     NATIVE_FUNCTION(string_lte) {
-        (void)heap;
-
         EXPECT_NUM_ARGS(2);
 
         return BOOLEAN(args[0]->as_str() <= args[1]->as_str());
     }
 
     NATIVE_FUNCTION(string_gte) {
-        (void)heap;
-
         EXPECT_NUM_ARGS(2);
 
         return BOOLEAN(args[0]->as_str() > args[1]->as_str());
     }
 
     NATIVE_FUNCTION(string_clone) {
-        (void)native_objects;
-
         EXPECT_NUM_ARGS(1);
 
         TRY_CONVERT_RECV_TO(String, self);
 
-        return heap->allocate<String>(self);
+        return context.get_heap().allocate<String>(self);
     }
 
     NATIVE_FUNCTION(string_empty) {
-        (void)heap;
-
         EXPECT_NUM_ARGS(1);
 
         return BOOLEAN(args[0]->as_str().empty());

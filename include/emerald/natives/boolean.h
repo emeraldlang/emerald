@@ -19,7 +19,6 @@
 #define _EMERALD_NATIVES_BOOLEAN_H
 
 #include "emerald/object.h"
-#include "emerald/native_objects.h"
 
 #define BOOLEAN_NATIVES     \
     X(boolean_eq)           \

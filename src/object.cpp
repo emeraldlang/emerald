@@ -105,12 +105,12 @@ namespace emerald {
         return _callable;
     }
 
-    Object* NativeFunction::invoke(Heap* heap, NativeObjects* native_objects, const std::vector<Object*>& args) {
-        return _callable(heap, native_objects, args);
+    Object* NativeFunction::invoke(const std::vector<Object*>& args, ExecutionContext& context) {
+        return _callable(args, context);
     }
 
-    Object* NativeFunction::operator()(Heap* heap, NativeObjects* native_objects, const std::vector<Object*>& args) {
-        return _callable(heap, native_objects, args);
+    Object* NativeFunction::operator()(const std::vector<Object*>& args, ExecutionContext& context) {
+        return _callable(args, context);
     }
 
     Null::Null()

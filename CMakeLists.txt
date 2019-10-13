@@ -26,10 +26,11 @@ add_library(emerald_s SHARED
     src/code.cpp
     src/code_cache.cpp
     src/compiler.cpp
-    src/data_stack.cpp
     src/heap.cpp
     src/heap_managed.cpp
+    src/interpreter.cpp
     src/module.cpp
+    src/module_registry.cpp
     src/modules/core.cpp
     src/modules/init.cpp
     src/modules/io.cpp
@@ -42,14 +43,11 @@ add_library(emerald_s SHARED
     src/object.cpp
     src/opcode.cpp
     src/parser.cpp
-    src/process.cpp
     src/reporter.cpp
     src/scanner.cpp
-    src/scheduler.cpp
     src/source.cpp
     src/stack.cpp
-    src/token.cpp
-    src/vm.cpp)
+    src/token.cpp)
 
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()

@@ -19,9 +19,9 @@
 #define _EMERALD_CODE_CACHE_H
 
 #include <string>
+#include <unordered_map>
 
 #include "emerald/code.h"
-#include "emerald/concurrent_map.h"
 
 namespace emerald {
 
@@ -31,7 +31,7 @@ namespace emerald {
         static std::shared_ptr<Code> get_or_load_code(const std::string& module_name);
 
     private:
-        static ConcurrentMap<std::string, std::shared_ptr<Code>> _code;
+        static std::unordered_map<std::string, std::shared_ptr<Code>> _code;
 
         static void load_code(const std::string& module_name);
     };

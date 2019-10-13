@@ -22,8 +22,7 @@
 #include <sstream>
 #include <string>
 
-#include "emerald/module.h"
-#include "emerald/native_objects.h"
+#include "emerald/module_registry.h"
 #include "emerald/object.h"
 
 #define FILE_STREAM_NATIVES \

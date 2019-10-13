@@ -15,6 +15,7 @@
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include "emerald/execution_context.h"
 #include "emerald/natives/object.h"
 #include "emerald/natives/utils.h"
 
@@ -30,16 +31,12 @@ namespace natives {
 #undef X
 
     NATIVE_FUNCTION(object_eq) {
-        (void)heap;
-
         EXPECT_NUM_ARGS(2);
 
         return BOOLEAN(args[0] == args[1]);
     }
 
     NATIVE_FUNCTION(object_neq) {
-        (void)heap;
-
         EXPECT_NUM_ARGS(2);
 
         return BOOLEAN(args[0] != args[1]);
@@ -52,32 +49,21 @@ namespace natives {
     }
 
     NATIVE_FUNCTION(object_boolean) {
-        (void)heap;
-
         EXPECT_NUM_ARGS(1);
 
         return BOOLEAN(args[0]->as_bool());
     }
 
     NATIVE_FUNCTION(object_clone) {
-        (void)native_objects;
-
         EXPECT_NUM_ARGS(1);
 
         TRY_CONVERT_RECV_TO(HeapObject, self);
 
-        return heap->allocate<HeapObject>(self);
+        return context.get_heap().allocate<HeapObject>(self);
     }
 
     NATIVE_FUNCTION(object_init) {
-        (void)native_objects;
-        (void)heap;
-
-        EXPECT_NUM_ARGS(1);
-
-        TRY_CONVERT_RECV_TO(HeapObject, self);
-
-        return self;
+        return context.get_native_objects().get_null();
     }
 
 } // namespace natives

@@ -14,7 +14,7 @@
 **  You should have received a copy of the GNU General Public License
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-
+#include <iostream>
 #include "emerald/scanner.h"
 
 namespace emerald {
@@ -202,7 +202,12 @@ namespace emerald {
     }
 
     void Scanner::skip_single_line_comment() {
-        while (_c != '\n') advance();
+        while (_c != '\n') {
+            if (_c == eof_marker) {
+                return;
+            }
+            advance();
+        }
     }
 
     void Scanner::skip_white_space() {
@@ -218,7 +223,7 @@ namespace emerald {
                 _col++;
             }
 
-            if (_cp++ == _source->length()) {
+            if (++_cp == _source->length()) {
                 _c = eof_marker;
             } else {
                 _c = _source->at(_cp);

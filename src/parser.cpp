@@ -491,10 +491,9 @@ namespace emerald {
         std::string identifier = _scanner.current()->get_lexeme();
 
         std::shared_ptr<Expression> default_expr;
-        // TODO(zvp): Add support for default values later
-        // if (match(Token::ASSIGN)) {
-        //     default_expr = parse_expression();
-        // }
+        if (match(Token::ASSIGN)) {
+            default_expr = parse_expression();
+        }
 
         return std::make_shared<FunctionParameter>(end_pos(start), identifier, default_expr);
     }

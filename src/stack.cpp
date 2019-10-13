@@ -16,6 +16,8 @@
 */
 
 #include "emerald/check.h"
+#include "emerald/module.h"
+#include "emerald/object.h"
 #include "emerald/stack.h"
 
 namespace emerald {
@@ -66,15 +68,23 @@ namespace emerald {
 
     Module* Stack::peek_globals() {
         CHECK_THROW_LOGIC_ERROR(!_stack.empty(), "cannot peek an empty stack");
-        
+
         return _stack.back().get_globals();
     }
 
-    std::vector<HeapManaged*> Stack::get_roots() const {
+    std::vector<HeapManaged*> Stack::get_roots() {
         std::vector<HeapManaged*> roots;
-        for (const Frame& frame : _stack) {
+        for (Frame& frame : _stack) {
             for (std::pair<std::string, Object*> local : frame.get_locals()) {
                 if (HeapObject* heap_obj = dynamic_cast<HeapObject*>(local.second)) {
+                    roots.push_back(heap_obj);
+                }
+            }
+
+            roots.push_back(frame.get_globals());
+
+            for (Object* obj : frame.get_data_stack()) {
+                if (HeapObject* heap_obj = dynamic_cast<HeapObject*>(obj)) {
                     roots.push_back(heap_obj);
                 }
             }
@@ -150,6 +160,43 @@ namespace emerald {
 
     size_t Stack::Frame::num_locals() const {
         return _locals.size();
+    }
+
+    const std::deque<Object*> Stack::Frame::get_data_stack() const {
+        return _data_stack;
+    }
+
+    const Object* Stack::Frame::peek_ds() const {
+        CHECK_THROW_LOGIC_ERROR(!_data_stack.empty(), "cannot peek an empty stack");
+
+        return _data_stack.back();
+    }
+
+    Object* Stack::Frame::peek_ds() {
+        CHECK_THROW_LOGIC_ERROR(!_data_stack.empty(), "cannot peek an empty stack");
+
+        return _data_stack.back();
+    }
+
+    Object* Stack::Frame::pop_ds() {
+        CHECK_THROW_LOGIC_ERROR(!_data_stack.empty(), "cannot pop an empty stack");
+
+        Object* obj = _data_stack.back();
+        _data_stack.pop_back();
+        return obj;
+    }
+
+    std::vector<Object*> Stack::Frame::pop_n_ds(size_t n) {
+        std::vector<Object*> vec;
+        for (size_t i = 0; i < n; i++) {
+            vec.push_back(pop_ds());
+        }
+
+        return vec;
+    }
+
+    void Stack::Frame::push_ds(Object* val) {
+        _data_stack.push_back(val);
     }
 
 } // namespace emerald

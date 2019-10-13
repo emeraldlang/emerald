@@ -18,23 +18,23 @@
 #ifndef EMERALD_NATIVES_UTILS_H
 #define EMERALD_NATIVES_UTILS_H
 
-#define EXPECT_NUM_ARGS_OP(count, op)               \
-    do {                                            \
-        if (args.size() op count) {                 \
-            throw heap->allocate<Exception>("");    \
-        }                                           \
+#define EXPECT_NUM_ARGS_OP(count, op)                           \
+    do {                                                        \
+        if (args.size() op count) {                             \
+            throw context.get_heap().allocate<Exception>("");   \
+        }                                                       \
     } while (false)
 
 #define EXPECT_NUM_ARGS(count) EXPECT_NUM_ARGS_OP(count, !=)
 #define EXPECT_ATLEAST_NUM_ARGS(count) EXPECT_NUM_ARGS_OP(count, <)
 
-#define TRY_CONVERT_ARG_TO(i, Type, name)           \
-    Type* name  = nullptr;                          \
-    do {                                            \
-        name = dynamic_cast<Type*>(args[i]);        \
-        if (name == nullptr) {                      \
-            throw heap->allocate<Exception>("");    \
-        }                                           \
+#define TRY_CONVERT_ARG_TO(i, Type, name)                       \
+    Type* name  = nullptr;                                      \
+    do {                                                        \
+        name = dynamic_cast<Type*>(args[i]);                    \
+        if (name == nullptr) {                                  \
+            throw context.get_heap().allocate<Exception>("");   \
+        }                                                       \
     } while (false)
 
 #define TRY_CONVERT_RECV_TO(Type, name) TRY_CONVERT_ARG_TO(0, Type, name)
@@ -50,8 +50,8 @@
     } while (false)
 
 
-#define BOOLEAN(val) native_objects->get_boolean(val)
-#define ALLOC_NUMBER(num) heap->allocate<Number>(native_objects->get_number_prototype(), num)
-#define ALLOC_STRING(str) heap->allocate<String>(native_objects->get_string_prototype(), str)
+#define BOOLEAN(val) context.get_native_objects().get_boolean(val)
+#define ALLOC_NUMBER(num) context.get_heap().allocate<Number>(context.get_native_objects().get_number_prototype(), num)
+#define ALLOC_STRING(str) context.get_heap().allocate<String>(context.get_native_objects().get_string_prototype(), str)
 
 #endif // EMERALD_NATIVES_UTILS_H

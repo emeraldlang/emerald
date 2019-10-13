@@ -57,47 +57,4 @@ namespace emerald {
         return path;
     }
 
-    ConcurrentMap<std::string, NativeModuleRegistry::ModuleInitialization> NativeModuleRegistry::_modules;
-
-    void NativeModuleRegistry::add_module(const std::string& alias, ModuleInitialization initialization) {
-        _modules[alias] = initialization;
-    }
-
-    bool NativeModuleRegistry::has_module(const std::string& alias) {
-        return _modules.has(alias);
-    }
-
-    Module* NativeModuleRegistry::init_module(
-        const std::string& alias,
-        Heap* heap,
-        NativeObjects* native_objects) {
-        ModuleInitialization initialization = _modules.get(alias);
-        return initialization(heap, native_objects);
-    }
-
-    void ModuleRegistry::add_module(Module* module) {
-        _modules[module->get_name()] = module;
-    }
-
-    bool ModuleRegistry::has_module(const std::string& name) const {
-        return _modules.find(name) != _modules.end();
-    }
-
-    const Module* ModuleRegistry::get_module(const std::string& name) const {
-        return _modules.at(name);
-    }
-    
-    Module* ModuleRegistry::get_module(const std::string& name) {
-        return _modules.at(name);
-    }
-
-    std::vector<HeapManaged*> ModuleRegistry::get_roots() const {
-        std::vector<HeapManaged*> roots;
-        for (std::pair<std::string, Module*> pair : _modules) {
-            roots.push_back(pair.second);
-        }
-
-        return roots;
-    }
-
 } // namespace emerald

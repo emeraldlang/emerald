@@ -18,8 +18,10 @@
 #include "fmt/format.h"
 
 #include "emerald/modules/io.h"
-#include "emerald/natives/utils.h"
+#include "emerald/execution_context.h"
 #include "emerald/magic_methods.h"
+#include "emerald/module.h"
+#include "emerald/natives/utils.h"
 
 namespace emerald {
 namespace modules {
@@ -91,18 +93,14 @@ namespace modules {
 #undef X
 
     NATIVE_FUNCTION(file_stream_clone) {
-        (void)native_objects;
-
         EXPECT_NUM_ARGS(1);
 
         TRY_CONVERT_RECV_TO(FileStream, self);
 
-        return heap->allocate<FileStream>(self);
+        return context.get_heap().allocate<FileStream>(self);
     }
 
     NATIVE_FUNCTION(file_stream_open) {
-        (void)heap;
-
         EXPECT_NUM_ARGS(3);
 
         TRY_CONVERT_RECV_TO(FileStream, stream);
@@ -118,7 +116,7 @@ namespace modules {
         } else if (access_str == "read_write") {
             openmode = std::fstream::in | std::fstream::out;
         } else {
-            throw heap->allocate<Exception>(fmt::format("unknown file access: {0}", access_str));
+            throw context.get_heap().allocate<Exception>(fmt::format("unknown file access: {0}", access_str));
         }
 
         stream->open(filename->get_value(), openmode);
@@ -127,8 +125,6 @@ namespace modules {
     }
     
     NATIVE_FUNCTION(file_stream_is_open) {
-        (void)native_objects;
-
         EXPECT_NUM_ARGS(1);
 
         TRY_CONVERT_RECV_TO(FileStream, stream);
@@ -164,13 +160,11 @@ namespace modules {
     }
 
     NATIVE_FUNCTION(string_stream_clone) {
-        (void)native_objects;
-        
         EXPECT_NUM_ARGS(1);
 
         TRY_CONVERT_RECV_TO(StringStream, self);
 
-        return heap->allocate<StringStream>(self);
+        return context.get_heap().allocate<StringStream>(self);
     }
 
     NATIVE_FUNCTION(string_stream_read) {
@@ -194,9 +188,12 @@ namespace modules {
     }
 
     MODULE_INITIALIZATION_FUNC(init_io_module) {
-        Module* module = heap->allocate<Module>("io");
+        Heap& heap = context.get_heap();
+        NativeObjects& native_objects = context.get_native_objects();
 
-        FileStream* file_stream = heap->allocate<FileStream>(native_objects->get_object_prototype());
+        Module* module = heap.allocate<Module>("io");
+
+        FileStream* file_stream = heap.allocate<FileStream>(native_objects.get_object_prototype());
         file_stream->set_property(magic_methods::clone, get_file_stream_clone());
         file_stream->set_property("open", get_file_stream_open());
         file_stream->set_property("is_open", get_file_stream_is_open());
@@ -204,13 +201,13 @@ namespace modules {
         file_stream->set_property("write", get_file_stream_write());
         module->set_property("FileStream", file_stream);
 
-        HeapObject* file_access = heap->allocate<HeapObject>(native_objects->get_object_prototype());
+        HeapObject* file_access = heap.allocate<HeapObject>(native_objects.get_object_prototype());
         file_access->set_property("read", ALLOC_STRING("read"));
         file_access->set_property("write", ALLOC_STRING("write"));
         file_access->set_property("read_write", ALLOC_STRING("read_write"));
         module->set_property("FileAccess", file_access);
 
-        StringStream* string_stream = heap->allocate<StringStream>(native_objects->get_object_prototype());
+        StringStream* string_stream = heap.allocate<StringStream>(native_objects.get_object_prototype());
         string_stream->set_property(magic_methods::clone, get_string_stream_clone());
         string_stream->set_property("read", get_string_stream_read());
         string_stream->set_property("write", get_string_stream_write());

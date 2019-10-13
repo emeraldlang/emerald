@@ -17,6 +17,7 @@
 
 #include "fmt/format.h"
 
+#include "emerald/execution_context.h"
 #include "emerald/natives/boolean.h"
 #include "emerald/natives/utils.h"
 
@@ -32,29 +33,23 @@ namespace natives {
 #undef X
 
     NATIVE_FUNCTION(boolean_eq) {
-        (void)heap;
-
         EXPECT_NUM_ARGS(2);
 
         return BOOLEAN(args[0]->as_bool() == args[1]->as_bool());
     }
 
     NATIVE_FUNCTION(boolean_neq) {
-        (void)heap;
-
         EXPECT_NUM_ARGS(2);
 
         return BOOLEAN(args[0]->as_bool() != args[1]->as_bool());
     }
 
     NATIVE_FUNCTION(boolean_clone) {
-        (void)native_objects;
-
         EXPECT_NUM_ARGS(1);
 
         TRY_CONVERT_RECV_TO(Boolean, self);
 
-        return heap->allocate<Boolean>(self);
+        return context.get_heap().allocate<Boolean>(self);
     }
 
 } // namespace natives

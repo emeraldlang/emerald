@@ -16,18 +16,21 @@
 */
 
 #include "emerald/modules/core.h"
+#include "emerald/execution_context.h"
+#include "emerald/module.h"
 
 namespace emerald {
 namespace modules {
 
     MODULE_INITIALIZATION_FUNC(init_core_module) {
-        Module* module = heap->allocate<Module>("core");
+        Module* module = context.get_heap().allocate<Module>("core");
 
-        module->set_property("Object", native_objects->get_object_prototype());
-        module->set_property("Array", native_objects->get_array_prototype());
-        module->set_property("Boolean", native_objects->get_boolean_prototype());
-        module->set_property("Number", native_objects->get_number_prototype());
-        module->set_property("String", native_objects->get_string_prototype());
+        NativeObjects& native_objects = context.get_native_objects();
+        module->set_property("Object", native_objects.get_object_prototype());
+        module->set_property("Array", native_objects.get_array_prototype());
+        module->set_property("Boolean", native_objects.get_boolean_prototype());
+        module->set_property("Number", native_objects.get_number_prototype());
+        module->set_property("String", native_objects.get_string_prototype());
 
         return module;
     }

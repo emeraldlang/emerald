@@ -18,7 +18,7 @@
 #ifndef _EMERALD_MODULES_CORE_H
 #define _EMERALD_MODULES_CORE_H
 
-#include "emerald/module.h"
+#include "emerald/module_registry.h"
 
 namespace emerald {
 namespace modules {

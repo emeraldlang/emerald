@@ -26,7 +26,7 @@ namespace emerald {
 
     class HeapRootSource {
     public:
-        virtual std::vector<HeapManaged*> get_roots() const = 0;
+        virtual std::vector<HeapManaged*> get_roots() = 0;
     };
 
 } // namespace emerald

@@ -19,19 +19,11 @@
 #define _EMERALD_MODULE_H
 
 #include <filesystem>
-#include <functional>
 #include <string>
-#include <unordered_map>
-#include <vector>
 
 #include "emerald/code.h"
-#include "emerald/concurrent_map.h"
 #include "emerald/heap.h"
-#include "emerald/heap_root_source.h"
-#include "emerald/native_objects.h"
 #include "emerald/object.h"
-
-#define MODULE_INITIALIZATION_FUNC(name) Module* name(Heap* heap, NativeObjects* native_objects)
 
 namespace emerald {
 
@@ -54,36 +46,6 @@ namespace emerald {
     private:
         std::string _name;
         std::shared_ptr<Code> _code;
-    };
-
-    class NativeModuleRegistry {
-    public:
-        using ModuleInitialization = std::function<Module*(Heap*, NativeObjects*)>;
-
-        static void add_module(const std::string& alias, ModuleInitialization initialization);
-        static bool has_module(const std::string& alias);
-        static Module* init_module(
-            const std::string& alias,
-            Heap* heap,
-            NativeObjects* native_objects);
-
-    private:
-        static ConcurrentMap<std::string, ModuleInitialization> _modules;
-    };
-
-    class ModuleRegistry : public HeapRootSource {
-    public:
-        ModuleRegistry() = default;
-
-        void add_module(Module* module);
-        bool has_module(const std::string& name) const;
-        const Module* get_module(const std::string& name) const;
-        Module* get_module(const std::string& name);
-
-        std::vector<HeapManaged*> get_roots() const override;
-
-    private:
-        std::unordered_map<std::string, Module*> _modules;
     };
 
 } // namespace emerald

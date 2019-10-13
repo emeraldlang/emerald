@@ -24,13 +24,13 @@
 #include "emerald/ast_printer.h"
 #include "emerald/colors.h"
 #include "emerald/compiler.h"
+#include "emerald/interpreter.h"
 #include "emerald/module.h"
 #include "emerald/modules/init.h"
 #include "emerald/parser.h"
 #include "emerald/reporter.h"
 #include "emerald/source.h"
 #include "emerald/strutils.h"
-#include "emerald/vm.h"
 
 int main(int argc, char** argv) {
     CLI::App app;
@@ -146,63 +146,7 @@ int main(int argc, char** argv) {
     run->callback([&]() {
         emerald::modules::add_module_inits_to_registry();
 
-        emerald::VM vm;
-
-        vm.start();
-        vm.create_process(run_module_name);
-
-        while (true) {
-            std::string input;
-            getline(std::cin, input);
-
-            std::vector<std::string> args = emerald::strutils::split(input, " ");
-
-            std::string cmd = std::move(args[0]);
-            args.erase(args.begin());
-
-            if (cmd == "create_process") {
-                if (args.size() == 0) {
-                    std::cout << emerald::colors::fg_red << "create_process: " << emerald::colors::reset << "expected one argument" << std::endl;
-                    continue;
-                }
-
-                for (const std::string& module_name : args) {
-                    vm.create_process(module_name);
-                }
-            } else if (cmd == "exit") {
-                if (vm.running()) {
-                    std::cout << "stopping vm...";
-                    vm.stop();
-                    std::cout << "done." << std::endl;
-                }
-                break;
-            } else if (cmd == "scale") {
-                if (args.size() == 0) {
-                    std::cout << emerald::colors::fg_red << "scale: " << emerald::colors::reset << "expected one argument" << std::endl;
-                } else {
-                    size_t n = std::stoul(args[0]);
-                    vm.scale(n);
-                }
-            } else if (cmd == "start") {
-                if (vm.running()) {
-                    std::cout << emerald::colors::fg_red << "vm is already running" << emerald::colors::reset << std::endl;
-                } else {
-                    std::cout << "starting vm...";
-                    vm.start();
-                    std::cout << "done." << std::endl;
-                }
-            } else if (cmd == "stop") {
-                if (!vm.running()) {
-                    std::cout << emerald::colors::fg_red << "vm is already stopped" << emerald::colors::reset << std::endl;
-                } else {
-                    std::cout << "stopping vm...";
-                    vm.stop();
-                    std::cout << "done." << std::endl;
-                }
-            } else {
-                std::cout << emerald::colors::fg_red << "unknown cmd: " << emerald::colors::reset << cmd << std::endl;
-            }
-        }
+        emerald::Interpreter::execute_module(run_module_name);
     });
 
     CLI11_PARSE(app, argc, argv);

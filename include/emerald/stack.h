@@ -26,10 +26,11 @@
 #include "emerald/code.h"
 #include "emerald/heap_managed.h"
 #include "emerald/heap_root_source.h"
-#include "emerald/object.h"
-#include "emerald/module.h"
 
 namespace emerald {
+
+    class Object;
+    class Module;
 
     class Stack : public HeapRootSource {
     public:
@@ -69,12 +70,22 @@ namespace emerald {
 
             size_t num_locals() const;
 
+            const std::deque<Object*> get_data_stack() const;
+
+            const Object* peek_ds() const;
+            Object* peek_ds();
+
+            Object* pop_ds();
+            std::vector<Object*> pop_n_ds(size_t n);
+            void push_ds(Object* val);
+
         private:
             std::shared_ptr<const Code> _code;
             size_t _ip;
 
             Module* _globals;
             std::unordered_map<std::string, Object*> _locals;
+            std::deque<Object*> _data_stack;
         };
 
         uint16_t max_size() const;
@@ -91,7 +102,7 @@ namespace emerald {
         const Module* peek_globals() const;
         Module* peek_globals();
 
-        std::vector<HeapManaged*> get_roots() const override;
+        std::vector<HeapManaged*> get_roots() override;
 
     private:
         uint16_t _max_size;

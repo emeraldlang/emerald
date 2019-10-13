@@ -15,8 +15,7 @@
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <functional>
-
+#include "emerald/execution_context.h"
 #include "emerald/natives/number.h"
 #include "emerald/natives/utils.h"
 
@@ -85,9 +84,6 @@ namespace natives {
     }
 
     NATIVE_FUNCTION(number_iadd) {
-        (void)heap;
-        (void)native_objects;
-        
         EXPECT_NUM_ARGS(2);
 
         TRY_CONVERT_RECV_TO(Number, lhs);
@@ -99,9 +95,6 @@ namespace natives {
     }
 
     NATIVE_FUNCTION(number_isub) {
-        (void)heap;
-        (void)native_objects;
-        
         EXPECT_NUM_ARGS(2);
 
         TRY_CONVERT_RECV_TO(Number, lhs);
@@ -113,9 +106,6 @@ namespace natives {
     }
 
     NATIVE_FUNCTION(number_imul) {
-        (void)heap;
-        (void)native_objects;
-        
         EXPECT_NUM_ARGS(2);
 
         TRY_CONVERT_RECV_TO(Number, lhs);
@@ -127,9 +117,6 @@ namespace natives {
     }
 
     NATIVE_FUNCTION(number_idiv) {
-        (void)heap;
-        (void)native_objects;
-        
         EXPECT_NUM_ARGS(2);
 
         TRY_CONVERT_RECV_TO(Number, lhs);
@@ -141,9 +128,6 @@ namespace natives {
     }
 
     NATIVE_FUNCTION(number_imod) {
-        (void)heap;
-        (void)native_objects;
-        
         EXPECT_NUM_ARGS(2);
 
         TRY_CONVERT_RECV_TO(Number, lhs);
@@ -155,8 +139,6 @@ namespace natives {
     }
 
     NATIVE_FUNCTION(number_eq) {
-        (void)heap;
-
         EXPECT_NUM_ARGS(2);
 
         TRY_CONVERT_RECV_TO(Number, lhs);
@@ -166,8 +148,6 @@ namespace natives {
     }
 
     NATIVE_FUNCTION(number_neq) {
-        (void)heap;
-
         EXPECT_NUM_ARGS(2);
 
         TRY_CONVERT_RECV_TO(Number, lhs);
@@ -177,8 +157,6 @@ namespace natives {
     }
 
     NATIVE_FUNCTION(number_lt) {
-        (void)heap;
-
         EXPECT_NUM_ARGS(2);
 
         TRY_CONVERT_RECV_TO(Number, lhs);
@@ -188,8 +166,6 @@ namespace natives {
     }
 
     NATIVE_FUNCTION(number_gt) {
-        (void)heap;
-
         EXPECT_NUM_ARGS(2);
 
         TRY_CONVERT_RECV_TO(Number, lhs);
@@ -199,8 +175,6 @@ namespace natives {
     }
 
     NATIVE_FUNCTION(number_lte) {
-        (void)heap;
-
         EXPECT_NUM_ARGS(2);
 
         TRY_CONVERT_RECV_TO(Number, lhs);
@@ -210,8 +184,6 @@ namespace natives {
     }
 
     NATIVE_FUNCTION(number_gte) {
-        (void)heap;
-
         EXPECT_NUM_ARGS(2);
 
         TRY_CONVERT_RECV_TO(Number, lhs);
@@ -266,13 +238,11 @@ namespace natives {
     }
 
     NATIVE_FUNCTION(number_clone) {
-        (void)native_objects;
-
         EXPECT_NUM_ARGS(1);
 
         TRY_CONVERT_RECV_TO(Number, self);
 
-        return heap->allocate<Number>(self);
+        return context.get_heap().allocate<Number>(self);
     }
 
 } // namespace natives

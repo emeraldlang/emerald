@@ -208,7 +208,7 @@ namespace emerald {
     }
 
     void Code::write_init(size_t num_args) {
-        WRITE_OP_WARGS(OpCode::init, { num_args });
+        WRITE_OP_WARGS(OpCode::init, { num_args + 1 });
     }
 
     std::shared_ptr<Code> Code::write_new_func(const std::string& label) {
