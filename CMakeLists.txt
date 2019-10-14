@@ -19,7 +19,15 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} /W4")
 endif()
 
+include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+conan_basic_setup(TARGETS)
+
+find_package(Boost COMPONENTS serialization REQUIRED)
+find_package(CLI11 REQUIRED)
+find_package(fmt REQUIRED)
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+include_directories(${Boost_INCLUDE_DIRS})
 
 add_library(emerald_s SHARED
     src/ast_printer.cpp
@@ -49,16 +57,11 @@ add_library(emerald_s SHARED
     src/stack.cpp
     src/token.cpp)
 
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-conan_basic_setup()
-
-find_package(fmt REQUIRED)
-find_package(Boost COMPONENTS serialization REQUIRED)
-
 target_link_libraries(emerald_s
     pthread
     stdc++fs
-    fmt::fmt
+    CLI11::CLI11
+    CONAN_PKG::fmt
     ${Boost_LIBRARIES})
 
 if (EMERALD_BUILD_EXECUTABLE)

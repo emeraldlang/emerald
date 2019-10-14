@@ -44,9 +44,6 @@ namespace emerald {
         const Boolean* get_boolean(bool val) const;
         Boolean* get_boolean(bool val);
 
-        const Null* get_null() const;
-        Null* get_null();
-
     private:
         HeapObject* _object;
         Array* _array;
@@ -56,8 +53,6 @@ namespace emerald {
         Boolean* _boolean;
         Boolean* _true;
         Boolean* _false;
-
-        Null _null;
 
         void initialize_object(Heap* heap);
         void initialize_array(Heap* heap);

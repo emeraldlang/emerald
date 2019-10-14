@@ -33,6 +33,7 @@ namespace emerald {
         static Object* execute_code(std::shared_ptr<const Code> code, ExecutionContext& context);
         static Object* execute_method(const std::string& name, const std::vector<Object*> args, ExecutionContext& context);
         static Object* execute_module(const std::string& module_name);
+        static Module* import_module(const std::string& name, ExecutionContext& context);
 
     private:
         static Object* execute(ExecutionContext& context);
@@ -45,6 +46,8 @@ namespace emerald {
         static Object* call_method(const std::string& name, const std::vector<Object*>& args, ExecutionContext& context);
 
         static Module* get_module(const std::string& name, bool& created, ExecutionContext& context);
+
+        static Object* new_obj(bool explicit_parent, size_t num_props, ExecutionContext& context);
     };
 
 } // namespace emerald

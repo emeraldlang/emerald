@@ -503,6 +503,7 @@ namespace emerald {
 
         const std::string& get_identifier() const { return _identifier; }
         const std::shared_ptr<Expression>& get_default_expr() const { return _default_expr; }
+        bool has_default() const { return _default_expr != nullptr; }
 
     private:
         std::string _identifier;

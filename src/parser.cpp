@@ -204,8 +204,19 @@ namespace emerald {
 
         std::vector<std::shared_ptr<FunctionParameter>> parameters;
         if (match(Token::COLON)) {
+            bool seen_w_default = false;
             do {
-                parameters.push_back(parse_function_parameter());
+                std::shared_ptr<FunctionParameter> parameter = parse_function_parameter();
+                if (parameter->has_default()) {
+                    seen_w_default = true;
+                } else if (seen_w_default) {
+                    _reporter->report(
+                        ReportCode::non_default_arg_after_default_arg,
+                        ReportCode::format_report(ReportCode::non_default_arg_after_default_arg),
+                        parameter->get_source_position());
+                }
+
+                parameters.push_back(parameter);
             } while (match(Token::COMMA));
         }
 

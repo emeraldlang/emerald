@@ -30,6 +30,7 @@ namespace emerald {
     X(jmp, 1)                   \
     X(jmp_true, 1)              \
     X(jmp_false, 1)             \
+    X(jmp_data, 1)              \
     /* Arithmetic */            \
     X(neg, 0)                   \
     X(add, 0)                   \

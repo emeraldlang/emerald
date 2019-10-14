@@ -15,8 +15,6 @@
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <algorithm>
-
 #include "emerald/execution_context.h"
 #include "emerald/interpreter.h"
 #include "emerald/natives/array.h"
@@ -40,23 +38,26 @@ namespace natives {
         TRY_CONVERT_RECV_TO(Array, lhs);
         TRY_CONVERT_ARG_TO(1, Array, rhs);
 
-        return BOOLEAN(std::equal(
-            std::begin(lhs->get_value()),
-            std::end(lhs->get_value()),
-            std::end(rhs->get_value()), 
-            [&context](Object* lhs, Object* rhs) {
-                std::vector<Object*> args({ lhs, rhs });
-                return Interpreter::execute_method(magic_methods::eq, args, context)->as_bool();
-            }));
+        const std::vector<Object*> lhs_value = lhs->get_value();
+        const std::vector<Object*> rhs_value = rhs->get_value();
+
+        size_t lhs_value_size = lhs_value.size();
+        if (lhs_value_size != rhs_value.size()) {
+            return BOOLEAN(false);
+        }
+
+        for (size_t i = 0; i < lhs_value_size; i++) {
+            std::vector<Object*> args({ lhs_value[i], rhs_value[i] });
+            if (!Interpreter::execute_method(magic_methods::eq, args, context)->as_bool()) {
+                return BOOLEAN(false);
+            }
+        }
+
+        return BOOLEAN(true);
     }
 
     NATIVE_FUNCTION(array_neq) {
-        EXPECT_NUM_ARGS(2);
-
-        TRY_CONVERT_RECV_TO(Array, lhs);
-        TRY_CONVERT_ARG_TO(1, Array, rhs);
-
-        return BOOLEAN(lhs->get_value() != rhs->get_value());
+        return BOOLEAN(!array_eq(args, context));
     }
 
     NATIVE_FUNCTION(array_clone) {
@@ -73,7 +74,7 @@ namespace natives {
         TRY_CONVERT_RECV_TO(Array, arr);
         TRY_CONVERT_ARG_TO(1, Number, index);
 
-        return arr->get_value().at((long)index);
+        return arr->get_value().at((long)index->get_value());
     }
 
     NATIVE_FUNCTION(array_front) {
@@ -115,7 +116,7 @@ namespace natives {
 
         arr->get_value().clear();
 
-        return arr;
+        return NONE;
     }
 
     NATIVE_FUNCTION(array_push) {

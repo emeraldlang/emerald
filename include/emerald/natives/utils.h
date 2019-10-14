@@ -51,6 +51,7 @@
 
 
 #define BOOLEAN(val) context.get_native_objects().get_boolean(val)
+#define NONE Null::get()
 #define ALLOC_NUMBER(num) context.get_heap().allocate<Number>(context.get_native_objects().get_number_prototype(), num)
 #define ALLOC_STRING(str) context.get_heap().allocate<String>(context.get_native_objects().get_string_prototype(), str)
 

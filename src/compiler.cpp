@@ -130,7 +130,7 @@ namespace emerald {
     void Compiler::VisitFunctionStatement(const std::shared_ptr<FunctionStatement>& function_statement) {
         push_new_func(function_statement->get_identifier());
 
-        for (const std::shared_ptr<FunctionParameter>& parameter : function_statement->get_parameters()) {
+        for (const std::shared_ptr<FunctionParameter>& parameter : iterutils::reverse(function_statement->get_parameters())) {
             Visit(parameter);
         }
 
@@ -166,7 +166,7 @@ namespace emerald {
         pop_func();
 
         code()->write_call(0);
-    
+
         write_st(object_statement->get_identifier());
     }
 
@@ -403,6 +403,13 @@ namespace emerald {
     }
     
     void Compiler::VisitFunctionParameter(const std::shared_ptr<FunctionParameter>& function_parameter) {
+        if (std::shared_ptr<Expression> default_expr = function_parameter->get_default_expr()) {
+            size_t skip_default_eval = code()->create_label();
+            code()->write_jmp_data(skip_default_eval);
+            Visit(default_expr);
+            code()->bind_label(skip_default_eval);
+        }
+        
         code()->write_stloc(function_parameter->get_identifier());
     }
 

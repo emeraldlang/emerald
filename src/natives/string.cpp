@@ -14,7 +14,7 @@
 **  You should have received a copy of the GNU General Public License
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-
+#include <iostream>
 #include "fmt/format.h"
 
 #include "emerald/execution_context.h"
@@ -143,9 +143,10 @@ namespace natives {
         using ctx = fmt::format_context;
         std::vector<fmt::basic_format_arg<ctx>> fmt_args;
         for (size_t i = 1; i < args.size(); i++) {
+            std::cout << args[i]->as_str() << std::endl;
             fmt_args.push_back(fmt::internal::make_arg<ctx>(args[i]->as_str()));
         }
-
+        std::cout << self->get_value() << std::endl;
         return ALLOC_STRING(
             fmt::vformat(self->get_value(), fmt::basic_format_args<ctx>(fmt_args.data(), fmt_args.size())));
     }

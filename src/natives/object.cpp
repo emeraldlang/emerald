@@ -63,7 +63,7 @@ namespace natives {
     }
 
     NATIVE_FUNCTION(object_init) {
-        return context.get_native_objects().get_null();
+        return NONE;
     }
 
 } // namespace natives

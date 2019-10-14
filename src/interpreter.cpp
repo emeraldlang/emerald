@@ -35,9 +35,7 @@ namespace emerald {
     }
 
     Object* Interpreter::execute_method(const std::string& name, const std::vector<Object*> args, ExecutionContext& context) {
-        call_method(name, args, context);
-
-        return execute(context);
+        return call_method(name, args, context);
     }
 
     Object* Interpreter::execute_module(const std::string& module_name) {
@@ -50,6 +48,17 @@ namespace emerald {
         context.get_stack().push_frame(entry_module->get_code(), entry_module);
 
         return execute(context);
+    }
+
+    Module* Interpreter::import_module(const std::string& name, ExecutionContext& context) {
+        bool created;
+        Module* module = get_module(name, created, context);
+        if (created && !module->is_native()) {
+            context.get_stack().push_frame(module->get_code(), module);
+            execute(context);
+        }
+
+        return module;
     }
 
     Object* Interpreter::execute(ExecutionContext& context) {
@@ -65,20 +74,21 @@ namespace emerald {
             case OpCode::jmp:
                 current_frame.set_instruction_pointer(instr.get_args()[0]);
                 break;
-            case OpCode::jmp_true: {
-                Object* obj = call_method1(magic_methods::boolean, context);
-                if (obj->as_bool()) {
+            case OpCode::jmp_true:
+                if (call_method1(magic_methods::boolean, context)->as_bool()) {
                     current_frame.set_instruction_pointer(instr.get_args()[0]);
                 }
                 break;
-            }
-            case OpCode::jmp_false: {
-                Object* obj = call_method1(magic_methods::boolean, context);
-                if (!obj->as_bool()) {
+            case OpCode::jmp_false:
+                if (!call_method1(magic_methods::boolean, context)->as_bool()) {
                     current_frame.set_instruction_pointer(instr.get_args()[0]);
                 }
                 break;
-            }
+            case OpCode::jmp_data:
+                if (current_frame.get_data_stack().size()) {
+                    current_frame.set_instruction_pointer(instr.get_args()[0]);
+                }
+                break;
             case OpCode::neg:
                 current_frame.push_ds(call_method1(magic_methods::neg, context));
                 break;
@@ -167,7 +177,7 @@ namespace emerald {
             }
             case OpCode::new_obj: {
                 const std::vector<uint64_t>& args = instr.get_args();
-                // current_frame.push_ds(new_obj(args[0], args[1]));
+                current_frame.push_ds(new_obj(args[0], args[1], context));
                 break;
             }
             case OpCode::init: {
@@ -212,7 +222,7 @@ namespace emerald {
                 break;
             }
             case OpCode::null: {
-                current_frame.push_ds(context.get_native_objects().get_null());
+                current_frame.push_ds(Null::get());
                 break;
             }
             case OpCode::get_prop: {
@@ -303,7 +313,7 @@ namespace emerald {
         }
 
         stack.pop_frame();
-        return context.get_native_objects().get_null();
+        return Null::get();
     }
 
     Object* Interpreter::call_obj(Object* obj, const std::vector<Object*>& args, ExecutionContext& context) {
@@ -359,6 +369,23 @@ namespace emerald {
         created = true;
 
         return module;
+    }
+
+    Object* Interpreter::new_obj(bool explicit_parent, size_t num_props, ExecutionContext& context) {
+        Stack::Frame& current_frame = context.get_stack().peek();
+        if (!explicit_parent) {
+            current_frame.push_ds(context.get_native_objects().get_object_prototype());
+        }
+
+        Object* self = call_method1(magic_methods::clone, context);
+        for (size_t i = 0; i < num_props; i++) {
+            Object* key = current_frame.pop_ds();
+            Object* val = current_frame.pop_ds();
+
+            self->set_property(key->as_str(), val); 
+        }
+
+        return self;
     }
 
 } // namespace emerald

@@ -32,7 +32,6 @@ namespace emerald {
         initialize_string(heap);
 
         initialize_booleans(heap);
-        _null = Null();
     }
 
     const HeapObject* NativeObjects::get_object_prototype() const {
@@ -81,14 +80,6 @@ namespace emerald {
 
     Boolean* NativeObjects::get_boolean(bool val) {
         return (val) ? _true : _false;
-    }
-
-    const Null* NativeObjects::get_null() const {
-        return &_null;
-    }
-    
-    Null* NativeObjects::get_null() {
-        return &_null;
     }
 
     void NativeObjects::initialize_object(Heap* heap) {

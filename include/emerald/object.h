@@ -94,7 +94,7 @@ namespace emerald {
 
     class Null final : public Object {
     public:
-        Null();
+        static Null* get();
 
         bool as_bool() const override;
         std::string as_str() const override;
@@ -106,6 +106,9 @@ namespace emerald {
         bool has_own_property(const std::string& key) const override;
 
         bool set_property(const std::string& key, Object* value) override;
+
+    private:
+        Null();
     };
 
     class HeapObject : public Object, public HeapManaged {

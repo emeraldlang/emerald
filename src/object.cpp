@@ -113,8 +113,10 @@ namespace emerald {
         return _callable(args, context);
     }
 
-    Null::Null()
-        : Object() {}
+    Null* Null::get() {
+        static Null null;
+        return &null;
+    }
 
     bool Null::as_bool() const {
         return false;
@@ -143,6 +145,9 @@ namespace emerald {
     bool Null::set_property(const std::string&, Object*) {
         return false;
     }
+
+    Null::Null()
+        : Object() {}
 
     HeapObject::HeapObject()
         : Object(), 

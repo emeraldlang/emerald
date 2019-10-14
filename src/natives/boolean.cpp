@@ -18,8 +18,10 @@
 #include "fmt/format.h"
 
 #include "emerald/execution_context.h"
+#include "emerald/interpreter.h"
 #include "emerald/natives/boolean.h"
 #include "emerald/natives/utils.h"
+#include "emerald/magic_methods.h"
 
 namespace emerald {
 namespace natives {
@@ -35,13 +37,14 @@ namespace natives {
     NATIVE_FUNCTION(boolean_eq) {
         EXPECT_NUM_ARGS(2);
 
-        return BOOLEAN(args[0]->as_bool() == args[1]->as_bool());
+        TRY_CONVERT_RECV_TO(Boolean, self);
+        Object* other = Interpreter::execute_method(magic_methods::boolean, { args[1] }, context);
+
+        return BOOLEAN(self->as_bool() == other->as_bool());
     }
 
     NATIVE_FUNCTION(boolean_neq) {
-        EXPECT_NUM_ARGS(2);
-
-        return BOOLEAN(args[0]->as_bool() != args[1]->as_bool());
+        return BOOLEAN(!boolean_eq(args, context));
     }
 
     NATIVE_FUNCTION(boolean_clone) {

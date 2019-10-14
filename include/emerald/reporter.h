@@ -26,12 +26,13 @@
 
 #include "emerald/source.h"
 
-#define REPORT_CODES                                                                            \
-    X(illegal_token, "illegal token '{0}'", Severity::error)                                    \
-    X(unexpected_token, "unexpected token '{0}'", Severity::error)                              \
-    X(unexpected_eosf, "unexpected eosf", Severity::error)                                      \
-    X(illegal_return, "return statement not in function", Severity::error)                      \
-    X(undeclared_variable, "'{0}' has not been declared in this scope", Severity::error)        \
+#define REPORT_CODES                                                                                            \
+    X(illegal_token, "illegal token '{0}'", Severity::error)                                                    \
+    X(unexpected_token, "unexpected token '{0}'", Severity::error)                                              \
+    X(unexpected_eosf, "unexpected eosf", Severity::error)                                                      \
+    X(non_default_arg_after_default_arg, "non default args cannot appear after default args", Severity::error)  \
+    X(illegal_return, "return statement not in function", Severity::error)                                      \
+    X(undeclared_variable, "'{0}' has not been declared in this scope", Severity::error)                        \
     X(invalid_lvalue, "invalid lvalue", Severity::error)
 
 namespace emerald {
