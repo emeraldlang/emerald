@@ -24,14 +24,21 @@
 namespace emerald {
 namespace strutils {
 
-    inline std::string join(const std::vector<std::string>& parts, const std::string& seperator) {
+    template <class InputIt, class Transform>
+    inline std::string join(InputIt first, InputIt last, const std::string& seperator, Transform transform) {
         std::string res;
-        for (const std::string& part : parts) {
-            res += part;
-            if (part != parts.back()) res += seperator;
+        while (first != last) {
+            res += transform(*first);
+            if (++InputIt(first) != last) res += seperator;
+            ++first;
         }
 
         return res;
+    }
+
+    template <class InputIt>
+    inline std::string join(InputIt first, InputIt last, const std::string& seperator) {
+        return join(first, last, seperator, [](const auto& v) { return v; });
     }
 
     inline std::vector<std::string> split(const std::string& str, const std::string& delimiters) {

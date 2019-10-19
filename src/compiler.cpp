@@ -14,7 +14,7 @@
 **  You should have received a copy of the GNU General Public License
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-
+#include <iostream>
 #include "emerald/compiler.h"
 #include "emerald/iterutils.h"
 #include "emerald/token.h"
@@ -128,7 +128,9 @@ namespace emerald {
     }
 
     void Compiler::VisitFunctionStatement(const std::shared_ptr<FunctionStatement>& function_statement) {
+        const std::shared_ptr<Code>& parent_code = code();
         push_new_func(function_statement->get_identifier());
+        write_st(parent_code, function_statement->get_identifier());
 
         for (const std::shared_ptr<FunctionParameter>& parameter : iterutils::reverse(function_statement->get_parameters())) {
             Visit(parameter);
@@ -139,13 +141,13 @@ namespace emerald {
         code()->write_null();
         code()->write_ret();
 
-        pop_func();
-
-        write_st(function_statement->get_identifier());
+        pop_func(); 
     }
 
     void Compiler::VisitObjectStatement(const std::shared_ptr<ObjectStatement>& object_statement) {
+        const std::shared_ptr<Code>& parent_code = code();
         push_new_func(object_statement->get_identifier());
+        write_st(parent_code, object_statement->get_identifier());
 
         Visit(object_statement->get_block());
 
@@ -166,8 +168,6 @@ namespace emerald {
         pop_func();
 
         code()->write_call(0);
-
-        write_st(object_statement->get_identifier());
     }
 
     void Compiler::VisitReturnStatement(const std::shared_ptr<ReturnStatement>& return_statement) {
@@ -200,22 +200,23 @@ namespace emerald {
 
     void Compiler::VisitAssignmentExpression(const std::shared_ptr<AssignmentExpression>& assignment_expression) {
         const std::shared_ptr<LValueExpression>& lvalue = assignment_expression->get_lvalue_expression();
+        const std::shared_ptr<Token> op = assignment_expression->get_operator();
 
         if (std::shared_ptr<Property> property = ASTNode::as<Property>(lvalue)) {
-            VisitPropertyStore(property, assignment_expression->get_right_expression());
-        } else if (std::shared_ptr<Identifier> identifier = ASTNode::as<Identifier>(lvalue)) {
-            Visit(assignment_expression->get_right_expression());
-            const std::string& name = identifier->get_identifier();
-            if (code()->is_local_name(name)) {
-                code()->write_stloc(name);
-            } else if (code()->is_global_name(name)) {
-                code()->write_stgbl(name);
+            if (op->is_comp_assignment_op()) {
+                Visit(assignment_expression->get_right_expression());
+                VisitPropertyLoad(property, true);
+                write_comp_assign(op);
             } else {
-                std::string msg = ReportCode::format_report(ReportCode::undeclared_variable, name);
-                _reporter->report(
-                    ReportCode::undeclared_variable,
-                    msg,
-                    identifier->get_source_position());
+                VisitPropertyStore(property, assignment_expression->get_right_expression());
+            }
+        } else if (std::shared_ptr<Identifier> identifier = ASTNode::as<Identifier>(lvalue)) { 
+            if (op->is_comp_assignment_op()) {
+                Visit(assignment_expression->get_right_expression());
+                VisitIdentifierLoad(identifier);
+                write_comp_assign(op);
+            } else {
+                VisitIdentifierStore(identifier, assignment_expression->get_right_expression());
             }
         }
     }
@@ -339,11 +340,32 @@ namespace emerald {
     }
 
     void Compiler::VisitIdentifier(const std::shared_ptr<Identifier>& identifier) {
+        VisitIdentifierLoad(identifier);
+    }
+
+    void Compiler::VisitIdentifierLoad(const std::shared_ptr<Identifier>& identifier) {
         const std::string& name = identifier->get_identifier();
         if (code()->is_local_name(name)) {
             code()->write_ldloc(name);
         } else if (code()->is_global_name(name)) {
             code()->write_ldgbl(name);
+        } else {
+            std::string msg = ReportCode::format_report(ReportCode::undeclared_variable, name);
+            _reporter->report(
+                ReportCode::undeclared_variable,
+                msg,
+                identifier->get_source_position());
+        }
+    }
+
+    void Compiler::VisitIdentifierStore(const std::shared_ptr<Identifier>& identifier, const std::shared_ptr<Expression>& val) {
+        Visit(val);
+
+        const std::string& name = identifier->get_identifier();
+        if (code()->is_local_name(name)) {
+            code()->write_stloc(name);
+        } else if (code()->is_global_name(name)) {
+            code()->write_stgbl(name);
         } else {
             std::string msg = ReportCode::format_report(ReportCode::undeclared_variable, name);
             _reporter->report(
@@ -451,11 +473,37 @@ namespace emerald {
         }
     }
 
-    void Compiler::write_st(const std::string& identifier) {
-        if (is_top_level()) {
-            code()->write_stgbl(identifier);
+    void Compiler::write_st(const std::shared_ptr<Code>& code, const std::string& identifier) {
+        if (code->is_top_level()) {
+            code->write_stgbl(identifier);
         } else {
-            code()->write_stloc(identifier);
+            code->write_stloc(identifier);
+        }
+    }
+
+    void Compiler::write_st(const std::string& identifier) {
+        write_st(code(), identifier);
+    }
+
+    void Compiler::write_comp_assign(const std::shared_ptr<Token>& op) {
+        switch (op->get_type()) {
+        case Token::ASSIGN_ADD:
+            code()->write_iadd();
+            break;
+        case Token::ASSIGN_SUB:
+            code()->write_isub();
+            break;
+        case Token::ASSIGN_MUL:
+            code()->write_imul();
+            break;
+        case Token::ASSIGN_DIV:
+            code()->write_idiv();
+            break;
+        case Token::ASSIGN_MOD:
+            code()->write_imod();
+            break;
+        default:
+            break;
         }
     }
 

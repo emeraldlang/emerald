@@ -17,6 +17,7 @@
 
 #include "emerald/modules/init.h"
 #include "emerald/module_registry.h"
+#include "emerald/modules/collections.h"
 #include "emerald/modules/core.h"
 #include "emerald/modules/io.h"
 
@@ -24,6 +25,7 @@ namespace emerald {
 namespace modules {
 
     void add_module_inits_to_registry() {
+        NativeModuleInitRegistry::add_module_init("collections", init_collections_module);
         NativeModuleInitRegistry::add_module_init("core", init_core_module);
         NativeModuleInitRegistry::add_module_init("io", init_io_module);
     }

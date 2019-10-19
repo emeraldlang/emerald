@@ -32,7 +32,7 @@ namespace emerald {
         return _modules.find(alias) != _modules.end();
     }
 
-    Module* NativeModuleInitRegistry::init_module(const std::string& alias, ExecutionContext& context) {
+    Module* NativeModuleInitRegistry::init_module(const std::string& alias, ExecutionContext* context) {
         ModuleInitialization initialization = _modules.at(alias);
         return initialization(context);
     }

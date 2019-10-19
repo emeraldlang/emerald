@@ -20,39 +20,31 @@
 #include "emerald/execution_context.h"
 #include "emerald/interpreter.h"
 #include "emerald/natives/boolean.h"
-#include "emerald/natives/utils.h"
 #include "emerald/magic_methods.h"
+#include "emerald/objectutils.h"
 
 namespace emerald {
 namespace natives {
 
-#define X(name)                                                             \
-    NativeFunction* get_##name() {                                          \
-        static NativeFunction func = NativeFunction(std::function(&name));  \
-        return &func;                                                       \
-    }
-    BOOLEAN_NATIVES
-#undef X
-
     NATIVE_FUNCTION(boolean_eq) {
         EXPECT_NUM_ARGS(2);
 
-        TRY_CONVERT_RECV_TO(Boolean, self);
+        CONVERT_RECV_TO(Boolean, self);
         Object* other = Interpreter::execute_method(magic_methods::boolean, { args[1] }, context);
 
         return BOOLEAN(self->as_bool() == other->as_bool());
     }
 
     NATIVE_FUNCTION(boolean_neq) {
-        return BOOLEAN(!boolean_eq(args, context));
+        return BOOLEAN(!boolean_eq(args, context)->as_bool());
     }
 
     NATIVE_FUNCTION(boolean_clone) {
         EXPECT_NUM_ARGS(1);
 
-        TRY_CONVERT_RECV_TO(Boolean, self);
+        CONVERT_RECV_TO(Boolean, self);
 
-        return context.get_heap().allocate<Boolean>(self);
+        return context->get_heap().allocate<Boolean>(context, self);
     }
 
 } // namespace natives

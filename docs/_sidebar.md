@@ -1,4 +1,3 @@
 - [Getting Started](/)
-- [Expressions](expressions.md)
-- [Simple Statements](simple_statements.md)
-- [Compound Statements](compound_statements.md)
+- [Native Types](/native-types)
+- [Native Modules](/native-modules)

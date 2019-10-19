@@ -39,6 +39,7 @@ add_library(emerald_s SHARED
     src/interpreter.cpp
     src/module.cpp
     src/module_registry.cpp
+    src/modules/collections.cpp
     src/modules/core.cpp
     src/modules/init.cpp
     src/modules/io.cpp

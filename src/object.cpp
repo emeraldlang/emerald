@@ -15,22 +15,38 @@
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include <algorithm>
+
 #include "fmt/format.h"
 
+#include "emerald/execution_context.h"
+#include "emerald/interpreter.h"
+#include "emerald/magic_methods.h"
 #include "emerald/object.h"
+#include "emerald/objectutils.h"
 
 namespace emerald {
 
-    Object::Object()
-        : _parent(nullptr) {}
+    Object::Object(ExecutionContext* context)
+        : _context(context), 
+        _parent(nullptr) {}
 
-    Object::Object(Object* parent)
-        : _parent(parent) {}
+    Object::Object(ExecutionContext* context, Object* parent)
+        : _context(context), 
+        _parent(parent) {}
 
     Object::~Object() {}
 
     bool Object::as_bool() const {
         return true;
+    }
+    
+    std::string Object::as_str() const {
+        return "<object>";
+    }
+
+    ExecutionContext* Object::get_context() const {
+        return _context;
     }
 
     Object* Object::get_parent() const {
@@ -90,33 +106,156 @@ namespace emerald {
         return true;
     }
 
-    NativeFunction::NativeFunction(Callable callable)
-        : Object(),
+    void Object::reach() {
+        for (std::pair<std::string, Object*> pair : get_properties()) {
+            pair.second->mark();
+        }
+    }
+
+    Array::Array(ExecutionContext* context)
+        : Object(context, context->get_native_objects().get_array_prototype()) {}
+
+    Array::Array(ExecutionContext* context, Object* parent)
+        : Object(context, parent) {}
+
+    bool Array::as_bool() const {
+        return _value.size() > 0;
+    }
+    
+    std::string Array::as_str() const {
+        return "[" +
+            objectutils::range_to_str(_value.begin(), _value.end(), get_context())
+        + "]";
+    }
+
+    Object* Array::at(size_t i) const {
+        if (i >= _value.size()) {
+            return nullptr;
+        }
+
+        return _value[i];
+    }
+
+    Object* Array::front() const {
+        return _value.front();
+    }
+
+    Object* Array::back() const {
+        return _value.back();
+    }
+
+    bool Array::empty() const {
+        return _value.empty();
+    }
+
+    size_t Array::size() {
+        return _value.size();
+    }
+
+    void Array::clear() {
+        _value.clear();
+    }
+
+    size_t Array::push(Object* obj) {
+        _value.push_back(obj);
+        return _value.size();
+    }
+
+    Object* Array::pop() {
+        Object* obj = _value.back();
+        _value.pop_back();
+        return obj;
+    }
+
+    bool Array::operator==(const Array& other) const {
+        return objectutils::compare_range(
+            _value.begin(),
+            _value.end(),
+            other._value.begin(),
+            get_context());
+    }
+
+    bool Array::operator!=(const Array& other) const {
+        return !(*this == other);
+    }
+
+    Boolean::Boolean(ExecutionContext* context, bool value)
+        : Object(context, context->get_native_objects().get_boolean_prototype()),
+        _value(value) {}
+
+    Boolean::Boolean(ExecutionContext* context, Object* parent, bool value)
+        : Object(context, parent),
+        _value(value) {}
+
+    bool Boolean::as_bool() const {
+        return _value;
+    }
+
+    std::string Boolean::as_str() const {
+        return (_value) ? "True" : "False";
+    }
+
+    bool Boolean::get_value() const {
+        return _value;
+    }
+
+    Exception::Exception(ExecutionContext* context, const std::string& message)
+        : Object(context),
+        _message(message) {}
+
+    Exception::Exception(ExecutionContext* context, Object* parent, const std::string& message)
+        : Object(context, parent),
+        _message(message) {}
+
+    std::string Exception::as_str() const {
+        return _message;
+    }
+
+    const std::string& Exception::get_message() const {
+        return _message;
+    }
+
+    Function::Function(ExecutionContext* context, std::shared_ptr<const Code> code)
+        : Object(context),
+        _code(code) {}
+
+    Function::Function(ExecutionContext* context, Object* parent, std::shared_ptr<const Code> code)
+        : Object(context, parent),
+        _code(code) {}
+
+    std::string Function::as_str() const {
+        return fmt::format("<function {0}>", _code->get_label());
+    }
+
+    std::shared_ptr<const Code> Function::get_code() const {
+        return _code;
+    }
+
+    NativeFunction::NativeFunction(ExecutionContext* context, Callable callable)
+        : Object(context),
         _callable(callable) {}
 
-    NativeFunction::NativeFunction(Object* parent, Callable callable)
-        : Object(parent),
+    NativeFunction::NativeFunction(ExecutionContext* context, Object* parent, Callable callable)
+        : Object(context, parent),
         _callable(callable) {}
     
     std::string NativeFunction::as_str() const {
-        return "<native_function>"; // Include a name ?
+        return "<native_function>";
     }
     const NativeFunction::Callable& NativeFunction::get_callable() const {
         return _callable;
     }
 
-    Object* NativeFunction::invoke(const std::vector<Object*>& args, ExecutionContext& context) {
+    Object* NativeFunction::invoke(const std::vector<Object*>& args, ExecutionContext* context) {
         return _callable(args, context);
     }
 
-    Object* NativeFunction::operator()(const std::vector<Object*>& args, ExecutionContext& context) {
+    Object* NativeFunction::operator()(const std::vector<Object*>& args, ExecutionContext* context) {
         return _callable(args, context);
     }
 
-    Null* Null::get() {
-        static Null null;
-        return &null;
-    }
+    Null::Null(ExecutionContext* context)
+        : Object(context) {}
 
     bool Null::as_bool() const {
         return false;
@@ -146,121 +285,12 @@ namespace emerald {
         return false;
     }
 
-    Null::Null()
-        : Object() {}
-
-    HeapObject::HeapObject()
-        : Object(), 
-        HeapManaged() {}
-
-    HeapObject::HeapObject(Object* parent)
-        : Object(parent), 
-        HeapManaged() {}
-
-    bool HeapObject::as_bool() const {
-        return true;
-    }
-    
-    std::string HeapObject::as_str() const {
-        return "<object>";
-    }
-
-    void HeapObject::reach() {
-        for (std::pair<std::string, Object*> pair : get_properties()) {
-            if (HeapObject* heap_obj = dynamic_cast<HeapObject*>(pair.second)) {
-                heap_obj->mark();
-            }
-        }
-    }
-
-    Array::Array()
-        : HeapObject() {}
-
-    Array::Array(Object* parent)
-        : HeapObject(parent) {}
-
-    bool Array::as_bool() const {
-        return _value.size() > 0;
-    }
-    
-    std::string Array::as_str() const {
-        std::string str = "[";
-        for (Object* obj : _value) {
-            str += obj->as_str();
-            if (obj != _value.back()) {
-                str += ",";
-            }
-        }
-        str += "]";
-        return str;
-    }
-
-    std::vector<Object*>& Array::get_value() {
-        return _value;
-    }
-
-    const std::vector<Object*>& Array::get_value() const {
-        return _value;
-    }
-
-    Boolean::Boolean(bool value)
-        : HeapObject(),
+    Number::Number(ExecutionContext* context, double value)
+        : Object(context, context->get_native_objects().get_number_prototype()),
         _value(value) {}
 
-    Boolean::Boolean(Object* parent, bool value)
-        : HeapObject(parent),
-        _value(value) {}
-
-    bool Boolean::as_bool() const {
-        return _value;
-    }
-
-    std::string Boolean::as_str() const {
-        return (_value) ? "True" : "False";
-    }
-
-    bool Boolean::get_value() const {
-        return _value;
-    }
-
-    Exception::Exception(const std::string& message)
-        : HeapObject(),
-        _message(message) {}
-
-    Exception::Exception(Object* parent, const std::string& message)
-        : HeapObject(parent),
-        _message(message) {}
-
-    std::string Exception::as_str() const {
-        return _message;
-    }
-
-    const std::string& Exception::get_message() const {
-        return _message;
-    }
-
-    Function::Function(std::shared_ptr<const Code> code)
-        : HeapObject(),
-        _code(code) {}
-
-    Function::Function(Object* parent, std::shared_ptr<const Code> code)
-        : HeapObject(parent),
-        _code(code) {}
-
-    std::string Function::as_str() const {
-        return fmt::format("<function {}>", _code->get_label());
-    }
-
-    std::shared_ptr<const Code> Function::get_code() const {
-        return _code;
-    }
-
-    Number::Number(double value)
-        : HeapObject(),
-        _value(value) {}
-
-    Number::Number(Object* parent, double value)
-        : HeapObject(parent),
+    Number::Number(ExecutionContext* context, Object* parent, double value)
+        : Object(context, parent),
         _value(value) {}
 
     bool Number::as_bool() const {
@@ -268,7 +298,7 @@ namespace emerald {
     }
 
     std::string Number::as_str() const {
-        return fmt::format("{}", _value);
+        return fmt::format("{0:g}", _value);
     }
 
     double Number::get_value() const {
@@ -287,12 +317,12 @@ namespace emerald {
         _value--;
     }
 
-    String::String(const std::string& value)
-        : HeapObject(),
+    String::String(ExecutionContext* context, const std::string& value)
+        : Object(context, context->get_native_objects().get_string_prototype()),
         _value(value) {}
 
-    String::String(Object* parent, const std::string& value)
-        : HeapObject(parent),
+    String::String(ExecutionContext* context, Object* parent, const std::string& value)
+        : Object(context, parent),
         _value(value) {}
 
     bool String::as_bool() const {

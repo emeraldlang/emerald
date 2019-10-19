@@ -48,10 +48,6 @@
 namespace emerald {
 namespace natives {
 
-#define X(name) NativeFunction* get_##name();
-    NUMBER_NATIVES
-#undef X
-
 #define X(name) NATIVE_FUNCTION(name);
     NUMBER_NATIVES
 #undef X

@@ -23,9 +23,9 @@ namespace emerald {
 namespace modules {
 
     MODULE_INITIALIZATION_FUNC(init_core_module) {
-        Module* module = context.get_heap().allocate<Module>("core");
+        Module* module = context->get_heap().allocate<Module>(context, "core");
 
-        NativeObjects& native_objects = context.get_native_objects();
+        NativeObjects& native_objects = context->get_native_objects();
         module->set_property("Object", native_objects.get_object_prototype());
         module->set_property("Array", native_objects.get_array_prototype());
         module->set_property("Boolean", native_objects.get_boolean_prototype());

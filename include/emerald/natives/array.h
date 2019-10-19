@@ -36,10 +36,6 @@
 namespace emerald {
 namespace natives {
 
-#define X(name) NativeFunction* get_##name();
-    ARRAY_NATIVES
-#undef X
-
 #define X(name) NATIVE_FUNCTION(name);
     ARRAY_NATIVES
 #undef X

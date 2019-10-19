@@ -22,12 +22,14 @@
 
 namespace emerald {
 
+    class ExecutionContext;
+
     class NativeObjects {
     public:
-        NativeObjects(Heap* heap);
+        NativeObjects(ExecutionContext* context);
 
-        const HeapObject* get_object_prototype() const;
-        HeapObject* get_object_prototype();
+        const Object* get_object_prototype() const;
+        Object* get_object_prototype();
 
         const Array* get_array_prototype() const;
         Array* get_array_prototype();
@@ -44,8 +46,12 @@ namespace emerald {
         const Boolean* get_boolean(bool val) const;
         Boolean* get_boolean(bool val);
 
+        const Null* get_null() const;
+        Null* get_null();
+
     private:
-        HeapObject* _object;
+        Object* _object;
+
         Array* _array;
         Number* _number;
         String* _string;
@@ -54,11 +60,13 @@ namespace emerald {
         Boolean* _true;
         Boolean* _false;
 
-        void initialize_object(Heap* heap);
-        void initialize_array(Heap* heap);
-        void initialize_number(Heap* heap);
-        void initialize_string(Heap* heap);
-        void initialize_booleans(Heap* heap);
+        Null* _null;
+
+        void initialize_object(ExecutionContext* context);
+        void initialize_array(ExecutionContext* context);
+        void initialize_number(ExecutionContext* context);
+        void initialize_string(ExecutionContext* context);
+        void initialize_booleans(ExecutionContext* context);
     };
 
 } // namespace emerald

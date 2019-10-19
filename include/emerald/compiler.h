@@ -48,6 +48,9 @@ namespace emerald {
         void VisitPropertyLoad(const std::shared_ptr<Property>& property, bool push_self_back = false);
         void VisitPropertyStore(const std::shared_ptr<Property>& property, const std::shared_ptr<Expression>& val, bool push_self_back = false);
 
+        void VisitIdentifierLoad(const std::shared_ptr<Identifier>& identifier);
+        void VisitIdentifierStore(const std::shared_ptr<Identifier>& identifier, const std::shared_ptr<Expression>& val);
+
         void push_new_func(const std::string& label);
         void pop_func();
         bool is_top_level();
@@ -63,7 +66,10 @@ namespace emerald {
         void write_fs_load_iter(const std::shared_ptr<ForStatement>& for_statement);
         void write_fs_condition(const std::shared_ptr<ForStatement>& for_statement);
 
+        void write_st(const std::shared_ptr<Code>& code, const std::string& identifier);
         void write_st(const std::string& identifier);
+
+        void write_comp_assign(const std::shared_ptr<Token>& op);
     };
 
 } // namespace emerald

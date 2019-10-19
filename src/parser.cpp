@@ -266,7 +266,7 @@ namespace emerald {
             parts.push_back(_scanner.current()->get_lexeme()); 
         } while (match(Token::DOT));
 
-        return std::make_shared<ImportStatement>(end_pos(start), strutils::join(parts, "."));
+        return std::make_shared<ImportStatement>(end_pos(start), strutils::join(parts.begin(), parts.end(), "."));
     }
 
     std::shared_ptr<ExpressionStatement> Parser::parse_expression_statement() {
@@ -298,7 +298,7 @@ namespace emerald {
 
             if (op->is_assignment_op()) {
                 if (std::shared_ptr<LValueExpression> lvalue_expression = ASTNode::as<LValueExpression>(left)) {
-                    left = std::make_shared<AssignmentExpression>(end_pos(start), lvalue_expression, right);
+                    left = std::make_shared<AssignmentExpression>(end_pos(start), lvalue_expression, op, right);
                 } else {
                     _reporter->report(
                         ReportCode::invalid_lvalue,

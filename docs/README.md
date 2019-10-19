@@ -1,46 +1,58 @@
 # Emerald Programming Language
-
-Emerald is an open source interpreted programming language.
-It follows the procedural and object oriented programming paradigms.
-The language was designed to be as simple as possible and this is
-reflected in the language's grammar.
-
-## Installation
+Emerald is an object oriented language that uses prototypal based
+inheritance.
 
 ## A Few Simple Examples
 
-#### Hello World
+### Hello World
 ```emerald
-print ('hello world')
+print 'hello world'
 ```
 
-#### Fibonacci
+### Fibonacci
 ```emerald
-func fib : n
-  return additiveSequence(n, 0, 1)
+def fib : n
+  return additive_sequence(n, 0, 1)
 end
 
-func additiveSequence : n, t0, t1
+def additive_sequence : n, t0, t1
   if (n == 0) return t0
   if (n == 1) return t1
-  return additiveSequence(n - 1, t1, t0 + t1)
+  return additive_sequence(n - 1, t1, t0 + t1)
 end
-
-print (fib(8))
 ```
 
-#### Collatz Sequence
+### Collatz Sequence
 ```emerald
-func collatz : n
-  var c = 1
-  while (n != 1) begin
-    if (n % 2 == 0)
+def collatz : n
+  let c = 1
+  while (n != 1) do
+    if (n % 2 == 0) then
       n = n / 2
     else
       n = 3 * n + 1
+    end
+    c += 1
   end
   return c
 end
+```
 
-print (collatz(13))
+### Inheritance
+```emerald
+let foo = {
+  name: 'foo',
+  one: 1,
+  two: 2
+}
+
+let bar = clone foo
+bar.two = 'two'
+bar.three = 3
+
+bar.one # 1
+bar.three # 3
+bar.two # 'two'
+bar.name # 'foo'
+foo.name # 'foo'
 ```

@@ -119,6 +119,7 @@ namespace emerald {
             int compare_precedence(std::shared_ptr<Token> other);
 
             bool is_assignment_op() const;
+            bool is_comp_assignment_op() const;
             bool is_binary_op() const;
             bool is_unary_op() const;
             bool is_right_associative() const;

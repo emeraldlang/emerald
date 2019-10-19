@@ -28,13 +28,13 @@
 
 namespace emerald {
 
-    Object* Interpreter::execute_code(std::shared_ptr<const Code> code, ExecutionContext& context) {
-        context.get_stack().push_frame(code, context.get_stack().peek_globals());
+    Object* Interpreter::execute_code(std::shared_ptr<const Code> code, ExecutionContext* context) {
+        context->get_stack().push_frame(code, context->get_stack().peek_globals());
 
         return execute(context);
     }
 
-    Object* Interpreter::execute_method(const std::string& name, const std::vector<Object*> args, ExecutionContext& context) {
+    Object* Interpreter::execute_method(const std::string& name, const std::vector<Object*> args, ExecutionContext* context) {
         return call_method(name, args, context);
     }
 
@@ -42,27 +42,27 @@ namespace emerald {
         ExecutionContext context;
 
         std::shared_ptr<Code> code = CodeCache::get_or_load_code(module_name);
-        Module* entry_module = context.get_heap().allocate<Module>(module_name, code);
+        Module* entry_module = context.get_heap().allocate<Module>(&context, module_name, code);
         context.get_module_registry().add_module(entry_module);
 
         context.get_stack().push_frame(entry_module->get_code(), entry_module);
 
-        return execute(context);
+        return execute(&context);
     }
 
-    Module* Interpreter::import_module(const std::string& name, ExecutionContext& context) {
+    Module* Interpreter::import_module(const std::string& name, ExecutionContext* context) {
         bool created;
         Module* module = get_module(name, created, context);
         if (created && !module->is_native()) {
-            context.get_stack().push_frame(module->get_code(), module);
+            context->get_stack().push_frame(module->get_code(), module);
             execute(context);
         }
 
         return module;
     }
 
-    Object* Interpreter::execute(ExecutionContext& context) {
-        Stack& stack = context.get_stack();
+    Object* Interpreter::execute(ExecutionContext* context) {
+        Stack& stack = context->get_stack();
         Stack::Frame& current_frame = stack.peek();
         while (current_frame.has_instructions_left()) {
             const Code::Instruction& instr = current_frame.get_next_instruction();
@@ -188,41 +188,38 @@ namespace emerald {
             }
             case OpCode::new_func: {
                 std::shared_ptr<const Code> code = current_frame.get_code()->get_func(instr.get_args()[0]);
-                Function* func = context.get_heap().allocate<Function>(code);
+                Function* func = context->get_heap().allocate<Function>(context, code);
                 current_frame.push_ds(func);
                 break;
             }
             case OpCode::new_num: {
                 double value = current_frame.get_code()->get_num_constant(instr.get_args()[0]);
-                Number* num = context.get_heap().allocate<Number>(
-                    context.get_native_objects().get_number_prototype(), value);
+                Number* num = context->get_heap().allocate<Number>(context, value);
                 current_frame.push_ds(num);
                 break;
             }
             case OpCode::new_str: {
                 const std::string& value = current_frame.get_code()->get_str_constant(instr.get_args()[0]);
-                String* str = context.get_heap().allocate<String>(
-                    context.get_native_objects().get_string_prototype(), value);
+                String* str = context->get_heap().allocate<String>(context, value);
                 current_frame.push_ds(str);
                 break;
             }
             case OpCode::new_boolean: {
                 bool value = instr.get_args()[0];
-                Boolean* boolean = context.get_native_objects().get_boolean(value);
+                Boolean* boolean = context->get_native_objects().get_boolean(value);
                 current_frame.push_ds(boolean);
                 break;
             }
             case OpCode::new_arr: {
-                Array* array = context.get_heap().allocate<Array>(
-                    context.get_native_objects().get_array_prototype());
+                Array* array = context->get_heap().allocate<Array>(context);
                 for (size_t i = 0; i < instr.get_args()[0]; i++) {
-                    array->get_value().push_back(current_frame.pop_ds());
+                    array->push(current_frame.pop_ds());
                 }
                 current_frame.push_ds(array);
                 break;
             }
             case OpCode::null: {
-                current_frame.push_ds(Null::get());
+                current_frame.push_ds(context->get_native_objects().get_null());
                 break;
             }
             case OpCode::get_prop: {
@@ -234,7 +231,7 @@ namespace emerald {
                     }
                     current_frame.push_ds(val);
                 } else {
-                     throw context.get_heap().allocate<Exception>(fmt::format("no such property: {0}", key->as_str()));
+                     throw context->get_heap().allocate<Exception>(context, fmt::format("no such property: {0}", key->as_str()));
                 }
                 break;
             }
@@ -245,7 +242,7 @@ namespace emerald {
                     current_frame.push_ds(obj);
                 }
                 current_frame.push_ds(
-                    context.get_native_objects().get_boolean(obj->has_property(key->as_str())));
+                    context->get_native_objects().get_boolean(obj->has_property(key->as_str())));
                 break;
             }
             case OpCode::set_prop: {
@@ -256,7 +253,8 @@ namespace emerald {
                     current_frame.push_ds(obj);
                 }
                 if (!obj->set_property(key->as_str(), val)) {
-                    throw context.get_heap().allocate<Exception>(
+                    throw context->get_heap().allocate<Exception>(
+                        context,
                         fmt::format("could not set property: {0} of {1}", key->as_str(), obj->as_str()));
                 }
                 break;
@@ -313,11 +311,11 @@ namespace emerald {
         }
 
         stack.pop_frame();
-        return Null::get();
+        return context->get_native_objects().get_null();
     }
 
-    Object* Interpreter::call_obj(Object* obj, const std::vector<Object*>& args, ExecutionContext& context) {
-        Stack& stack = context.get_stack();
+    Object* Interpreter::call_obj(Object* obj, const std::vector<Object*>& args, ExecutionContext* context) {
+        Stack& stack = context->get_stack();
         if (Function* func = dynamic_cast<Function*>(obj)) {
             stack.push_frame(func->get_code(), stack.peek_globals());
 
@@ -332,25 +330,25 @@ namespace emerald {
         } else if (Object* prop = obj->get_property(magic_methods::call)) {
             return call_obj(prop, args, context);
         } else {
-            throw context.get_heap().allocate<Exception>("object is not callable");
+            throw context->get_heap().allocate<Exception>(context, "object is not callable");
         }
     }
 
-    Object* Interpreter::call_method(const std::string& name, size_t num_args, ExecutionContext& context) {
-        std::vector<Object*> args = context.get_stack().peek().pop_n_ds(num_args);
+    Object* Interpreter::call_method(const std::string& name, size_t num_args, ExecutionContext* context) {
+        std::vector<Object*> args = context->get_stack().peek().pop_n_ds(num_args);
         return call_method(name, args, context);
     }
 
-    Object* Interpreter::call_method(const std::string& name, const std::vector<Object*>& args, ExecutionContext& context) {
+    Object* Interpreter::call_method(const std::string& name, const std::vector<Object*>& args, ExecutionContext* context) {
         if (Object* method = args[0]->get_property(name)) {
             return call_obj(method, args, context);
         } else {
-            throw context.get_heap().allocate<Exception>(fmt::format("no such method: {0}", name));
+            throw context->get_heap().allocate<Exception>(context, fmt::format("no such method: {0}", name));
         }
     }
 
-    Module* Interpreter::get_module(const std::string& name, bool& created, ExecutionContext& context) {
-        ModuleRegistry& registry = context.get_module_registry();
+    Module* Interpreter::get_module(const std::string& name, bool& created, ExecutionContext* context) {
+        ModuleRegistry& registry = context->get_module_registry();
         if (registry.has_module(name)) {
             created = false;
             return registry.get_module(name);
@@ -360,9 +358,9 @@ namespace emerald {
         if (NativeModuleInitRegistry::has_module_init(name)) {
             module = NativeModuleInitRegistry::init_module(name, context);
         } else if (std::shared_ptr<Code> code = CodeCache::get_code(name)) {
-            module = context.get_heap().allocate<Module>(name, code);
+            module = context->get_heap().allocate<Module>(context, name, code);
         } else {
-            throw context.get_heap().allocate<Exception>(fmt::format("no such module: {0}", name));
+            throw context->get_heap().allocate<Exception>(context, fmt::format("no such module: {0}", name));
         }
 
         registry.add_module(module);
@@ -371,10 +369,10 @@ namespace emerald {
         return module;
     }
 
-    Object* Interpreter::new_obj(bool explicit_parent, size_t num_props, ExecutionContext& context) {
-        Stack::Frame& current_frame = context.get_stack().peek();
+    Object* Interpreter::new_obj(bool explicit_parent, size_t num_props, ExecutionContext* context) {
+        Stack::Frame& current_frame = context->get_stack().peek();
         if (!explicit_parent) {
-            current_frame.push_ds(context.get_native_objects().get_object_prototype());
+            current_frame.push_ds(context->get_native_objects().get_object_prototype());
         }
 
         Object* self = call_method1(magic_methods::clone, context);

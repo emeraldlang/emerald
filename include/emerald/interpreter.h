@@ -30,24 +30,24 @@ namespace emerald {
 
     class Interpreter {
     public:
-        static Object* execute_code(std::shared_ptr<const Code> code, ExecutionContext& context);
-        static Object* execute_method(const std::string& name, const std::vector<Object*> args, ExecutionContext& context);
+        static Object* execute_code(std::shared_ptr<const Code> code, ExecutionContext* context);
+        static Object* execute_method(const std::string& name, const std::vector<Object*> args, ExecutionContext* context);
         static Object* execute_module(const std::string& module_name);
-        static Module* import_module(const std::string& name, ExecutionContext& context);
+        static Module* import_module(const std::string& name, ExecutionContext* context);
 
     private:
-        static Object* execute(ExecutionContext& context);
+        static Object* execute(ExecutionContext* context);
 
-        static Object* call_obj(Object* obj, const std::vector<Object*>& args, ExecutionContext& context);
+        static Object* call_obj(Object* obj, const std::vector<Object*>& args, ExecutionContext* context);
 
-        static Object* call_method(const std::string& name, size_t num_args, ExecutionContext& context);
-        static Object* call_method1(const std::string& name, ExecutionContext& context) { return call_method(name, 1, context); }
-        static Object* call_method2(const std::string& name, ExecutionContext& context) { return call_method(name, 2, context); }
-        static Object* call_method(const std::string& name, const std::vector<Object*>& args, ExecutionContext& context);
+        static Object* call_method(const std::string& name, size_t num_args, ExecutionContext* context);
+        static Object* call_method1(const std::string& name, ExecutionContext* context) { return call_method(name, 1, context); }
+        static Object* call_method2(const std::string& name, ExecutionContext* context) { return call_method(name, 2, context); }
+        static Object* call_method(const std::string& name, const std::vector<Object*>& args, ExecutionContext* context);
 
-        static Module* get_module(const std::string& name, bool& created, ExecutionContext& context);
+        static Module* get_module(const std::string& name, bool& created, ExecutionContext* context);
 
-        static Object* new_obj(bool explicit_parent, size_t num_props, ExecutionContext& context);
+        static Object* new_obj(bool explicit_parent, size_t num_props, ExecutionContext* context);
     };
 
 } // namespace emerald

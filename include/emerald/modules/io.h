@@ -40,10 +40,10 @@
 namespace emerald {
 namespace modules {
 
-    class FileStream final : public HeapObject {
+    class FileStream final : public Object {
     public:
-        FileStream();
-        FileStream(Object* parent);
+        FileStream(ExecutionContext* context);
+        FileStream(ExecutionContext* context, Object* parent);
 
         std::string as_str() const override;
 
@@ -58,10 +58,10 @@ namespace modules {
         std::fstream _stream;
     };
 
-    class StringStream final : public HeapObject {
+    class StringStream final : public Object {
     public:
-        StringStream();
-        StringStream(Object* parent);
+        StringStream(ExecutionContext* context);
+        StringStream(ExecutionContext* context, Object* parent);
 
         std::string as_str() const override;
 
@@ -71,11 +71,6 @@ namespace modules {
     private:
         std::stringstream _stream;
     };
-
-#define X(name) NativeFunction* get_##name();
-    FILE_STREAM_NATIVES
-    STRING_STREAM_NATIVES
-#undef X
 
 #define X(name) NATIVE_FUNCTION(name);
     FILE_STREAM_NATIVES

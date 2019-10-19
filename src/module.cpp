@@ -18,15 +18,18 @@
 #include "fmt/format.h"
 
 #include "emerald/module.h"
+#include "emerald/execution_context.h"
 #include "emerald/strutils.h"
 
 namespace emerald {
 
-    Module::Module(const std::string& name)
-        : _name(name) {}
+    Module::Module(ExecutionContext* context, const std::string& name)
+        : Object(context, context->get_native_objects().get_object_prototype()), 
+        _name(name) {}
 
-    Module::Module(const std::string& name, std::shared_ptr<Code> code)
-        : _name(name),
+    Module::Module(ExecutionContext* context, const std::string& name, std::shared_ptr<Code> code)
+        : Object(context, context->get_native_objects().get_object_prototype()), 
+        _name(name),
         _code(code) {}
 
     const std::string& Module::get_name() const {

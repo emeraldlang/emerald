@@ -17,18 +17,10 @@
 
 #include "emerald/execution_context.h"
 #include "emerald/natives/object.h"
-#include "emerald/natives/utils.h"
+#include "emerald/objectutils.h"
 
 namespace emerald {
 namespace natives {
-
-#define X(name)                                                             \
-    NativeFunction* get_##name() {                                          \
-        static NativeFunction func = NativeFunction(std::function(&name));  \
-        return &func;                                                       \
-    }
-    OBJECT_NATIVES
-#undef X
 
     NATIVE_FUNCTION(object_eq) {
         EXPECT_NUM_ARGS(2);
@@ -57,9 +49,9 @@ namespace natives {
     NATIVE_FUNCTION(object_clone) {
         EXPECT_NUM_ARGS(1);
 
-        TRY_CONVERT_RECV_TO(HeapObject, self);
+        CONVERT_RECV_TO(Object, self);
 
-        return context.get_heap().allocate<HeapObject>(self);
+        return context->get_heap().allocate<Object>(context, self);
     }
 
     NATIVE_FUNCTION(object_init) {

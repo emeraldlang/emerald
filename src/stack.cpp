@@ -76,17 +76,13 @@ namespace emerald {
         std::vector<HeapManaged*> roots;
         for (Frame& frame : _stack) {
             for (std::pair<std::string, Object*> local : frame.get_locals()) {
-                if (HeapObject* heap_obj = dynamic_cast<HeapObject*>(local.second)) {
-                    roots.push_back(heap_obj);
-                }
+                roots.push_back(local.second);
             }
 
             roots.push_back(frame.get_globals());
 
             for (Object* obj : frame.get_data_stack()) {
-                if (HeapObject* heap_obj = dynamic_cast<HeapObject*>(obj)) {
-                    roots.push_back(heap_obj);
-                }
+                roots.push_back(obj);
             }
         }
 

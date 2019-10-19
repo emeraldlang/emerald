@@ -306,16 +306,19 @@ namespace emerald {
     class AssignmentExpression : public Expression {
     public:
         AssignmentExpression(std::shared_ptr<SourcePosition> position, std::shared_ptr<LValueExpression> lvalue_expression,
-            std::shared_ptr<Expression> right)
+            std::shared_ptr<Token> op, std::shared_ptr<Expression> right)
             : Expression(position, nAssignmentExpression),
             _lvalue_expression(lvalue_expression),
+            _op(op),
             _right(right) {}
 
         const std::shared_ptr<LValueExpression>& get_lvalue_expression() const { return _lvalue_expression; }
+        const std::shared_ptr<Token>& get_operator() const { return _op; }
         const std::shared_ptr<Expression>& get_right_expression() const { return _right; }
 
     private:
         std::shared_ptr<LValueExpression> _lvalue_expression;
+        std::shared_ptr<Token> _op;
         std::shared_ptr<Expression> _right;
     };
 

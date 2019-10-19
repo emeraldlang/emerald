@@ -14,23 +14,15 @@
 **  You should have received a copy of the GNU General Public License
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-#include <iostream>
+
 #include "fmt/format.h"
 
 #include "emerald/execution_context.h"
 #include "emerald/natives/string.h"
-#include "emerald/natives/utils.h"
+#include "emerald/objectutils.h"
 
 namespace emerald {
 namespace natives {
-
-#define X(name)                                                             \
-    NativeFunction* get_##name() {                                          \
-        static NativeFunction func = NativeFunction(std::function(&name));  \
-        return &func;                                                       \
-    }
-    STRING_NATIVES
-#undef X
 
     NATIVE_FUNCTION(string_add) {
         EXPECT_NUM_ARGS(2);
@@ -77,9 +69,9 @@ namespace natives {
     NATIVE_FUNCTION(string_clone) {
         EXPECT_NUM_ARGS(1);
 
-        TRY_CONVERT_RECV_TO(String, self);
+        CONVERT_RECV_TO(String, self);
 
-        return context.get_heap().allocate<String>(self);
+        return context->get_heap().allocate<String>(context, self);
     }
 
     NATIVE_FUNCTION(string_empty) {
@@ -97,7 +89,7 @@ namespace natives {
     NATIVE_FUNCTION(string_at) {
         EXPECT_NUM_ARGS(2);
 
-        TRY_CONVERT_ARG_TO(1, Number, index);
+        CONVERT_ARG_TO(1, Number, index);
 
         return ALLOC_STRING(std::string(1, args[0]->as_str()[(long)index->get_value()]));
     }
@@ -129,8 +121,8 @@ namespace natives {
     NATIVE_FUNCTION(string_substr) {
         EXPECT_NUM_ARGS(3);
 
-        TRY_CONVERT_ARG_TO(1, Number, pos);
-        TRY_CONVERT_ARG_TO(2, Number, len);
+        CONVERT_ARG_TO(1, Number, pos);
+        CONVERT_ARG_TO(2, Number, len);
 
         return ALLOC_STRING(args[0]->as_str().substr(pos->get_value(), len->get_value()));
     }
@@ -138,15 +130,14 @@ namespace natives {
     NATIVE_FUNCTION(string_format) {
         EXPECT_ATLEAST_NUM_ARGS(1);
 
-        TRY_CONVERT_RECV_TO(String, self);
+        CONVERT_RECV_TO(String, self);
 
         using ctx = fmt::format_context;
         std::vector<fmt::basic_format_arg<ctx>> fmt_args;
         for (size_t i = 1; i < args.size(); i++) {
-            std::cout << args[i]->as_str() << std::endl;
             fmt_args.push_back(fmt::internal::make_arg<ctx>(args[i]->as_str()));
         }
-        std::cout << self->get_value() << std::endl;
+
         return ALLOC_STRING(
             fmt::vformat(self->get_value(), fmt::basic_format_args<ctx>(fmt_args.data(), fmt_args.size())));
     }

@@ -15,28 +15,40 @@
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef EMERALD_NATIVES_UTILS_H
-#define EMERALD_NATIVES_UTILS_H
+#ifndef _EMERALD_OBJECTUTILS_H
+#define _EMERALD_OBJECTUTILS_H
+
+#include "emerald/execution_context.h"
+#include "emerald/interpreter.h"
+#include "emerald/magic_methods.h"
+#include "emerald/object.h"
+#include "emerald/objectutils.h"
+#include "emerald/strutils.h"
 
 #define EXPECT_NUM_ARGS_OP(count, op)                           \
     do {                                                        \
         if (args.size() op count) {                             \
-            throw context.get_heap().allocate<Exception>("");   \
+            throw context->get_heap().allocate<Exception>(      \
+                context, "");                                   \
         }                                                       \
     } while (false)
 
 #define EXPECT_NUM_ARGS(count) EXPECT_NUM_ARGS_OP(count, !=)
 #define EXPECT_ATLEAST_NUM_ARGS(count) EXPECT_NUM_ARGS_OP(count, <)
 
-#define TRY_CONVERT_ARG_TO(i, Type, name)                       \
+#define CONVERT_ARG_TO(i, Type, name)                       \
     Type* name  = nullptr;                                      \
     do {                                                        \
         name = dynamic_cast<Type*>(args[i]);                    \
         if (name == nullptr) {                                  \
-            throw context.get_heap().allocate<Exception>("");   \
+            throw context->get_heap().allocate<Exception>(      \
+                context, "");                                   \
         }                                                       \
     } while (false)
 
+#define CONVERT_RECV_TO(Type, name) TRY_CONVERT_ARG_TO(0, Type, name)
+
+#define TRY_CONVERT_ARG_TO(i, Type, name) Type* name = dynamic_cast<Type*>(args[i])
 #define TRY_CONVERT_RECV_TO(Type, name) TRY_CONVERT_ARG_TO(0, Type, name)
 
 #define TRY_CONVERT_OPTIONAL_ARG_TO(i, Type, name)  \
@@ -50,9 +62,37 @@
     } while (false)
 
 
-#define BOOLEAN(val) context.get_native_objects().get_boolean(val)
-#define NONE Null::get()
-#define ALLOC_NUMBER(num) context.get_heap().allocate<Number>(context.get_native_objects().get_number_prototype(), num)
-#define ALLOC_STRING(str) context.get_heap().allocate<String>(context.get_native_objects().get_string_prototype(), str)
+#define BOOLEAN(val) context->get_native_objects().get_boolean(val)
+#define NONE context->get_native_objects().get_null()
+#define ALLOC_NATIVE_FUNCTION(function) context->get_heap().allocate<NativeFunction>(context, function)
+#define ALLOC_NUMBER(num) context->get_heap().allocate<Number>(context, num)
+#define ALLOC_STRING(str) context->get_heap().allocate<String>(context, str)
 
-#endif // EMERALD_NATIVES_UTILS_H
+namespace emerald {
+namespace objectutils {
+
+    template <class InputIt1, class InputIt2>
+    inline bool compare_range(InputIt1 first1, InputIt1 last1, InputIt2 first2, ExecutionContext* context) {
+        return std::equal(first1, last1, first2, [&context](Object* lhs, Object* rhs) {
+            return Interpreter::execute_method(magic_methods::eq, { lhs, rhs }, context);
+        });
+    }
+
+    template <class InputIt>
+    inline std::string range_to_str(InputIt begin, InputIt end, ExecutionContext* context) {
+        return strutils::join(
+            begin,
+            end,
+            ",",
+            [&context](Object* obj) {
+                return Interpreter::execute_method(
+                    magic_methods::str,
+                    { obj },
+                    context)->as_str();
+            });
+    }
+
+} // namespace objectutils
+} // namespace emerald
+
+#endif // _EMERALD_OBJECTUTILS_H

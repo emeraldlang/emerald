@@ -62,6 +62,10 @@ namespace emerald {
         return ASSIGN <= _type && _type <= ASSIGN_MOD;
     }
 
+    bool Token::is_comp_assignment_op() const {
+        return ASSIGN_ADD <= _type && _type <= ASSIGN_MOD;
+    }
+
     bool Token::is_binary_op() const {
         return ASSIGN <= _type && _type <= MOD; 
     }

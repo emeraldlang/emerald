@@ -132,7 +132,7 @@ namespace emerald {
     }
 
     void Code::write_imul() {
-        WRITE_OP(OpCode::imod);
+        WRITE_OP(OpCode::imul);
     }
 
     void Code::write_idiv() {

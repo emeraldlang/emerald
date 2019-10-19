@@ -27,10 +27,10 @@
 
 namespace emerald {
 
-    class Module : public HeapObject {
+    class Module : public Object {
     public:
-        Module(const std::string& name);
-        Module(const std::string& name, std::shared_ptr<Code> code);
+        Module(ExecutionContext* context, const std::string& name);
+        Module(ExecutionContext* context, const std::string& name, std::shared_ptr<Code> code);
 
         const std::string& get_name() const;
         std::shared_ptr<Code> get_code() const;
