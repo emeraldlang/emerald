@@ -49,13 +49,30 @@ namespace emerald {
             return;
         }
 
-        std::filesystem::path path = Module::get_path_for_module(module_name, ".emc");
+        std::filesystem::path path = locate_code(module_name);
         std::shared_ptr<Code> code = std::make_shared<Code>(path);
         _code[module_name] = code;
         for (const std::string& import_name : code->get_import_names()) {
             if (_code.find(import_name) != _code.end()) continue;
             load_code(import_name);
         }
+    }
+
+    std::filesystem::path CodeCache::locate_code(const std::string& module_name) {
+        std::filesystem::path module_path = Module::get_module_path(module_name, ".emc");
+
+        std::filesystem::path possible_path = std::filesystem::current_path() / module_path;
+        if (std::filesystem::is_regular_file(possible_path)) {
+            return possible_path;
+        }
+
+        possible_path = Module::get_stdlib_path() / module_path;
+        if (std::filesystem::is_regular_file(possible_path)) {
+            return possible_path;
+        }
+
+        // ?
+        throw;
     }
 
 } // namespace emerald

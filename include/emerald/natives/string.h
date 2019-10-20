@@ -36,8 +36,9 @@
     X(string_front)         \
     X(string_compare)       \
     X(string_find)          \
+    X(string_substr)        \
     X(string_format)        \
-    X(string_substr)
+    X(string_split)
 
 namespace emerald {
 namespace natives {

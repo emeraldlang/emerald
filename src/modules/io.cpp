@@ -14,7 +14,7 @@
 **  You should have received a copy of the GNU General Public License
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-
+#include <iostream>
 #include "fmt/format.h"
 
 #include "emerald/execution_context.h"
@@ -59,6 +59,12 @@ namespace modules {
         return std::string(s);
     }
 
+    std::string FileStream::readline() {
+        std::string s;
+        std::getline(_stream, s);
+        return s;
+    }
+
     void FileStream::write(const std::string& s) {
         _stream.write(s.data(), s.size());
     }
@@ -79,6 +85,12 @@ namespace modules {
         return std::string(s);
     }
 
+    std::string StringStream::readline() {
+        std::string s;
+        std::getline(_stream, s);
+        return s;
+    }
+
     void StringStream::write(const std::string& s) {
         _stream.write(s.data(), s.size());
     }
@@ -86,8 +98,7 @@ namespace modules {
     NATIVE_FUNCTION(file_stream_clone) {
         EXPECT_NUM_ARGS(1);
 
-        CONVERT_RECV_TO(FileStream, self);
-
+        CONVERT_RECV_TO(FileStream, self); 
         return context->get_heap().allocate<FileStream>(context, self);
     }
 
@@ -140,6 +151,14 @@ namespace modules {
         return ALLOC_STRING(result);
     }
 
+    NATIVE_FUNCTION(file_stream_readline) {
+        EXPECT_NUM_ARGS(1);
+
+        CONVERT_RECV_TO(FileStream, stream);
+
+        return ALLOC_STRING(stream->readline());
+    }
+
     NATIVE_FUNCTION(file_stream_write) {
         EXPECT_NUM_ARGS(2);
 
@@ -168,6 +187,14 @@ namespace modules {
         return ALLOC_STRING(stream->read((long)count->get_value()));
     }
 
+    NATIVE_FUNCTION(string_stream_readline) {
+        EXPECT_NUM_ARGS(1);
+
+        CONVERT_RECV_TO(StringStream, stream);
+
+        return ALLOC_STRING(stream->readline());
+    }
+
     NATIVE_FUNCTION(string_stream_write) {
         EXPECT_NUM_ARGS(2);
 
@@ -190,6 +217,7 @@ namespace modules {
         file_stream->set_property("open", ALLOC_NATIVE_FUNCTION(file_stream_open));
         file_stream->set_property("is_open", ALLOC_NATIVE_FUNCTION(file_stream_is_open));
         file_stream->set_property("read", ALLOC_NATIVE_FUNCTION(file_stream_read));
+        file_stream->set_property("readline", ALLOC_NATIVE_FUNCTION(file_stream_readline));
         file_stream->set_property("write", ALLOC_NATIVE_FUNCTION(file_stream_write));
         module->set_property("FileStream", file_stream);
 
@@ -202,6 +230,7 @@ namespace modules {
         StringStream* string_stream = heap.allocate<StringStream>(context, native_objects.get_object_prototype());
         string_stream->set_property(magic_methods::clone, ALLOC_NATIVE_FUNCTION(string_stream_clone));
         string_stream->set_property("read", ALLOC_NATIVE_FUNCTION(string_stream_read));
+        file_stream->set_property("readline", ALLOC_NATIVE_FUNCTION(string_stream_readline));
         string_stream->set_property("write", ALLOC_NATIVE_FUNCTION(string_stream_write));
         module->set_property("StringStream", string_stream);
 

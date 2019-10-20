@@ -58,10 +58,6 @@ namespace emerald {
         return _instructions.size(); 
     }
 
-    bool Code::is_top_level() const {
-        return _id == 0;
-    }
-
     void Code::write_nop() {
         WRITE_OP(OpCode::nop);
     }

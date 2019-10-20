@@ -28,7 +28,7 @@ namespace emerald {
 
     class Heap {
     public:
-        Heap() = default;
+        Heap();
         ~Heap();
 
         const std::unordered_set<HeapManaged*>& get_managed_set() const;
@@ -45,10 +45,17 @@ namespace emerald {
     private:
         std::unordered_set<HeapManaged*> _managed_set;
         std::unordered_set<HeapRootSource*> _root_source_set;
+
+        size_t _threshold;
     };
 
     template <class T, class... Args>
     T* Heap::allocate(Args&&... args) {
+        if (_managed_set.size() >= _threshold) {
+            collect();
+            _threshold *= 2;
+        }
+
         T* managed = new T(std::forward<Args>(args)...);
         _managed_set.insert(managed);
         return managed;

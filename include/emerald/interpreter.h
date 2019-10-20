@@ -30,14 +30,13 @@ namespace emerald {
 
     class Interpreter {
     public:
+        static Object* execute(ExecutionContext* context);
         static Object* execute_code(std::shared_ptr<const Code> code, ExecutionContext* context);
         static Object* execute_method(const std::string& name, const std::vector<Object*> args, ExecutionContext* context);
         static Object* execute_module(const std::string& module_name);
         static Module* import_module(const std::string& name, ExecutionContext* context);
 
     private:
-        static Object* execute(ExecutionContext* context);
-
         static Object* call_obj(Object* obj, const std::vector<Object*>& args, ExecutionContext* context);
 
         static Object* call_method(const std::string& name, size_t num_args, ExecutionContext* context);

@@ -23,43 +23,11 @@
 #include "emerald/code_cache.h"
 #include "emerald/execution_context.h"
 #include "emerald/interpreter.h"
+#include "emerald/iterutils.h"
 #include "emerald/magic_methods.h"
 #include "emerald/module.h"
 
 namespace emerald {
-
-    Object* Interpreter::execute_code(std::shared_ptr<const Code> code, ExecutionContext* context) {
-        context->get_stack().push_frame(code, context->get_stack().peek_globals());
-
-        return execute(context);
-    }
-
-    Object* Interpreter::execute_method(const std::string& name, const std::vector<Object*> args, ExecutionContext* context) {
-        return call_method(name, args, context);
-    }
-
-    Object* Interpreter::execute_module(const std::string& module_name) {
-        ExecutionContext context;
-
-        std::shared_ptr<Code> code = CodeCache::get_or_load_code(module_name);
-        Module* entry_module = context.get_heap().allocate<Module>(&context, module_name, code);
-        context.get_module_registry().add_module(entry_module);
-
-        context.get_stack().push_frame(entry_module->get_code(), entry_module);
-
-        return execute(&context);
-    }
-
-    Module* Interpreter::import_module(const std::string& name, ExecutionContext* context) {
-        bool created;
-        Module* module = get_module(name, created, context);
-        if (created && !module->is_native()) {
-            context->get_stack().push_frame(module->get_code(), module);
-            execute(context);
-        }
-
-        return module;
-    }
 
     Object* Interpreter::execute(ExecutionContext* context) {
         Stack& stack = context->get_stack();
@@ -231,7 +199,7 @@ namespace emerald {
                     }
                     current_frame.push_ds(val);
                 } else {
-                     throw context->get_heap().allocate<Exception>(context, fmt::format("no such property: {0}", key->as_str()));
+                    throw context->get_heap().allocate<Exception>(context, fmt::format("no such property: {0}", key->as_str()));
                 }
                 break;
             }
@@ -289,20 +257,13 @@ namespace emerald {
                 current_frame.set_local(name, current_frame.pop_ds());
                 break;
             }
-            case OpCode::print: {
-                Object* obj = current_frame.pop_ds();
-                std::cout << obj->as_str() << std::endl;
+            case OpCode::print:
+                std::cout << call_method1(magic_methods::str, context)->as_str() << std::endl;
                 break;
-            }
             case OpCode::import: {
-                const std::string& import_name = current_frame.get_code()->get_import_name(
+                const std::string& name = current_frame.get_code()->get_import_name(
                     instr.get_args()[0]);
-                bool created;
-                Module* module = get_module(import_name, created, context);
-                current_frame.push_ds(module);
-                if (created && !module->is_native()) {
-                    stack.push_frame(module->get_code(), module);
-                }
+                current_frame.push_ds(import_module(name, context));
                 break;
             }
             default:
@@ -314,13 +275,46 @@ namespace emerald {
         return context->get_native_objects().get_null();
     }
 
+    Object* Interpreter::execute_code(std::shared_ptr<const Code> code, ExecutionContext* context) {
+        context->get_stack().push_frame(code, context->get_stack().peek_globals());
+
+        return execute(context);
+    }
+
+    Object* Interpreter::execute_method(const std::string& name, const std::vector<Object*> args, ExecutionContext* context) {
+        return call_method(name, args, context);
+    }
+
+    Object* Interpreter::execute_module(const std::string& module_name) {
+        ExecutionContext context;
+
+        std::shared_ptr<Code> code = CodeCache::get_or_load_code(module_name);
+        Module* entry_module = context.get_heap().allocate<Module>(&context, module_name, code);
+        context.get_module_registry().add_module(entry_module);
+
+        context.get_stack().push_frame(entry_module->get_code(), entry_module);
+
+        return execute(&context);
+    }
+
+    Module* Interpreter::import_module(const std::string& name, ExecutionContext* context) {
+        bool created;
+        Module* module = get_module(name, created, context); 
+        if (created && !module->is_native()) {
+            context->get_stack().push_frame(module->get_code(), module);
+            execute(context);
+        }
+
+        return module;
+    }
+
     Object* Interpreter::call_obj(Object* obj, const std::vector<Object*>& args, ExecutionContext* context) {
         Stack& stack = context->get_stack();
         if (Function* func = dynamic_cast<Function*>(obj)) {
             stack.push_frame(func->get_code(), stack.peek_globals());
 
             Stack::Frame& current_frame = stack.peek();
-            for (Object* arg : args) {
+            for (Object* arg : iterutils::reverse(args)) {
                 current_frame.push_ds(arg);
             }
 

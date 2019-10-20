@@ -19,6 +19,9 @@
 
 namespace emerald {
 
+    Heap::Heap()
+        : _threshold(512) {}
+
     Heap::~Heap() {
         for (HeapManaged* managed : _managed_set) {
             delete managed;

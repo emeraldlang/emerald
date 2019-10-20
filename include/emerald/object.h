@@ -80,8 +80,8 @@ namespace emerald {
 
     class Array final : public Object {
     public:
-        Array(ExecutionContext* context);
-        Array(ExecutionContext* context, Object* parent);
+        Array(ExecutionContext* context, const std::vector<Object*>& value = {});
+        Array(ExecutionContext* context, Object* parent, const std::vector<Object*>& value = {});
 
         bool as_bool() const override;
         std::string as_str() const override;

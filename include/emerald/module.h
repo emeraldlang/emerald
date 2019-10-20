@@ -39,9 +39,11 @@ namespace emerald {
 
         std::string as_str() const override;
 
-        static std::filesystem::path get_path_for_module(
+        static std::filesystem::path get_module_path(
             const std::string& module_name,
             const std::string& extension);
+
+        static std::filesystem::path get_stdlib_path();
 
     private:
         std::string _name;

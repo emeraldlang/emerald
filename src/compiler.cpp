@@ -14,7 +14,7 @@
 **  You should have received a copy of the GNU General Public License
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-#include <iostream>
+
 #include "emerald/compiler.h"
 #include "emerald/iterutils.h"
 #include "emerald/token.h"
@@ -62,7 +62,7 @@ namespace emerald {
         if (for_statement->get_by_expression()) {
             Visit(for_statement->get_by_expression());
         } else {
-            code()->write_new_num(1);
+            code()->write_new_num((for_statement->increments()) ? 1 : -1);
         }
 
         write_fs_load_iter(for_statement);
@@ -132,7 +132,7 @@ namespace emerald {
         push_new_func(function_statement->get_identifier());
         write_st(parent_code, function_statement->get_identifier());
 
-        for (const std::shared_ptr<FunctionParameter>& parameter : iterutils::reverse(function_statement->get_parameters())) {
+        for (const std::shared_ptr<FunctionParameter>& parameter : function_statement->get_parameters()) {
             Visit(parameter);
         }
 
@@ -141,20 +141,18 @@ namespace emerald {
         code()->write_null();
         code()->write_ret();
 
-        pop_func(); 
+        pop_func();
     }
 
     void Compiler::VisitObjectStatement(const std::shared_ptr<ObjectStatement>& object_statement) {
-        const std::shared_ptr<Code>& parent_code = code();
-        push_new_func(object_statement->get_identifier());
-        write_st(parent_code, object_statement->get_identifier());
+        push_new_func(object_statement->get_identifier()); 
 
         Visit(object_statement->get_block());
 
         const std::vector<std::string>& locals = code()->get_local_names();
         for (const std::string& local : locals) {
-            code()->write_new_str(local);
             code()->write_ldloc(local);
+            code()->write_new_str(local);
         }
 
         const std::shared_ptr<LValueExpression>& parent = object_statement->get_parent();
@@ -168,6 +166,8 @@ namespace emerald {
         pop_func();
 
         code()->write_call(0);
+
+        write_st(object_statement->get_identifier());
     }
 
     void Compiler::VisitReturnStatement(const std::shared_ptr<ReturnStatement>& return_statement) {
@@ -405,18 +405,19 @@ namespace emerald {
         for (const std::shared_ptr<KeyValuePair>& key_value_pair : iterutils::reverse(key_value_pairs)) {
             Visit(key_value_pair);
         }
+
         code()->write_new_obj(false, key_value_pairs.size());
     }
 
     void Compiler::VisitCloneExpression(const std::shared_ptr<CloneExpression>& clone_expression) {
+        for (const std::shared_ptr<Expression>& arg : iterutils::reverse(clone_expression->get_args())) {
+            Visit(arg);
+        }
+
         Visit(clone_expression->get_parent());
         code()->write_new_obj(true, 0);
 
-        const std::vector<std::shared_ptr<Expression>> args = clone_expression->get_args();
-        for (const std::shared_ptr<Expression>& arg : args) {
-            Visit(arg);
-        }
-        code()->write_init(args.size());
+        code()->write_init(clone_expression->get_args().size());
     }
 
     void Compiler::VisitSuperExpression(const std::shared_ptr<SuperExpression>& super_expression) {
@@ -452,6 +453,10 @@ namespace emerald {
         return _code_stack.empty();
     }
 
+    bool Compiler::is_code_top_level(const std::shared_ptr<Code>& code) {
+        return code == _code;
+    }
+
     void Compiler::write_fs_load_iter(const std::shared_ptr<ForStatement>& for_statement) {
         const std::string& name = for_statement->get_init_statement()->get_identifier();
         if (is_top_level()) {
@@ -474,7 +479,7 @@ namespace emerald {
     }
 
     void Compiler::write_st(const std::shared_ptr<Code>& code, const std::string& identifier) {
-        if (code->is_top_level()) {
+        if (is_code_top_level(code)) {
             code->write_stgbl(identifier);
         } else {
             code->write_stloc(identifier);

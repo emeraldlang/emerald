@@ -34,6 +34,7 @@ namespace emerald {
         static std::unordered_map<std::string, std::shared_ptr<Code>> _code;
 
         static void load_code(const std::string& module_name);
+        static std::filesystem::path locate_code(const std::string& module_name);
     };
 
 } // namespace emerald

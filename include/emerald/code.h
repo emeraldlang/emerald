@@ -59,7 +59,6 @@ namespace emerald {
 
         const std::string& get_label() const;
         size_t get_id() const;
-        bool is_top_level() const;
 
         size_t get_num_instructions() const;
 

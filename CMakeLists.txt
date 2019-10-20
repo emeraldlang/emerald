@@ -10,7 +10,6 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 option(EMERALD_BUILD_TESTS "enable testing" ON)
-option(EMERALD_BUILD_EXECUTABLE "build executable" ON)
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR
     "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
@@ -65,13 +64,17 @@ target_link_libraries(emerald_s
     CONAN_PKG::fmt
     ${Boost_LIBRARIES})
 
-if (EMERALD_BUILD_EXECUTABLE)
-    add_executable(emerald
-        src/main.cpp)
+add_executable(emerald
+    src/main.cpp)
 
-    target_link_libraries(emerald
-        PRIVATE emerald_s)
-endif()
+target_link_libraries(emerald
+    PRIVATE emerald_s)
+
+file(GLOB LIB_FILES ${PROJECT_SOURCE_DIR}/lib/*.em)
+add_custom_target(emerald_lib
+    ALL
+    COMMAND emerald compile ${LIB_FILES} -o ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+    DEPENDS ${LIB_FILES})
 
 if (EMERALD_BUILD_TESTS)
     enable_testing()

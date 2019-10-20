@@ -30,11 +30,13 @@
     X(file_stream_open)     \
     X(file_stream_is_open)  \
     X(file_stream_read)     \
+    X(file_stream_readline) \
     X(file_stream_write)
 
 #define STRING_STREAM_NATIVES   \
     X(string_stream_clone)      \
     X(string_stream_read)       \
+    X(string_stream_readline)   \
     X(string_stream_write)
 
 namespace emerald {
@@ -52,6 +54,7 @@ namespace modules {
 
         std::string read();
         std::string read(size_t n);
+        std::string readline();
         void write(const std::string& s);
 
     private:
@@ -66,6 +69,7 @@ namespace modules {
         std::string as_str() const override;
 
         std::string read(size_t n);
+        std::string readline();
         void write(const std::string& s);
 
     private:

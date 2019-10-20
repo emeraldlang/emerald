@@ -64,6 +64,7 @@
 
 #define BOOLEAN(val) context->get_native_objects().get_boolean(val)
 #define NONE context->get_native_objects().get_null()
+#define ALLOC_ARRAY(arr) context->get_heap().allocate<Array>(context, arr);
 #define ALLOC_NATIVE_FUNCTION(function) context->get_heap().allocate<NativeFunction>(context, function)
 #define ALLOC_NUMBER(num) context->get_heap().allocate<Number>(context, num)
 #define ALLOC_STRING(str) context->get_heap().allocate<String>(context, str)

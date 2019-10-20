@@ -15,6 +15,13 @@
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <linux/limits.h>
+#include <unistd.h>
+#endif
+
 #include "fmt/format.h"
 
 #include "emerald/module.h"
@@ -48,16 +55,27 @@ namespace emerald {
         return fmt::format("<module {0}>", _name);
     }
 
-    std::filesystem::path Module::get_path_for_module(
+    std::filesystem::path Module::get_module_path(
             const std::string& module_name,
             const std::string& extension) {
-        std::filesystem::path path = std::filesystem::current_path();
+        std::filesystem::path path;
         for (const std::string& part : strutils::split(module_name, ".")) {
             path /= part;
         }
         path += extension;
 
         return path;
+    }
+
+    std::filesystem::path Module::get_stdlib_path() {
+#ifdef _WIN32
+        char buff[MAX_PATH];
+        GetModuleFileName(nullptr, buff, MAX_PATH);   
+#else
+        char buff[PATH_MAX];
+        readlink("/proc/self/exe", buff, PATH_MAX);
+#endif
+        return std::filesystem::path(buff).parent_path().parent_path() / "lib";
     }
 
 } // namespace emerald

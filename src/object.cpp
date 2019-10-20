@@ -112,11 +112,13 @@ namespace emerald {
         }
     }
 
-    Array::Array(ExecutionContext* context)
-        : Object(context, context->get_native_objects().get_array_prototype()) {}
+    Array::Array(ExecutionContext* context, const std::vector<Object*>& value)
+        : Object(context, context->get_native_objects().get_array_prototype()),
+        _value(value) {}
 
-    Array::Array(ExecutionContext* context, Object* parent)
-        : Object(context, parent) {}
+    Array::Array(ExecutionContext* context, Object* parent, const std::vector<Object*>& value)
+        : Object(context, parent),
+        _value(value) {}
 
     bool Array::as_bool() const {
         return _value.size() > 0;

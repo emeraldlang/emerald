@@ -18,6 +18,7 @@
 #include <filesystem>
 #include <iostream>
 #include <memory>
+#include <vector>
 
 #include "CLI/CLI.hpp"
 
@@ -25,7 +26,6 @@
 #include "emerald/colors.h"
 #include "emerald/compiler.h"
 #include "emerald/interpreter.h"
-#include "emerald/module.h"
 #include "emerald/modules/init.h"
 #include "emerald/parser.h"
 #include "emerald/reporter.h"
@@ -40,14 +40,13 @@ int main(int argc, char** argv) {
         "ast", 
         "prints the abstract syntax tree of a emerald source file.");
 
-    std::string ast_module_name;
-    ast->add_option("module_name", ast_module_name, "specifies the emerald module")->required();
+    std::string ast_source_file;
+    ast->add_option("source_file", ast_source_file, "specifies the emerald source file")->required();
 
     ast->callback([&]() {
         std::shared_ptr<emerald::Reporter> reporter = std::make_shared<emerald::Reporter>();
-        std::filesystem::path path = emerald::Module::get_path_for_module(ast_module_name, ".em");
         std::vector<std::shared_ptr<emerald::Statement>> statements = emerald::Parser::parse(
-            emerald::Source::from_file(path),
+            emerald::Source::from_file(ast_source_file),
             reporter);
         if (reporter->has_errors()) {
             reporter->print();
@@ -60,18 +59,17 @@ int main(int argc, char** argv) {
         "bytecode", 
         "prints the bytecode of a emerald source file.");
 
-    std::string bytecode_module_name;
-    bytecode->add_option("module_name", bytecode_module_name, "specifies the emerald module")->required();
+    std::string bytecode_source_file;
+    bytecode->add_option("source_file", bytecode_source_file, "specifies the emerald source file")->required();
 
     bool bytecode_save;
     bytecode->add_flag("-s,--save", bytecode_save, "indicates whether the bytecode should be persisted to desk");
 
     bytecode->callback([&]() {
         std::shared_ptr<emerald::Reporter> reporter = std::make_shared<emerald::Reporter>();
-
-        std::filesystem::path path = emerald::Module::get_path_for_module(bytecode_module_name, ".em");
+        std::filesystem::path path(bytecode_source_file);
         std::vector<std::shared_ptr<emerald::Statement>> statements = emerald::Parser::parse(
-            emerald::Source::from_file(path),
+            emerald::Source::from_file(bytecode_source_file),
             reporter);
         if (reporter->has_errors()) {
             reporter->print();
@@ -97,30 +95,40 @@ int main(int argc, char** argv) {
         "compile",
         "compiles an emerald source file into bytecode.");
 
-    std::string compile_module_name;
-    compile->add_option("module_name", compile_module_name, "specifies the emerald module")->required();
+    std::vector<std::filesystem::path> compile_source_files;
+    compile->add_option("source_files", compile_source_files, "specifies the emerald source files")->required();
+
+    std::filesystem::path compile_output;
+    compile->add_option("-o,--output", compile_output, "specifies the output directory");
 
     compile->callback([&]() {
         std::shared_ptr<emerald::Reporter> reporter = std::make_shared<emerald::Reporter>();
+        for (const std::filesystem::path& path : compile_source_files) {
+            std::vector<std::shared_ptr<emerald::Statement>> statements = emerald::Parser::parse(
+                emerald::Source::from_file(path),
+                reporter);
+            if (reporter->has_errors()) {
+                reporter->print();
+                return;
+            }
 
-        std::filesystem::path path = emerald::Module::get_path_for_module(compile_module_name, ".em");
-        std::vector<std::shared_ptr<emerald::Statement>> statements = emerald::Parser::parse(
-            emerald::Source::from_file(path),
-            reporter);
-        if (reporter->has_errors()) {
-            reporter->print();
-            return;
+            std::shared_ptr<emerald::Code> code = emerald::Compiler::compile(
+                statements,
+                reporter);
+            if (reporter->has_errors()) {
+                reporter->print();
+                return;
+            }
+
+            std::filesystem::path output_path;
+            if (compile_output.empty()) {
+                output_path = std::filesystem::path(path).replace_extension(".emc");
+            } else {
+                output_path = compile_output / path.filename().replace_extension(".emc");
+            }
+
+            code->write_to_file(output_path);
         }
-
-        std::shared_ptr<emerald::Code> code = emerald::Compiler::compile(
-            statements,
-            reporter);
-        if (reporter->has_errors()) {
-            reporter->print();
-            return;
-        }
-
-        code->write_to_file(path.replace_extension(".emc"));
     });
 
     CLI::App* init = app.add_subcommand(
@@ -141,11 +149,10 @@ int main(int argc, char** argv) {
         "executes the emerald code.");
 
     std::string run_module_name;
-    run->add_option("module_name", run_module_name, "specifies the emerald module")->required();
+    run->add_option("module_name", run_module_name, "specifies the emerald module to execute")->required();
 
     run->callback([&]() {
         emerald::modules::add_module_inits_to_registry();
-
         emerald::Interpreter::execute_module(run_module_name);
     });
 

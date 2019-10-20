@@ -54,6 +54,7 @@ namespace emerald {
         void push_new_func(const std::string& label);
         void pop_func();
         bool is_top_level();
+        bool is_code_top_level(const std::shared_ptr<Code>& code);
 
         std::shared_ptr<Code> code() {
             if (_code_stack.size()) {

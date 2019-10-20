@@ -20,6 +20,7 @@
 #include "emerald/execution_context.h"
 #include "emerald/natives/string.h"
 #include "emerald/objectutils.h"
+#include "emerald/strutils.h"
 
 namespace emerald {
 namespace natives {
@@ -140,6 +141,22 @@ namespace natives {
 
         return ALLOC_STRING(
             fmt::vformat(self->get_value(), fmt::basic_format_args<ctx>(fmt_args.data(), fmt_args.size())));
+    }
+
+    NATIVE_FUNCTION(string_split) {
+        EXPECT_NUM_ARGS(2);
+
+        CONVERT_RECV_TO(String, self);
+        CONVERT_ARG_TO(1, String, seperator);
+
+        std::vector<Object*> res;
+        for (const std::string& part : strutils::split(
+                self->get_value(),
+                seperator->get_value())) {
+            res.push_back(ALLOC_STRING(part));
+        }
+
+        return ALLOC_ARRAY(res);
     }
 
 } // namespace natives
