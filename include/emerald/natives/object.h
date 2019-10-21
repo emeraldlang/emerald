@@ -26,7 +26,10 @@
     X(object_str)       \
     X(object_boolean)   \
     X(object_clone)     \
-    X(object_init)
+    X(object_init)      \
+    X(object_has_prop)  \
+    X(object_get_prop)  \
+    X(object_set_prop)
 
 namespace emerald {
 namespace natives {

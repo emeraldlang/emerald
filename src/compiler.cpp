@@ -288,6 +288,7 @@ namespace emerald {
 
         switch (unary_op->get_operator()->get_type()) {
         case Token::NOT:
+            code()->write_log_neg();
             break;
         case Token::BIT_NOT:
             code()->write_bit_not();

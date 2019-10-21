@@ -73,6 +73,8 @@ namespace emerald {
         void write_jmp_data(size_t label);
 
         void write_neg();
+        void write_log_neg();
+
         void write_add();
         void write_sub();
         void write_mul();

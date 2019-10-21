@@ -23,6 +23,7 @@
 #include "emerald/natives/number.h"
 #include "emerald/natives/object.h"
 #include "emerald/natives/string.h"
+#include "emerald/objectutils.h"
 
 namespace emerald {
 
@@ -93,18 +94,20 @@ namespace emerald {
     }
 
     void NativeObjects::initialize_object(ExecutionContext* context) {
-        Heap& heap = context->get_heap();
+        _object = context->get_heap().allocate<Object>(context);
 
-        _object = heap.allocate<Object>(context);
+        _object->set_property(magic_methods::eq, ALLOC_NATIVE_FUNCTION(natives::object_eq));
+        _object->set_property(magic_methods::neq, ALLOC_NATIVE_FUNCTION(natives::object_neq));
 
-        _object->set_property(magic_methods::eq, heap.allocate<NativeFunction>(context, natives::object_eq));
-        _object->set_property(magic_methods::neq, heap.allocate<NativeFunction>(context, natives::object_neq));
+        _object->set_property(magic_methods::str, ALLOC_NATIVE_FUNCTION(natives::object_str));
+        _object->set_property(magic_methods::boolean, ALLOC_NATIVE_FUNCTION(natives::object_boolean));
 
-        _object->set_property(magic_methods::str, heap.allocate<NativeFunction>(context, natives::object_str));
-        _object->set_property(magic_methods::boolean, heap.allocate<NativeFunction>(context, natives::object_boolean));
+        _object->set_property(magic_methods::clone, ALLOC_NATIVE_FUNCTION(natives::object_clone));
+        _object->set_property(magic_methods::init, ALLOC_NATIVE_FUNCTION(natives::object_init));
 
-        _object->set_property(magic_methods::clone, heap.allocate<NativeFunction>(context, natives::object_clone));
-        _object->set_property(magic_methods::init, heap.allocate<NativeFunction>(context, natives::object_init));
+        _object->set_property("has_prop", ALLOC_NATIVE_FUNCTION(natives::object_has_prop));
+        _object->set_property("get_prop", ALLOC_NATIVE_FUNCTION(natives::object_get_prop));
+        _object->set_property("set_prop", ALLOC_NATIVE_FUNCTION(natives::object_set_prop));
     }
 
     void NativeObjects::initialize_array(ExecutionContext* context) {
@@ -183,9 +186,10 @@ namespace emerald {
         _string->set_property("back", heap.allocate<NativeFunction>(context, natives::string_back));
         _string->set_property("front", heap.allocate<NativeFunction>(context, natives::string_front));
         _string->set_property("compare", heap.allocate<NativeFunction>(context, natives::string_compare));
-        _string->set_property("find", heap.allocate<NativeFunction>(context, natives::string_find));
-        _string->set_property("format", heap.allocate<NativeFunction>(context, natives::string_format));
+        _string->set_property("find", heap.allocate<NativeFunction>(context, natives::string_find));  
         _string->set_property("substr", heap.allocate<NativeFunction>(context, natives::string_substr));
+        _string->set_property("format", heap.allocate<NativeFunction>(context, natives::string_format));
+        _string->set_property("split", heap.allocate<NativeFunction>(context, natives::string_split));
     }
 
     void NativeObjects::initialize_booleans(ExecutionContext* context) {

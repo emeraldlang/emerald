@@ -22,6 +22,7 @@
 #include "emerald/execution_context.h"
 #include "emerald/interpreter.h"
 #include "emerald/magic_methods.h"
+#include "emerald/module.h"
 #include "emerald/object.h"
 #include "emerald/objectutils.h"
 
@@ -217,13 +218,15 @@ namespace emerald {
         return _message;
     }
 
-    Function::Function(ExecutionContext* context, std::shared_ptr<const Code> code)
+    Function::Function(ExecutionContext* context, std::shared_ptr<const Code> code, Module* globals)
         : Object(context),
-        _code(code) {}
+        _code(code),
+        _globals(globals) {}
 
-    Function::Function(ExecutionContext* context, Object* parent, std::shared_ptr<const Code> code)
+    Function::Function(ExecutionContext* context, Object* parent, std::shared_ptr<const Code> code, Module* globals)
         : Object(context, parent),
-        _code(code) {}
+        _code(code),
+        _globals(globals) {}
 
     std::string Function::as_str() const {
         return fmt::format("<function {0}>", _code->get_label());
@@ -231,6 +234,10 @@ namespace emerald {
 
     std::shared_ptr<const Code> Function::get_code() const {
         return _code;
+    }
+
+    Module* Function::get_globals() const {
+        return _globals;
     }
 
     NativeFunction::NativeFunction(ExecutionContext* context, Callable callable)

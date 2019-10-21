@@ -348,21 +348,7 @@ namespace emerald {
             } else if (match(Token::LBRACKET)) {
                 std::shared_ptr<SourcePosition> start = start_pos(); 
 
-                std::shared_ptr<Expression> property;
-                std::shared_ptr<Token> token = _scanner.scan();
-                switch (token->get_type()) {
-                case Token::STRING_LITERAL:
-                case Token::DECIMAL_NUMBER_LITERAL:
-                case Token::HEX_NUMBER_LITERAL:
-                case Token::IDENTIFIER:
-                    property = std::make_shared<StringLiteral>(
-                        token->get_source_position(),
-                        token->get_lexeme());
-                    break;
-                default:
-                    report_unexpected_token(token);
-                    break;
-                }
+                std::shared_ptr<Expression> property = parse_expression();
 
                 expect(Token::RBRACKET);
 

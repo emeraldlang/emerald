@@ -99,6 +99,10 @@ namespace emerald {
         WRITE_OP(OpCode::neg);
     }
 
+    void Code::write_log_neg() {
+        WRITE_OP(OpCode::log_neg);
+    }
+
     void Code::write_add() {
         WRITE_OP(OpCode::add);
     }

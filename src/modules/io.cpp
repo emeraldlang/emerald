@@ -14,7 +14,7 @@
 **  You should have received a copy of the GNU General Public License
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-#include <iostream>
+
 #include "fmt/format.h"
 
 #include "emerald/execution_context.h"
@@ -230,7 +230,7 @@ namespace modules {
         StringStream* string_stream = heap.allocate<StringStream>(context, native_objects.get_object_prototype());
         string_stream->set_property(magic_methods::clone, ALLOC_NATIVE_FUNCTION(string_stream_clone));
         string_stream->set_property("read", ALLOC_NATIVE_FUNCTION(string_stream_read));
-        file_stream->set_property("readline", ALLOC_NATIVE_FUNCTION(string_stream_readline));
+        string_stream->set_property("readline", ALLOC_NATIVE_FUNCTION(string_stream_readline));
         string_stream->set_property("write", ALLOC_NATIVE_FUNCTION(string_stream_write));
         module->set_property("StringStream", string_stream);
 

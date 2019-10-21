@@ -26,6 +26,7 @@
 #include "emerald/iterutils.h"
 #include "emerald/magic_methods.h"
 #include "emerald/module.h"
+#include "emerald/objectutils.h"
 
 namespace emerald {
 
@@ -59,6 +60,9 @@ namespace emerald {
                 break;
             case OpCode::neg:
                 current_frame.push_ds(call_method1(magic_methods::neg, context));
+                break;
+            case OpCode::log_neg:
+                current_frame.push_ds(BOOLEAN(!call_method1(magic_methods::boolean, context)->as_bool()));
                 break;
             case OpCode::add:
                 current_frame.push_ds(call_method2(magic_methods::add, context));
@@ -156,30 +160,33 @@ namespace emerald {
             }
             case OpCode::new_func: {
                 std::shared_ptr<const Code> code = current_frame.get_code()->get_func(instr.get_args()[0]);
-                Function* func = context->get_heap().allocate<Function>(context, code);
+                Function* func = context->get_heap().allocate<Function>(
+                    context,
+                    code,
+                    current_frame.get_globals());
                 current_frame.push_ds(func);
                 break;
             }
             case OpCode::new_num: {
                 double value = current_frame.get_code()->get_num_constant(instr.get_args()[0]);
-                Number* num = context->get_heap().allocate<Number>(context, value);
+                Number* num = ALLOC_NUMBER(value);
                 current_frame.push_ds(num);
                 break;
             }
             case OpCode::new_str: {
                 const std::string& value = current_frame.get_code()->get_str_constant(instr.get_args()[0]);
-                String* str = context->get_heap().allocate<String>(context, value);
+                String* str = ALLOC_STRING(value);
                 current_frame.push_ds(str);
                 break;
             }
             case OpCode::new_boolean: {
                 bool value = instr.get_args()[0];
-                Boolean* boolean = context->get_native_objects().get_boolean(value);
+                Boolean* boolean = BOOLEAN(value);
                 current_frame.push_ds(boolean);
                 break;
             }
             case OpCode::new_arr: {
-                Array* array = context->get_heap().allocate<Array>(context);
+                Array* array = ALLOC_EMPTY_ARRAY();
                 for (size_t i = 0; i < instr.get_args()[0]; i++) {
                     array->push(current_frame.pop_ds());
                 }
@@ -209,8 +216,7 @@ namespace emerald {
                 if (instr.get_args()[0]) {
                     current_frame.push_ds(obj);
                 }
-                current_frame.push_ds(
-                    context->get_native_objects().get_boolean(obj->has_property(key->as_str())));
+                current_frame.push_ds(BOOLEAN(obj->has_property(key->as_str())));
                 break;
             }
             case OpCode::set_prop: {
@@ -311,7 +317,7 @@ namespace emerald {
     Object* Interpreter::call_obj(Object* obj, const std::vector<Object*>& args, ExecutionContext* context) {
         Stack& stack = context->get_stack();
         if (Function* func = dynamic_cast<Function*>(obj)) {
-            stack.push_frame(func->get_code(), stack.peek_globals());
+            stack.push_frame(func->get_code(), func->get_globals());
 
             Stack::Frame& current_frame = stack.peek();
             for (Object* arg : iterutils::reverse(args)) {

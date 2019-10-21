@@ -19,9 +19,20 @@
 #define _EMERALD_MODULES_CORE_H
 
 #include "emerald/module_registry.h"
+#include "emerald/object.h"
+
+#define CORE_NATIVES    \
+    X(core_extend)      \
+    X(core_str)         \
+    X(core_bool)        \
+    X(core_range)
 
 namespace emerald {
 namespace modules {
+
+#define X(name) NATIVE_FUNCTION(name);
+    CORE_NATIVES
+#undef X
 
     MODULE_INITIALIZATION_FUNC(init_core_module);
 

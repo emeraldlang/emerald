@@ -31,8 +31,10 @@ namespace emerald {
     X(jmp_true, 1)              \
     X(jmp_false, 1)             \
     X(jmp_data, 1)              \
-    /* Arithmetic */            \
+    /* Unary */                 \
     X(neg, 0)                   \
+    X(log_neg, 0)               \
+    /* Arithmetic */            \
     X(add, 0)                   \
     X(sub, 0)                   \
     X(mul, 0)                   \

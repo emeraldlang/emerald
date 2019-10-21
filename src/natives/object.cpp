@@ -58,5 +58,34 @@ namespace natives {
         return NONE;
     }
 
+    NATIVE_FUNCTION(object_has_prop) {
+        EXPECT_NUM_ARGS(2);
+
+        TRY_CONVERT_ARG_TO(1, String, name);
+
+        return BOOLEAN(args[0]->has_property(name->as_str()));
+    }
+
+    NATIVE_FUNCTION(object_get_prop) {
+        EXPECT_NUM_ARGS(3);
+
+        TRY_CONVERT_ARG_TO(1, String, name);
+
+        if (Object* property = args[0]->get_property(name->as_str())) {
+            return property;
+        }
+
+        return args[2];
+    }
+
+    NATIVE_FUNCTION(object_set_prop) {
+        EXPECT_NUM_ARGS(3);
+
+        TRY_CONVERT_ARG_TO(1, String, name);
+        args[0]->set_property(name->as_str(), args[2]);
+
+        return NONE;
+    }
+
 } // namespace natives
 } // namespace emerald

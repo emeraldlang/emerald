@@ -43,6 +43,7 @@
 namespace emerald {
 
     class ExecutionContext;
+    class Module;
 
     class Object : public HeapManaged {
     public:
@@ -134,15 +135,17 @@ namespace emerald {
 
     class Function final : public Object {
     public:
-        Function(ExecutionContext* context, std::shared_ptr<const Code> code);
-        Function(ExecutionContext* context, Object* parent, std::shared_ptr<const Code> code);
+        Function(ExecutionContext* context, std::shared_ptr<const Code> code, Module* globals);
+        Function(ExecutionContext* context, Object* parent, std::shared_ptr<const Code> code, Module* globals);
 
         std::string as_str() const override;
 
         std::shared_ptr<const Code> get_code() const;
+        Module* get_globals() const;
 
     private:
         std::shared_ptr<const Code> _code;
+        Module* _globals;
     };
 
     class NativeFunction final : public Object {
