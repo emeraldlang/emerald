@@ -29,6 +29,10 @@ namespace emerald {
             compiler.Visit(statement);
         }
 
+        if (reporter->has_errors()) {
+            return nullptr;
+        }
+
         return compiler._code;
     }
 
@@ -49,8 +53,10 @@ namespace emerald {
     void Compiler::VisitForStatement(const std::shared_ptr<ForStatement>& for_statement) {
         Visit(for_statement->get_init_statement());
 
+        size_t condition = code()->create_label();
         size_t beginning = code()->create_label();
         size_t end = code()->create_label();
+        _loop_stack.emplace(condition, beginning, end);
 
         write_fs_condition(for_statement);
         code()->write_jmp_false(end);
@@ -59,6 +65,7 @@ namespace emerald {
         
         Visit(for_statement->get_block());
 
+        code()->bind_label(condition);
         if (for_statement->get_by_expression()) {
             Visit(for_statement->get_by_expression());
         } else {
@@ -74,21 +81,54 @@ namespace emerald {
         code()->write_jmp_true(beginning);
 
         code()->bind_label(end);
+        _loop_stack.pop();
     }
 
     void Compiler::VisitWhileStatement(const std::shared_ptr<WhileStatement>& while_statement) {
+        size_t condition = code()->create_label();
         size_t beginning = code()->create_label();
         size_t end = code()->create_label();
+        _loop_stack.emplace(condition, beginning, end);
 
         Visit(while_statement->get_conditional_expression());
         code()->write_jmp_false(end);
 
         code()->bind_label(beginning);
         Visit(while_statement->get_block());
+        code()->bind_label(condition);
         Visit(while_statement->get_conditional_expression());
         code()->write_jmp_true(beginning);
 
         code()->bind_label(end);
+        _loop_stack.pop();
+    }
+
+    void Compiler::VisitBreakStatement(const std::shared_ptr<BreakStatement>& break_statement) {
+        if (_loop_stack.empty()) {
+            std::string msg = ReportCode::format_report(ReportCode::illegal_break);
+            _reporter->report(
+                ReportCode::illegal_break,
+                msg,
+                break_statement->get_source_position());
+            return;
+        }
+
+        LoopLabels& labels = _loop_stack.top();
+        code()->write_jmp(labels.end);
+    }
+
+    void Compiler::VisitContinueStatement(const std::shared_ptr<ContinueStatement>& continue_statement) {
+        if (_loop_stack.empty()) {
+            std::string msg = ReportCode::format_report(ReportCode::illegal_continue);
+            _reporter->report(
+                ReportCode::illegal_continue,
+                msg,
+                continue_statement->get_source_position());
+            return;
+        }
+
+        LoopLabels& labels = _loop_stack.top();
+        code()->write_jmp(labels.condition);
     }
 
     void Compiler::VisitIteStatement(const std::shared_ptr<IteStatement>& ite_statement) {
@@ -427,12 +467,16 @@ namespace emerald {
     }
     
     void Compiler::VisitFunctionParameter(const std::shared_ptr<FunctionParameter>& function_parameter) {
+        size_t skip_default_eval = code()->create_label();
+        code()->write_jmp_data(skip_default_eval);
+
         if (std::shared_ptr<Expression> default_expr = function_parameter->get_default_expr()) {
-            size_t skip_default_eval = code()->create_label();
-            code()->write_jmp_data(skip_default_eval);
             Visit(default_expr);
-            code()->bind_label(skip_default_eval);
+        } else {
+            code()->write_null();
         }
+
+        code()->bind_label(skip_default_eval);
         
         code()->write_stloc(function_parameter->get_identifier());
     }

@@ -34,6 +34,8 @@
     X(DOWNTO, "downto", 0)              \
     X(BY, "by", 0)                      \
     X(WHILE, "while", 0)                \
+    X(BREAK, "break", 0)                \
+    X(CONTINUE, "continue", 0)          \
     X(DEF, "def", 0)                    \
     X(RET, "return", 0)                 \
     X(DO, "do", 0)                      \
@@ -123,7 +125,7 @@ namespace emerald {
             bool is_binary_op() const;
             bool is_unary_op() const;
             bool is_right_associative() const;
-        
+
         private:
             static const std::string _lexemes[NUM_TOKENS];
             static const uint8_t _precedence[NUM_TOKENS];

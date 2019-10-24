@@ -262,10 +262,6 @@ namespace emerald {
         WRITE_OP_WARGS(OpCode::get_prop, { push_self_back });
     }
 
-    void Code::write_has_prop(bool push_self_back) {
-        WRITE_OP_WARGS(OpCode::has_prop, { push_self_back });
-    }
-
     void Code::write_set_prop(bool push_self_back) {
         WRITE_OP_WARGS(OpCode::set_prop, { push_self_back });
     }
@@ -454,7 +450,7 @@ namespace emerald {
 
         for (size_t i = 0; i < _instructions.size(); i++) {
             if (i > 0) oss << std::endl;
-            oss << std::string(depth * SPACES, ' ') << _instructions[i];
+            oss << i << ": " << std::string(depth * SPACES, ' ') << _instructions[i];
         }
 
         for (size_t i = 0; i < _functions.size(); i++) {

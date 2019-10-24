@@ -116,7 +116,6 @@ namespace emerald {
         void write_new_arr(size_t num_elems);
         void write_null();
         void write_get_prop(bool push_self_back = false);
-        void write_has_prop(bool push_self_back = false);
         void write_set_prop(bool push_self_back = false);
         void write_get_parent();
 

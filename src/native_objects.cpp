@@ -105,102 +105,96 @@ namespace emerald {
         _object->set_property(magic_methods::clone, ALLOC_NATIVE_FUNCTION(natives::object_clone));
         _object->set_property(magic_methods::init, ALLOC_NATIVE_FUNCTION(natives::object_init));
 
-        _object->set_property("has_prop", ALLOC_NATIVE_FUNCTION(natives::object_has_prop));
+        _object->set_property("keys", ALLOC_NATIVE_FUNCTION(natives::object_keys));
         _object->set_property("get_prop", ALLOC_NATIVE_FUNCTION(natives::object_get_prop));
         _object->set_property("set_prop", ALLOC_NATIVE_FUNCTION(natives::object_set_prop));
     }
 
     void NativeObjects::initialize_array(ExecutionContext* context) {
-        Heap& heap = context->get_heap();
+        _array = context->get_heap().allocate<Array>(context, _object);
 
-        _array = heap.allocate<Array>(context, _object);
+        _array->set_property(magic_methods::eq, ALLOC_NATIVE_FUNCTION(natives::array_eq));
+        _array->set_property(magic_methods::neq, ALLOC_NATIVE_FUNCTION(natives::array_neq));
 
-        _array->set_property(magic_methods::eq, heap.allocate<NativeFunction>(context, natives::array_eq));
-        _array->set_property(magic_methods::neq, heap.allocate<NativeFunction>(context, natives::array_neq));
+        _array->set_property(magic_methods::clone, ALLOC_NATIVE_FUNCTION(natives::array_clone));
 
-        _array->set_property(magic_methods::clone, heap.allocate<NativeFunction>(context, natives::array_clone));
-
-        _array->set_property("at", heap.allocate<NativeFunction>(context, natives::array_at));
-        _array->set_property("front", heap.allocate<NativeFunction>(context, natives::array_front));
-        _array->set_property("back", heap.allocate<NativeFunction>(context, natives::array_back));
-        _array->set_property("empty", heap.allocate<NativeFunction>(context, natives::array_empty));
-        _array->set_property("size", heap.allocate<NativeFunction>(context, natives::array_size));
-        _array->set_property("clear", heap.allocate<NativeFunction>(context, natives::array_clear));
-        _array->set_property("push", heap.allocate<NativeFunction>(context, natives::array_push));
-        _array->set_property("pop", heap.allocate<NativeFunction>(context, natives::array_pop));
+        _array->set_property("at", ALLOC_NATIVE_FUNCTION(natives::array_at));
+        _array->set_property("front", ALLOC_NATIVE_FUNCTION(natives::array_front));
+        _array->set_property("back", ALLOC_NATIVE_FUNCTION(natives::array_back));
+        _array->set_property("empty", ALLOC_NATIVE_FUNCTION(natives::array_empty));
+        _array->set_property("size", ALLOC_NATIVE_FUNCTION(natives::array_size));
+        _array->set_property("clear", ALLOC_NATIVE_FUNCTION(natives::array_clear));
+        _array->set_property("push", ALLOC_NATIVE_FUNCTION(natives::array_push));
+        _array->set_property("pop", ALLOC_NATIVE_FUNCTION(natives::array_pop));
+        _array->set_property("join", ALLOC_NATIVE_FUNCTION(natives::array_join));
     }
 
     void NativeObjects::initialize_number(ExecutionContext* context) {
-        Heap& heap = context->get_heap();
-
         _number = context->get_heap().allocate<Number>(context, _object);
 
-        _number->set_property(magic_methods::neg, heap.allocate<NativeFunction>(context, natives::number_neg));
-        _number->set_property(magic_methods::add, heap.allocate<NativeFunction>(context, natives::number_add));
-        _number->set_property(magic_methods::sub, heap.allocate<NativeFunction>(context, natives::number_sub));
-        _number->set_property(magic_methods::mul, heap.allocate<NativeFunction>(context, natives::number_mul));
-        _number->set_property(magic_methods::div, heap.allocate<NativeFunction>(context, natives::number_div));
-        _number->set_property(magic_methods::mod, heap.allocate<NativeFunction>(context, natives::number_mod));
+        _number->set_property(magic_methods::neg, ALLOC_NATIVE_FUNCTION(natives::number_neg));
+        _number->set_property(magic_methods::add, ALLOC_NATIVE_FUNCTION(natives::number_add));
+        _number->set_property(magic_methods::sub, ALLOC_NATIVE_FUNCTION(natives::number_sub));
+        _number->set_property(magic_methods::mul, ALLOC_NATIVE_FUNCTION(natives::number_mul));
+        _number->set_property(magic_methods::div, ALLOC_NATIVE_FUNCTION(natives::number_div));
+        _number->set_property(magic_methods::mod, ALLOC_NATIVE_FUNCTION(natives::number_mod));
 
-        _number->set_property(magic_methods::iadd, heap.allocate<NativeFunction>(context, natives::number_iadd));
-        _number->set_property(magic_methods::isub, heap.allocate<NativeFunction>(context, natives::number_isub));
-        _number->set_property(magic_methods::imul, heap.allocate<NativeFunction>(context, natives::number_imul));
-        _number->set_property(magic_methods::idiv, heap.allocate<NativeFunction>(context, natives::number_idiv));
-        _number->set_property(magic_methods::imod, heap.allocate<NativeFunction>(context, natives::number_imod));
+        _number->set_property(magic_methods::iadd, ALLOC_NATIVE_FUNCTION(natives::number_iadd));
+        _number->set_property(magic_methods::isub, ALLOC_NATIVE_FUNCTION(natives::number_isub));
+        _number->set_property(magic_methods::imul, ALLOC_NATIVE_FUNCTION(natives::number_imul));
+        _number->set_property(magic_methods::idiv, ALLOC_NATIVE_FUNCTION(natives::number_idiv));
+        _number->set_property(magic_methods::imod, ALLOC_NATIVE_FUNCTION(natives::number_imod));
 
-        _number->set_property(magic_methods::eq, heap.allocate<NativeFunction>(context, natives::number_eq));
-        _number->set_property(magic_methods::neq, heap.allocate<NativeFunction>(context, natives::number_neq));
-        _number->set_property(magic_methods::lt, heap.allocate<NativeFunction>(context, natives::number_lt));
-        _number->set_property(magic_methods::gt, heap.allocate<NativeFunction>(context, natives::number_gt));
-        _number->set_property(magic_methods::lte, heap.allocate<NativeFunction>(context, natives::number_lte));
-        _number->set_property(magic_methods::gte, heap.allocate<NativeFunction>(context, natives::number_gte));
+        _number->set_property(magic_methods::eq, ALLOC_NATIVE_FUNCTION(natives::number_eq));
+        _number->set_property(magic_methods::neq, ALLOC_NATIVE_FUNCTION(natives::number_neq));
+        _number->set_property(magic_methods::lt, ALLOC_NATIVE_FUNCTION(natives::number_lt));
+        _number->set_property(magic_methods::gt, ALLOC_NATIVE_FUNCTION(natives::number_gt));
+        _number->set_property(magic_methods::lte, ALLOC_NATIVE_FUNCTION(natives::number_lte));
+        _number->set_property(magic_methods::gte, ALLOC_NATIVE_FUNCTION(natives::number_gte));
 
-        _number->set_property(magic_methods::bit_or, heap.allocate<NativeFunction>(context, natives::number_bit_or));
-        _number->set_property(magic_methods::bit_xor, heap.allocate<NativeFunction>(context, natives::number_bit_xor));
-        _number->set_property(magic_methods::bit_and, heap.allocate<NativeFunction>(context, natives::number_bit_and));
-        _number->set_property(magic_methods::bit_shl, heap.allocate<NativeFunction>(context, natives::number_bit_shl));
-        _number->set_property(magic_methods::bit_shr, heap.allocate<NativeFunction>(context, natives::number_bit_shr));
+        _number->set_property(magic_methods::bit_or, ALLOC_NATIVE_FUNCTION(natives::number_bit_or));
+        _number->set_property(magic_methods::bit_xor, ALLOC_NATIVE_FUNCTION(natives::number_bit_xor));
+        _number->set_property(magic_methods::bit_and, ALLOC_NATIVE_FUNCTION(natives::number_bit_and));
+        _number->set_property(magic_methods::bit_shl, ALLOC_NATIVE_FUNCTION(natives::number_bit_shl));
+        _number->set_property(magic_methods::bit_shr, ALLOC_NATIVE_FUNCTION(natives::number_bit_shr));
 
-        _number->set_property(magic_methods::clone, heap.allocate<NativeFunction>(context, natives::number_clone));
+        _number->set_property(magic_methods::clone, ALLOC_NATIVE_FUNCTION(natives::number_clone));
     }
 
     void NativeObjects::initialize_string(ExecutionContext* context) {
-        Heap& heap = context->get_heap();
-
         _string = context->get_heap().allocate<String>(context, _object);
 
-        _string->set_property(magic_methods::add, heap.allocate<NativeFunction>(context, natives::string_add));
+        _string->set_property(magic_methods::add, ALLOC_NATIVE_FUNCTION(natives::string_add));
 
-        _string->set_property(magic_methods::eq, heap.allocate<NativeFunction>(context, natives::string_eq));
-        _string->set_property(magic_methods::neq, heap.allocate<NativeFunction>(context, natives::string_neq));
-        _string->set_property(magic_methods::lt, heap.allocate<NativeFunction>(context, natives::string_lt));
-        _string->set_property(magic_methods::gt, heap.allocate<NativeFunction>(context, natives::string_gt));
-        _string->set_property(magic_methods::lte, heap.allocate<NativeFunction>(context, natives::string_lte));
-        _string->set_property(magic_methods::gte, heap.allocate<NativeFunction>(context, natives::string_gte));
+        _string->set_property(magic_methods::eq, ALLOC_NATIVE_FUNCTION(natives::string_eq));
+        _string->set_property(magic_methods::neq, ALLOC_NATIVE_FUNCTION(natives::string_neq));
+        _string->set_property(magic_methods::lt, ALLOC_NATIVE_FUNCTION(natives::string_lt));
+        _string->set_property(magic_methods::gt, ALLOC_NATIVE_FUNCTION(natives::string_gt));
+        _string->set_property(magic_methods::lte, ALLOC_NATIVE_FUNCTION(natives::string_lte));
+        _string->set_property(magic_methods::gte, ALLOC_NATIVE_FUNCTION(natives::string_gte));
 
-        _string->set_property(magic_methods::clone, heap.allocate<NativeFunction>(context, natives::string_clone));
+        _string->set_property(magic_methods::clone, ALLOC_NATIVE_FUNCTION(natives::string_clone));
 
-        _string->set_property("empty", heap.allocate<NativeFunction>(context, natives::string_empty));
-        _string->set_property("len", heap.allocate<NativeFunction>(context, natives::string_length));
-        _string->set_property("at", heap.allocate<NativeFunction>(context, natives::string_at));
-        _string->set_property("back", heap.allocate<NativeFunction>(context, natives::string_back));
-        _string->set_property("front", heap.allocate<NativeFunction>(context, natives::string_front));
-        _string->set_property("compare", heap.allocate<NativeFunction>(context, natives::string_compare));
-        _string->set_property("find", heap.allocate<NativeFunction>(context, natives::string_find));  
-        _string->set_property("substr", heap.allocate<NativeFunction>(context, natives::string_substr));
-        _string->set_property("format", heap.allocate<NativeFunction>(context, natives::string_format));
-        _string->set_property("split", heap.allocate<NativeFunction>(context, natives::string_split));
+        _string->set_property("empty", ALLOC_NATIVE_FUNCTION(natives::string_empty));
+        _string->set_property("len", ALLOC_NATIVE_FUNCTION(natives::string_length));
+        _string->set_property("at", ALLOC_NATIVE_FUNCTION(natives::string_at));
+        _string->set_property("back", ALLOC_NATIVE_FUNCTION(natives::string_back));
+        _string->set_property("front", ALLOC_NATIVE_FUNCTION(natives::string_front));
+        _string->set_property("compare", ALLOC_NATIVE_FUNCTION(natives::string_compare));
+        _string->set_property("find", ALLOC_NATIVE_FUNCTION(natives::string_find));  
+        _string->set_property("substr", ALLOC_NATIVE_FUNCTION(natives::string_substr));
+        _string->set_property("format", ALLOC_NATIVE_FUNCTION(natives::string_format));
+        _string->set_property("split", ALLOC_NATIVE_FUNCTION(natives::string_split));
+        _string->set_property("append", ALLOC_NATIVE_FUNCTION(natives::string_append));
     }
 
     void NativeObjects::initialize_booleans(ExecutionContext* context) {
-        Heap& heap = context->get_heap();
-
         _boolean = context->get_heap().allocate<Boolean>(context, _object);
 
-        _boolean->set_property(magic_methods::eq, heap.allocate<NativeFunction>(context, natives::boolean_eq));
-        _boolean->set_property(magic_methods::neq, heap.allocate<NativeFunction>(context, natives::boolean_neq));
+        _boolean->set_property(magic_methods::eq, ALLOC_NATIVE_FUNCTION(natives::boolean_eq));
+        _boolean->set_property(magic_methods::neq, ALLOC_NATIVE_FUNCTION(natives::boolean_neq));
 
-        _boolean->set_property(magic_methods::clone, heap.allocate<NativeFunction>(context, natives::boolean_clone));
+        _boolean->set_property(magic_methods::clone, ALLOC_NATIVE_FUNCTION(natives::boolean_clone));
 
         _true = context->get_heap().allocate<Boolean>(context, _boolean, true);
         _false = context->get_heap().allocate<Boolean>(context, _boolean, false);

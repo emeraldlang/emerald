@@ -99,6 +99,8 @@ namespace emerald {
         size_t push(Object* obj);
         Object* pop();
 
+        std::string join(const std::string& seperator);
+
         bool operator==(const Array& other) const;
         bool operator!=(const Array& other) const;
 

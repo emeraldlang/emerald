@@ -127,7 +127,7 @@ namespace emerald {
     
     std::string Array::as_str() const {
         return "[" +
-            objectutils::range_to_str(_value.begin(), _value.end(), get_context())
+            objectutils::join_range(_value.begin(), _value.end(), ",", get_context())
         + "]";
     }
 
@@ -168,6 +168,14 @@ namespace emerald {
         Object* obj = _value.back();
         _value.pop_back();
         return obj;
+    }
+
+    std::string Array::join(const std::string& seperator) {
+        return objectutils::join_range(
+            _value.begin(),
+            _value.end(),
+            seperator,
+            get_context());
     }
 
     bool Array::operator==(const Array& other) const {

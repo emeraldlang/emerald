@@ -81,11 +81,11 @@ namespace objectutils {
     }
 
     template <class InputIt>
-    inline std::string range_to_str(InputIt begin, InputIt end, ExecutionContext* context) {
+    inline std::string join_range(InputIt begin, InputIt end, const std::string& seperator, ExecutionContext* context) {
         return strutils::join(
             begin,
             end,
-            ",",
+            seperator,
             [&context](Object* obj) {
                 return Interpreter::execute_method(
                     magic_methods::str,

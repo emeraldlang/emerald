@@ -128,5 +128,14 @@ namespace natives {
         return arr->pop();
     }
 
+    NATIVE_FUNCTION(array_join) {
+        EXPECT_NUM_ARGS(2);
+
+        CONVERT_RECV_TO(Array, arr);
+        CONVERT_ARG_TO(1, String, seperator);
+
+        return ALLOC_STRING(arr->join(seperator->get_value()));
+    }
+
 } // namespace natives
 } // namepsace emerald

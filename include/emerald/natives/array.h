@@ -31,7 +31,8 @@
     X(array_size)       \
     X(array_clear)      \
     X(array_push)       \
-    X(array_pop)
+    X(array_pop)        \
+    X(array_join)
 
 namespace emerald {
 namespace natives {

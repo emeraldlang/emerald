@@ -40,14 +40,10 @@ namespace modules {
     }
 
     NATIVE_FUNCTION(core_str) {
-        EXPECT_NUM_ARGS(1);
-
         return Interpreter::execute_method(magic_methods::str, args, context);
     }
 
     NATIVE_FUNCTION(core_bool) {
-        EXPECT_NUM_ARGS(1);
-
         return Interpreter::execute_method(magic_methods::boolean, args, context);
     }
 

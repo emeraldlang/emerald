@@ -76,7 +76,6 @@ namespace emerald {
     X(new_arr, 1)               \
     X(null, 0)                  \
     X(get_prop, 1)              \
-    X(has_prop, 1)              \
     X(set_prop, 1)              \
     X(get_parent, 0)            \
     /* Loads & Stores */        \

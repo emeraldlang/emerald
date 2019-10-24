@@ -32,6 +32,8 @@ namespace emerald {
     X(DoStatement)              \
     X(ForStatement)             \
     X(WhileStatement)           \
+    X(BreakStatement)           \
+    X(ContinueStatement)        \
     X(IteStatement)             \
     X(PrintStatement)           \
     X(DeclarationStatement)     \
@@ -180,6 +182,18 @@ namespace emerald {
     private:
         std::shared_ptr<Expression> _conditional;
         std::shared_ptr<StatementBlock> _block;
+    };
+
+    class BreakStatement final : public Statement {
+    public:
+        BreakStatement(std::shared_ptr<SourcePosition> position)
+            : Statement(position, nBreakStatement) {}
+    };
+
+    class ContinueStatement final : public Statement {
+    public:
+        ContinueStatement(std::shared_ptr<SourcePosition> position)
+            : Statement(position, nContinueStatement) {}
     };
 
     class IteStatement final : public Statement {

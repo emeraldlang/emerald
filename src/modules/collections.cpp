@@ -36,7 +36,7 @@ namespace modules {
 
     std::string Queue::as_str() const {
         return "queue(" + 
-            objectutils::range_to_str(_value.begin(), _value.end(), get_context()) 
+            objectutils::join_range(_value.begin(), _value.end(), ",", get_context()) 
         + ")";
     }
 
@@ -83,7 +83,7 @@ namespace modules {
 
     std::string Set::as_str() const {
         return "set(" + 
-            objectutils::range_to_str(_value.begin(), _value.end(), get_context()) 
+            objectutils::join_range(_value.begin(), _value.end(), ",", get_context()) 
         + ")";
     }
 
@@ -140,7 +140,7 @@ namespace modules {
 
     std::string Stack::as_str() const {
         return "stack(" + 
-            objectutils::range_to_str(_value.begin(), _value.end(), get_context()) 
+            objectutils::join_range(_value.begin(), _value.end(), ",", get_context()) 
         + ")";
     }
 

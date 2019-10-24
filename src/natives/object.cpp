@@ -58,12 +58,15 @@ namespace natives {
         return NONE;
     }
 
-    NATIVE_FUNCTION(object_has_prop) {
-        EXPECT_NUM_ARGS(2);
+    NATIVE_FUNCTION(object_keys) {
+        EXPECT_NUM_ARGS(1);
 
-        TRY_CONVERT_ARG_TO(1, String, name);
+        Array* keys = ALLOC_EMPTY_ARRAY();
+        for (const auto& pair : args[0]->get_properties()) {
+            keys->push(ALLOC_STRING(pair.first));
+        }
 
-        return BOOLEAN(args[0]->has_property(name->as_str()));
+        return keys;
     }
 
     NATIVE_FUNCTION(object_get_prop) {

@@ -277,6 +277,8 @@ namespace emerald {
         { "downto", Token::DOWNTO },
         { "by", Token::BY },
         { "while", Token::WHILE },
+        { "break", Token::BREAK },
+        { "continue", Token::CONTINUE },
         { "def", Token::DEF },
         { "return", Token::RET },
         { "do", Token::DO },

@@ -24,7 +24,12 @@ namespace emerald {
             std::shared_ptr<Source> source, 
             std::shared_ptr<Reporter> reporter) {
         Parser parser(source, reporter);
-        return parser.parse();
+        std::vector<std::shared_ptr<Statement>> statements = parser.parse();
+        if (reporter->has_errors()) {
+            return {};
+        }
+
+        return statements;
     }
 
     Parser::Parser(std::shared_ptr<Source> source, std::shared_ptr<Reporter> reporter)
@@ -49,6 +54,12 @@ namespace emerald {
             return parse_for_statement();
         case Token::WHILE:
             return parse_while_statement();
+        case Token::BREAK:
+            _scanner.scan();
+            return std::make_shared<BreakStatement>(_scanner.current()->get_source_position());
+        case Token::CONTINUE:
+            _scanner.scan();
+            return std::make_shared<ContinueStatement>(_scanner.current()->get_source_position());
         case Token::IF:
             return parse_ite_statement();
         case Token::PRINT:

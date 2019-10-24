@@ -38,7 +38,8 @@
     X(string_find)          \
     X(string_substr)        \
     X(string_format)        \
-    X(string_split)
+    X(string_split)         \
+    X(string_append)
 
 namespace emerald {
 namespace natives {

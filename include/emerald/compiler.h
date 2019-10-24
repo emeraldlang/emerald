@@ -35,11 +35,23 @@ namespace emerald {
             std::shared_ptr<Reporter> reporter);
 
     private:
+        struct LoopLabels {
+            LoopLabels(size_t condition, size_t _beginning, size_t _end)
+                : condition(condition), 
+                beginning(_beginning),
+                end(_end) {}
+
+            size_t condition;
+            size_t beginning;
+            size_t end;
+        };
+
         Compiler(std::shared_ptr<Reporter> reporter);
 
         std::shared_ptr<Reporter> _reporter;
         std::shared_ptr<Code> _code;
         std::stack<std::shared_ptr<Code>> _code_stack;
+        std::stack<LoopLabels> _loop_stack;
 
 #define X(NodeType) void Visit##NodeType(const std::shared_ptr<NodeType>& node) override;
         ALL_NODES

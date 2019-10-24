@@ -90,6 +90,14 @@ namespace emerald {
         end_indentation_block();
     }
 
+    void ASTPrinter::VisitBreakStatement(const std::shared_ptr<BreakStatement>&) {
+        _oss << indent() << "(break)" << std::endl;
+    }
+
+    void ASTPrinter::VisitContinueStatement(const std::shared_ptr<ContinueStatement>&) {
+        _oss << indent() << "(continue)" << std::endl;
+    }
+
     void ASTPrinter::VisitIteStatement(const std::shared_ptr<IteStatement>& ite_statement) {
         start_indentation_block("if");
 

@@ -159,5 +159,16 @@ namespace natives {
         return ALLOC_ARRAY(res);
     }
 
+    NATIVE_FUNCTION(string_append) {
+        EXPECT_NUM_ARGS(2);
+
+        CONVERT_RECV_TO(String, self);
+        CONVERT_ARG_TO(1, String, str);
+
+        self->get_value().append(str->get_value());
+
+        return self;
+    }
+
 } // namespace natives
 } // namespace emerald

@@ -210,15 +210,6 @@ namespace emerald {
                 }
                 break;
             }
-            case OpCode::has_prop: {
-                Object* obj = current_frame.pop_ds();
-                Object* key = current_frame.pop_ds();
-                if (instr.get_args()[0]) {
-                    current_frame.push_ds(obj);
-                }
-                current_frame.push_ds(BOOLEAN(obj->has_property(key->as_str())));
-                break;
-            }
             case OpCode::set_prop: {
                 Object* obj = current_frame.pop_ds();
                 Object* key = current_frame.pop_ds();
@@ -300,7 +291,7 @@ namespace emerald {
 
         context.get_stack().push_frame(entry_module->get_code(), entry_module);
 
-        return execute(&context);
+        return execute(&context);    
     }
 
     Module* Interpreter::import_module(const std::string& name, ExecutionContext* context) {

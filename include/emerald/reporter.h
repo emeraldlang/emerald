@@ -33,7 +33,9 @@
     X(non_default_arg_after_default_arg, "non default args cannot appear after default args", Severity::error)  \
     X(illegal_return, "return statement not in function", Severity::error)                                      \
     X(undeclared_variable, "'{0}' has not been declared in this scope", Severity::error)                        \
-    X(invalid_lvalue, "invalid lvalue", Severity::error)
+    X(invalid_lvalue, "invalid lvalue", Severity::error)                                                        \
+    X(illegal_break, "illegal break", Severity::error)                                                          \
+    X(illegal_continue, "illegal continue", Severity::error)
 
 namespace emerald {
 
