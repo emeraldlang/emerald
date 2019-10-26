@@ -117,7 +117,10 @@ namespace emerald {
         void write_null();
         void write_get_prop(bool push_self_back = false);
         void write_set_prop(bool push_self_back = false);
-        void write_get_parent();
+
+        void write_enter_try(size_t label);
+        void write_exit_try(size_t label);
+        void write_throw_exc();
 
         void write_ldgbl(const std::string& name);
         void write_stgbl(const std::string& name);

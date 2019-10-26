@@ -195,4 +195,25 @@ namespace emerald {
         _data_stack.push_back(val);
     }
 
+    void Stack::Frame::push_catch_ip(size_t ip) {
+        _catch_stack.push(ip);
+    }
+
+    void Stack::Frame::pop_catch_ip() {
+        CHECK_THROW_LOGIC_ERROR(!_catch_stack.empty(), "cannot pop an empty stack");
+
+        _catch_stack.pop();
+    }
+
+    bool Stack::Frame::has_catch_ip() {
+        return !_catch_stack.empty();
+    }
+
+    size_t Stack::Frame::get_catch_ip() {
+        CHECK_THROW_LOGIC_ERROR(!_catch_stack.empty(), "cannot pop an empty stack");
+
+        return _catch_stack.top();
+    }
+
+
 } // namespace emerald

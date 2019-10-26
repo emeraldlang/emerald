@@ -25,7 +25,8 @@
     X(core_extend)      \
     X(core_str)         \
     X(core_bool)        \
-    X(core_range)
+    X(core_range)       \
+    X(core_super)
 
 namespace emerald {
 namespace modules {

@@ -39,6 +39,8 @@ namespace emerald {
     X(DeclarationStatement)     \
     X(FunctionStatement)        \
     X(ObjectStatement)          \
+    X(TryCatchStatement)        \
+    X(ThrowStatement)           \
     X(ReturnStatement)          \
     X(ImportStatement)          \
     X(ExpressionStatement)
@@ -56,8 +58,7 @@ namespace emerald {
     X(NullLiteral)              \
     X(ArrayLiteral)             \
     X(ObjectLiteral)            \
-    X(CloneExpression)          \
-    X(SuperExpression)
+    X(CloneExpression)
 
 #define AST_NODES           \
     X(FunctionParameter)    \
@@ -281,6 +282,37 @@ namespace emerald {
         std::shared_ptr<StatementBlock> _block;
     };
 
+    class TryCatchStatement final : public Statement {
+    public:
+        TryCatchStatement(std::shared_ptr<SourcePosition> position, std::shared_ptr<StatementBlock> try_block,
+            const std::string& exception_identifier, std::shared_ptr<StatementBlock> catch_block)
+            : Statement(position, nTryCatchStatement),
+            _try_block(try_block),
+            _exception_identifier(exception_identifier),
+            _catch_block(catch_block) {}
+
+        const std::shared_ptr<StatementBlock> get_try_block() const { return _try_block; }
+        const std::string& get_exception_identifier() const { return _exception_identifier; }
+        const std::shared_ptr<StatementBlock> get_catch_block() const { return _catch_block; }
+
+    private:
+        std::shared_ptr<StatementBlock> _try_block;
+        std::string _exception_identifier;
+        std::shared_ptr<StatementBlock> _catch_block;
+    };
+
+    class ThrowStatement final : public Statement {
+    public:
+        ThrowStatement(std::shared_ptr<SourcePosition> position, std::shared_ptr<Expression> expression)
+            :  Statement(position, nThrowStatement),
+            _expression(expression) {}
+
+        const std::shared_ptr<Expression> get_expression() const { return _expression; }
+
+    private:
+        std::shared_ptr<Expression> _expression;
+    };
+
     class ReturnStatement final : public Statement {
     public:
         ReturnStatement(std::shared_ptr<SourcePosition> position, std::shared_ptr<Expression> expression)
@@ -496,18 +528,6 @@ namespace emerald {
     private:
         std::shared_ptr<LValueExpression> _parent;
         std::vector<std::shared_ptr<Expression>> _args;
-    };
-
-    class SuperExpression final : public Expression {
-    public:
-        SuperExpression(std::shared_ptr<SourcePosition> position, std::shared_ptr<Expression> object)
-            : Expression(position, nSuperExpression),
-            _object(object) {}
-
-        const std::shared_ptr<Expression>& get_object() const { return _object; }
-
-    private:
-        std::shared_ptr<Expression> _object;
     };
 
     class FunctionParameter final : public ASTNode {

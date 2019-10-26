@@ -77,7 +77,10 @@ namespace emerald {
     X(null, 0)                  \
     X(get_prop, 1)              \
     X(set_prop, 1)              \
-    X(get_parent, 0)            \
+    /* Exceptions */            \
+    X(enter_try, 1)             \
+    X(exit_try, 1)              \
+    X(throw_exc, 0)             \
     /* Loads & Stores */        \
     X(ldgbl, 1)                 \
     X(stgbl, 1)                 \

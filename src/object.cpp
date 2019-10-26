@@ -211,7 +211,7 @@ namespace emerald {
     }
 
     Exception::Exception(ExecutionContext* context, const std::string& message)
-        : Object(context),
+        : Object(context, context->get_native_objects().get_object_prototype()),
         _message(message) {}
 
     Exception::Exception(ExecutionContext* context, Object* parent, const std::string& message)
@@ -227,7 +227,7 @@ namespace emerald {
     }
 
     Function::Function(ExecutionContext* context, std::shared_ptr<const Code> code, Module* globals)
-        : Object(context),
+        : Object(context, context->get_native_objects().get_object_prototype()),
         _code(code),
         _globals(globals) {}
 
@@ -249,7 +249,7 @@ namespace emerald {
     }
 
     NativeFunction::NativeFunction(ExecutionContext* context, Callable callable)
-        : Object(context),
+        : Object(context, context->get_native_objects().get_object_prototype()),
         _callable(callable) {}
 
     NativeFunction::NativeFunction(ExecutionContext* context, Object* parent, Callable callable)

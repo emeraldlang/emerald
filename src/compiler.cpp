@@ -210,6 +210,25 @@ namespace emerald {
         write_st(object_statement->get_identifier());
     }
 
+    void Compiler::VisitTryCatchStatement(const std::shared_ptr<TryCatchStatement>& try_catch_statement) {
+        size_t start_catch = code()->create_label();
+        size_t end_catch = code()->create_label();
+
+        code()->write_enter_try(start_catch);
+        Visit(try_catch_statement->get_try_block());
+        code()->write_exit_try(end_catch);
+
+        code()->bind_label(start_catch);
+        write_st(try_catch_statement->get_exception_identifier());
+        Visit(try_catch_statement->get_catch_block());
+        code()->bind_label(end_catch);
+    }
+
+    void Compiler::VisitThrowStatement(const std::shared_ptr<ThrowStatement>& throw_statement) {
+        Visit(throw_statement->get_expression());
+        code()->write_throw_exc();
+    }
+
     void Compiler::VisitReturnStatement(const std::shared_ptr<ReturnStatement>& return_statement) {
         if (is_top_level()) {
             std::string msg = ReportCode::format_report(ReportCode::illegal_return);
@@ -459,11 +478,6 @@ namespace emerald {
         code()->write_new_obj(true, 0);
 
         code()->write_init(clone_expression->get_args().size());
-    }
-
-    void Compiler::VisitSuperExpression(const std::shared_ptr<SuperExpression>& super_expression) {
-        Visit(super_expression->get_object());
-        code()->write_get_parent();
     }
     
     void Compiler::VisitFunctionParameter(const std::shared_ptr<FunctionParameter>& function_parameter) {

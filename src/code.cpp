@@ -266,8 +266,16 @@ namespace emerald {
         WRITE_OP_WARGS(OpCode::set_prop, { push_self_back });
     }
 
-    void Code::write_get_parent() {
-        WRITE_OP(OpCode::get_parent);
+    void Code::write_enter_try(size_t label) {
+        WRITE_OP_WARGS(OpCode::enter_try, { get_label_offset(label) });
+    }
+
+    void Code::write_exit_try(size_t label) {
+        WRITE_OP_WARGS(OpCode::exit_try, { get_label_offset(label) });
+    }
+
+    void Code::write_throw_exc() {
+        WRITE_OP(OpCode::throw_exc);
     }
 
     void Code::write_ldgbl(const std::string& name) {

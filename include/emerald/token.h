@@ -38,13 +38,15 @@
     X(CONTINUE, "continue", 0)          \
     X(DEF, "def", 0)                    \
     X(RET, "return", 0)                 \
+    X(TRY, "try", 0)                    \
+    X(CATCH, "catch", 0)                \
+    X(THROW, "throw", 0)                \
     X(DO, "do", 0)                      \
     X(END, "end", 0)                    \
     X(PRINT, "print", 0)                \
     X(CLONE, "clone", 0)                \
     X(CLONES, "clones", 0)              \
     X(OBJECT, "object", 0)              \
-    X(SUPER, "super", 0)                \
     X(IMPORT, "import", 0)              \
     /* Seperators */                    \
     X(COLON, ":", 0)                    \

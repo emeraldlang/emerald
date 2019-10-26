@@ -59,6 +59,16 @@ namespace modules {
         return res;
     }
 
+    NATIVE_FUNCTION(core_super) {
+        EXPECT_NUM_ARGS(1);
+
+        if (Object* parent = args[0]->get_parent()) {
+            return parent;
+        }
+
+        return NONE;
+    }
+
     MODULE_INITIALIZATION_FUNC(init_core_module) {
         Module* module = context->get_heap().allocate<Module>(context, "core");
 
@@ -73,6 +83,7 @@ namespace modules {
         module->set_property("str", ALLOC_NATIVE_FUNCTION(core_str));
         module->set_property("bool", ALLOC_NATIVE_FUNCTION(core_bool));
         module->set_property("range", ALLOC_NATIVE_FUNCTION(core_range));
+        module->set_property("super", ALLOC_NATIVE_FUNCTION(core_super));
 
         return module;
     }

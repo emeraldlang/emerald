@@ -170,6 +170,29 @@ namespace emerald {
         end_indentation_block();
     }
 
+    void ASTPrinter::VisitTryCatchStatement(const std::shared_ptr<TryCatchStatement>& try_catch_statement) {
+        start_indentation_block("try");
+
+        Visit(try_catch_statement->get_try_block());
+
+        end_indentation_block();
+
+        start_indentation_block("catch");
+
+        _oss << indent() << "(" << try_catch_statement->get_exception_identifier();
+        Visit(try_catch_statement->get_catch_block());
+
+        end_indentation_block();
+    }
+
+    void ASTPrinter::VisitThrowStatement(const std::shared_ptr<ThrowStatement>& throw_statement) {
+        start_indentation_block("throw");
+
+        Visit(throw_statement->get_expression());
+
+        end_indentation_block();
+    }
+
     void ASTPrinter::VisitReturnStatement(const std::shared_ptr<ReturnStatement>& return_statement) {
         start_indentation_block("return");
 
@@ -303,12 +326,6 @@ namespace emerald {
             Visit(arg);
         }
 
-        end_indentation_block();
-    }
-    
-    void ASTPrinter::VisitSuperExpression(const std::shared_ptr<SuperExpression>& super_expression) {
-        start_indentation_block("super");
-        Visit(super_expression->get_object());
         end_indentation_block();
     }
 

@@ -18,6 +18,8 @@
 #ifndef _EMERALD_OBJECTUTILS_H
 #define _EMERALD_OBJECTUTILS_H
 
+#include "fmt/format.h"
+
 #include "emerald/execution_context.h"
 #include "emerald/interpreter.h"
 #include "emerald/magic_methods.h"
@@ -29,7 +31,10 @@
     do {                                                        \
         if (args.size() op count) {                             \
             throw context->get_heap().allocate<Exception>(      \
-                context, "");                                   \
+                context, fmt::format(                           \
+                    "expected {0} args, got {1}",               \
+                    count,                                      \
+                    args.size()));                              \
         }                                                       \
     } while (false)
 

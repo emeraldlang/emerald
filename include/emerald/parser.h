@@ -46,7 +46,7 @@ namespace emerald {
         std::vector<std::shared_ptr<Statement>> parse();
     
         std::shared_ptr<Statement> parse_statement();
-        std::shared_ptr<StatementBlock> parse_statement_block(std::initializer_list<Token::Type> end_tokens);
+        std::shared_ptr<StatementBlock> parse_statement_block(std::vector<Token::Type> end_tokens);
         std::shared_ptr<DoStatement> parse_do_statement();
         std::shared_ptr<ForStatement> parse_for_statement();
         std::shared_ptr<WhileStatement> parse_while_statement();
@@ -55,6 +55,8 @@ namespace emerald {
         std::shared_ptr<DeclarationStatement> parse_declaration_statement();
         std::shared_ptr<FunctionStatement> parse_function_statement();
         std::shared_ptr<ObjectStatement> parse_object_statement();
+        std::shared_ptr<TryCatchStatement> parse_try_catch_statement();
+        std::shared_ptr<ThrowStatement> parse_throw_statement();
         std::shared_ptr<ReturnStatement> parse_return_statement();
         std::shared_ptr<ImportStatement> parse_import_statement();
         std::shared_ptr<ExpressionStatement> parse_expression_statement();

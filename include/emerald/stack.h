@@ -21,6 +21,7 @@
 #include <cstdint>
 #include <deque>
 #include <memory>
+#include <stack>
 #include <vector>
 
 #include "emerald/code.h"
@@ -79,6 +80,11 @@ namespace emerald {
             std::vector<Object*> pop_n_ds(size_t n);
             void push_ds(Object* val);
 
+            void push_catch_ip(size_t ip);
+            void pop_catch_ip();
+            bool has_catch_ip();
+            size_t get_catch_ip();
+
         private:
             std::shared_ptr<const Code> _code;
             size_t _ip;
@@ -86,6 +92,7 @@ namespace emerald {
             Module* _globals;
             std::unordered_map<std::string, Object*> _locals;
             std::deque<Object*> _data_stack;
+            std::stack<size_t> _catch_stack;
         };
 
         uint16_t max_size() const;

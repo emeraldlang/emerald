@@ -34,237 +34,253 @@ namespace emerald {
         Stack& stack = context->get_stack();
         Stack::Frame& current_frame = stack.peek();
         while (current_frame.has_instructions_left()) {
-            const Code::Instruction& instr = current_frame.get_next_instruction();
-            current_frame.increment_instruction_pointer();
+            try {
+                const Code::Instruction& instr = current_frame.get_next_instruction();
+                current_frame.increment_instruction_pointer();
 
-            switch (instr.get_op()) {
-            case OpCode::nop:
-                break;
-            case OpCode::jmp:
-                current_frame.set_instruction_pointer(instr.get_args()[0]);
-                break;
-            case OpCode::jmp_true:
-                if (call_method1(magic_methods::boolean, context)->as_bool()) {
-                    current_frame.set_instruction_pointer(instr.get_args()[0]);
+                switch (instr.get_op()) {
+                case OpCode::nop:
+                    break;
+                case OpCode::jmp:
+                    current_frame.set_instruction_pointer(instr.get_arg(0));
+                    break;
+                case OpCode::jmp_true:
+                    if (call_method1(magic_methods::boolean, context)->as_bool()) {
+                        current_frame.set_instruction_pointer(instr.get_arg(0));
+                    }
+                    break;
+                case OpCode::jmp_false:
+                    if (!call_method1(magic_methods::boolean, context)->as_bool()) {
+                        current_frame.set_instruction_pointer(instr.get_arg(0));
+                    }
+                    break;
+                case OpCode::jmp_data:
+                    if (current_frame.get_data_stack().size()) {
+                        current_frame.set_instruction_pointer(instr.get_arg(0));
+                    }
+                    break;
+                case OpCode::neg:
+                    current_frame.push_ds(call_method1(magic_methods::neg, context));
+                    break;
+                case OpCode::log_neg:
+                    current_frame.push_ds(BOOLEAN(!call_method1(magic_methods::boolean, context)->as_bool()));
+                    break;
+                case OpCode::add:
+                    current_frame.push_ds(call_method2(magic_methods::add, context));
+                    break;
+                case OpCode::sub:
+                    current_frame.push_ds(call_method2(magic_methods::sub, context));  
+                    break;
+                case OpCode::mul:
+                    current_frame.push_ds(call_method2(magic_methods::mul, context));
+                    break;
+                case OpCode::div:
+                    current_frame.push_ds(call_method2(magic_methods::div, context));
+                    break;
+                case OpCode::mod:
+                    current_frame.push_ds(call_method2(magic_methods::mod, context));
+                    break;
+                case OpCode::iadd:
+                    current_frame.push_ds(call_method2(magic_methods::iadd, context));
+                    break;
+                case OpCode::isub:
+                    current_frame.push_ds(call_method2(magic_methods::isub, context));
+                    break;
+                case OpCode::imul:
+                    current_frame.push_ds(call_method2(magic_methods::imul, context));
+                    break;
+                case OpCode::idiv:
+                    current_frame.push_ds(call_method2(magic_methods::idiv, context));
+                    break;
+                case OpCode::imod:
+                    current_frame.push_ds(call_method2(magic_methods::imod, context));
+                    break;
+                case OpCode::eq:
+                    current_frame.push_ds(call_method2(magic_methods::eq, context));
+                    break;
+                case OpCode::neq:
+                    current_frame.push_ds(call_method2(magic_methods::neq, context));
+                    break;
+                case OpCode::lt:
+                    current_frame.push_ds(call_method2(magic_methods::lt, context));
+                    break;
+                case OpCode::gt:
+                    current_frame.push_ds(call_method2(magic_methods::gt, context));
+                    break;
+                case OpCode::lte:
+                    current_frame.push_ds(call_method2(magic_methods::lte, context));
+                    break;
+                case OpCode::gte:
+                    current_frame.push_ds(call_method2(magic_methods::gte, context));
+                    break;
+                case OpCode::bit_not:
+                    current_frame.push_ds(call_method1(magic_methods::bit_not, context));
+                    break;
+                case OpCode::bit_or:
+                    current_frame.push_ds(call_method2(magic_methods::bit_or, context));
+                    break;
+                case OpCode::bit_xor:
+                    current_frame.push_ds(call_method2(magic_methods::bit_xor, context));
+                    break;
+                case OpCode::bit_and:
+                    current_frame.push_ds(call_method2(magic_methods::bit_and, context));
+                    break;
+                case OpCode::bit_shl:
+                    current_frame.push_ds(call_method2(magic_methods::bit_shl, context));
+                    break;
+                case OpCode::bit_shr:
+                    current_frame.push_ds(call_method2(magic_methods::bit_shr, context));
+                    break;
+                case OpCode::str:
+                    current_frame.push_ds(call_method1(magic_methods::str, context));
+                    break;
+                case OpCode::boolean:
+                    current_frame.push_ds(call_method1(magic_methods::boolean, context));
+                    break;
+                case OpCode::call: {
+                    Object* obj = current_frame.pop_ds();
+                    std::vector<Object*> args = current_frame.pop_n_ds(instr.get_arg(0));
+                    current_frame.push_ds(call_obj(obj, args, context));
+                    break;
                 }
-                break;
-            case OpCode::jmp_false:
-                if (!call_method1(magic_methods::boolean, context)->as_bool()) {
-                    current_frame.set_instruction_pointer(instr.get_args()[0]);
+                case OpCode::ret: {
+                    Object* ret = current_frame.pop_ds();
+                    stack.pop_frame();
+                    return ret;
                 }
-                break;
-            case OpCode::jmp_data:
-                if (current_frame.get_data_stack().size()) {
-                    current_frame.set_instruction_pointer(instr.get_args()[0]);
+                case OpCode::new_obj:
+                    current_frame.push_ds(new_obj(instr.get_arg(0), instr.get_arg(1), context));
+                    break;
+                case OpCode::init: {
+                    Object* self = current_frame.peek_ds();
+                    call_method(magic_methods::init, instr.get_arg(0), context);
+                    current_frame.push_ds(self);
+                    break;
                 }
-                break;
-            case OpCode::neg:
-                current_frame.push_ds(call_method1(magic_methods::neg, context));
-                break;
-            case OpCode::log_neg:
-                current_frame.push_ds(BOOLEAN(!call_method1(magic_methods::boolean, context)->as_bool()));
-                break;
-            case OpCode::add:
-                current_frame.push_ds(call_method2(magic_methods::add, context));
-                break;
-            case OpCode::sub:
-                current_frame.push_ds(call_method2(magic_methods::sub, context));  
-                break;
-            case OpCode::mul:
-                current_frame.push_ds(call_method2(magic_methods::mul, context));
-                break;
-            case OpCode::div:
-                current_frame.push_ds(call_method2(magic_methods::div, context));
-                break;
-            case OpCode::mod:
-                current_frame.push_ds(call_method2(magic_methods::mod, context));
-                break;
-            case OpCode::iadd:
-                current_frame.push_ds(call_method2(magic_methods::iadd, context));
-                break;
-            case OpCode::isub:
-                current_frame.push_ds(call_method2(magic_methods::isub, context));
-                break;
-            case OpCode::imul:
-                current_frame.push_ds(call_method2(magic_methods::imul, context));
-                break;
-            case OpCode::idiv:
-                current_frame.push_ds(call_method2(magic_methods::idiv, context));
-                break;
-            case OpCode::imod:
-                current_frame.push_ds(call_method2(magic_methods::imod, context));
-                break;
-            case OpCode::eq:
-                current_frame.push_ds(call_method2(magic_methods::eq, context));
-                break;
-            case OpCode::neq:
-                current_frame.push_ds(call_method2(magic_methods::neq, context));
-                break;
-            case OpCode::lt:
-                current_frame.push_ds(call_method2(magic_methods::lt, context));
-                break;
-            case OpCode::gt:
-                current_frame.push_ds(call_method2(magic_methods::gt, context));
-                break;
-            case OpCode::lte:
-                current_frame.push_ds(call_method2(magic_methods::lte, context));
-                break;
-            case OpCode::gte:
-                current_frame.push_ds(call_method2(magic_methods::gte, context));
-                break;
-            case OpCode::bit_not:
-                current_frame.push_ds(call_method1(magic_methods::bit_not, context));
-                break;
-            case OpCode::bit_or:
-                current_frame.push_ds(call_method2(magic_methods::bit_or, context));
-                break;
-            case OpCode::bit_xor:
-                current_frame.push_ds(call_method2(magic_methods::bit_xor, context));
-                break;
-            case OpCode::bit_and:
-                current_frame.push_ds(call_method2(magic_methods::bit_and, context));
-                break;
-            case OpCode::bit_shl:
-                current_frame.push_ds(call_method2(magic_methods::bit_shl, context));
-                break;
-            case OpCode::bit_shr:
-                current_frame.push_ds(call_method2(magic_methods::bit_shr, context));
-                break;
-            case OpCode::str:
-                current_frame.push_ds(call_method1(magic_methods::str, context));
-                break;
-            case OpCode::boolean:
-                current_frame.push_ds(call_method1(magic_methods::boolean, context));
-                break;
-            case OpCode::call: {
-                Object* obj = current_frame.pop_ds();
-                std::vector<Object*> args = current_frame.pop_n_ds(instr.get_args()[0]);
-                current_frame.push_ds(call_obj(obj, args, context));
-                break;
-            }
-            case OpCode::ret: {
-                Object* ret = current_frame.pop_ds();
-                stack.pop_frame();
-                return ret;
-            }
-            case OpCode::new_obj: {
-                const std::vector<uint64_t>& args = instr.get_args();
-                current_frame.push_ds(new_obj(args[0], args[1], context));
-                break;
-            }
-            case OpCode::init: {
-                Object* self = current_frame.peek_ds();
-                call_method(magic_methods::init, instr.get_args()[0], context);
-                current_frame.push_ds(self);
-                break;
-            }
-            case OpCode::new_func: {
-                std::shared_ptr<const Code> code = current_frame.get_code()->get_func(instr.get_args()[0]);
-                Function* func = context->get_heap().allocate<Function>(
-                    context,
-                    code,
-                    current_frame.get_globals());
-                current_frame.push_ds(func);
-                break;
-            }
-            case OpCode::new_num: {
-                double value = current_frame.get_code()->get_num_constant(instr.get_args()[0]);
-                Number* num = ALLOC_NUMBER(value);
-                current_frame.push_ds(num);
-                break;
-            }
-            case OpCode::new_str: {
-                const std::string& value = current_frame.get_code()->get_str_constant(instr.get_args()[0]);
-                String* str = ALLOC_STRING(value);
-                current_frame.push_ds(str);
-                break;
-            }
-            case OpCode::new_boolean: {
-                bool value = instr.get_args()[0];
-                Boolean* boolean = BOOLEAN(value);
-                current_frame.push_ds(boolean);
-                break;
-            }
-            case OpCode::new_arr: {
-                Array* array = ALLOC_EMPTY_ARRAY();
-                for (size_t i = 0; i < instr.get_args()[0]; i++) {
-                    array->push(current_frame.pop_ds());
+                case OpCode::new_func: {
+                    std::shared_ptr<const Code> code = current_frame.get_code()->get_func(instr.get_arg(0));
+                    Function* func = context->get_heap().allocate<Function>(
+                        context,
+                        code,
+                        current_frame.get_globals());
+                    current_frame.push_ds(func);
+                    break;
                 }
-                current_frame.push_ds(array);
-                break;
-            }
-            case OpCode::null: {
-                current_frame.push_ds(context->get_native_objects().get_null());
-                break;
-            }
-            case OpCode::get_prop: {
-                Object* obj = current_frame.pop_ds();
-                Object* key = current_frame.pop_ds();
-                if (Object* val = obj->get_property(key->as_str())) {
-                    if (instr.get_args()[0]) {
+                case OpCode::new_num: {
+                    double value = current_frame.get_code()->get_num_constant(instr.get_arg(0));
+                    Number* num = ALLOC_NUMBER(value);
+                    current_frame.push_ds(num);
+                    break;
+                }
+                case OpCode::new_str: {
+                    const std::string& value = current_frame.get_code()->get_str_constant(instr.get_arg(0));
+                    String* str = ALLOC_STRING(value);
+                    current_frame.push_ds(str);
+                    break;
+                }
+                case OpCode::new_boolean: {
+                    bool value = instr.get_arg(0);
+                    Boolean* boolean = BOOLEAN(value);
+                    current_frame.push_ds(boolean);
+                    break;
+                }
+                case OpCode::new_arr: {
+                    Array* array = ALLOC_EMPTY_ARRAY();
+                    for (size_t i = 0; i < instr.get_arg(0); i++) {
+                        array->push(current_frame.pop_ds());
+                    }
+                    current_frame.push_ds(array);
+                    break;
+                }
+                case OpCode::null: {
+                    current_frame.push_ds(context->get_native_objects().get_null());
+                    break;
+                }
+                case OpCode::get_prop: {
+                    Object* obj = current_frame.pop_ds();
+                    Object* key = current_frame.pop_ds();
+                    if (Object* val = obj->get_property(key->as_str())) {
+                        if (instr.get_arg(0)) {
+                            current_frame.push_ds(obj);
+                        }
+                        current_frame.push_ds(val);
+                    } else {
+                        throw context->get_heap().allocate<Exception>(context, fmt::format("no such property: {0}", key->as_str()));
+                    }
+                    break;
+                }
+                case OpCode::set_prop: {
+                    Object* obj = current_frame.pop_ds();
+                    Object* key = current_frame.pop_ds();
+                    Object* val = current_frame.pop_ds();
+                    if (instr.get_arg(0)) {
                         current_frame.push_ds(obj);
                     }
-                    current_frame.push_ds(val);
-                } else {
-                    throw context->get_heap().allocate<Exception>(context, fmt::format("no such property: {0}", key->as_str()));
+                    if (!obj->set_property(key->as_str(), val)) {
+                        throw context->get_heap().allocate<Exception>(
+                            context,
+                            fmt::format("could not set property: {0} of {1}", key->as_str(), obj->as_str()));
+                    }
+                    break;
                 }
-                break;
-            }
-            case OpCode::set_prop: {
-                Object* obj = current_frame.pop_ds();
-                Object* key = current_frame.pop_ds();
-                Object* val = current_frame.pop_ds();
-                if (instr.get_args()[0]) {
-                    current_frame.push_ds(obj);
+                case OpCode::enter_try:
+                    current_frame.push_catch_ip(instr.get_arg(0));
+                    break;
+                case OpCode::exit_try:
+                    current_frame.pop_catch_ip();
+                    current_frame.set_instruction_pointer(instr.get_arg(0));
+                    break;
+                case OpCode::throw_exc:
+                    throw current_frame.pop_ds();
+                case OpCode::ldgbl: {
+                    const std::string& name = current_frame.get_code()->get_global_name(
+                        instr.get_arg(0));
+                    Object* global = current_frame.get_global(name);
+                    if (global == nullptr) global = NONE;
+                    current_frame.push_ds(global);
+                    break;
                 }
-                if (!obj->set_property(key->as_str(), val)) {
-                    throw context->get_heap().allocate<Exception>(
-                        context,
-                        fmt::format("could not set property: {0} of {1}", key->as_str(), obj->as_str()));
+                case OpCode::stgbl: {
+                    const std::string& name = current_frame.get_code()->get_global_name(
+                        instr.get_arg(0));
+                    Object* val = current_frame.pop_ds();
+                    current_frame.set_global(name, val);
+                    break;
                 }
-                break;
-            }
-            case OpCode::get_parent: {
-                Object* obj = current_frame.pop_ds();
-                current_frame.push_ds(obj->get_parent());
-                break;
-            }
-            case OpCode::ldgbl: {
-                const std::string& name = current_frame.get_code()->get_global_name(
-                    instr.get_args()[0]);
-                current_frame.push_ds(current_frame.get_global(name));
-                break;
-            }
-            case OpCode::stgbl: {
-                const std::string& name = current_frame.get_code()->get_global_name(
-                    instr.get_args()[0]);
-                Object* val = current_frame.pop_ds();
-                current_frame.set_global(name, val);
-                break;
-            }
-            case OpCode::ldloc: {
-                const std::string& name = current_frame.get_code()->get_local_name(
-                    instr.get_args()[0]);
-                current_frame.push_ds(current_frame.get_local(name));
-                break;
-            }
-            case OpCode::stloc: {
-                const std::string& name = current_frame.get_code()->get_local_name(
-                    instr.get_args()[0]);
-                current_frame.set_local(name, current_frame.pop_ds());
-                break;
-            }
-            case OpCode::print:
-                std::cout << call_method1(magic_methods::str, context)->as_str() << std::endl;
-                break;
-            case OpCode::import: {
-                const std::string& name = current_frame.get_code()->get_import_name(
-                    instr.get_args()[0]);
-                current_frame.push_ds(import_module(name, context));
-                break;
-            }
-            default:
-                break;
+                case OpCode::ldloc: {
+                    const std::string& name = current_frame.get_code()->get_local_name(
+                        instr.get_arg(0));
+                    Object* local = current_frame.get_local(name);
+                    if (local == nullptr) local = NONE;
+                    current_frame.push_ds(local);
+                    break;
+                }
+                case OpCode::stloc: {
+                    const std::string& name = current_frame.get_code()->get_local_name(
+                        instr.get_arg(0));
+                    current_frame.set_local(name, current_frame.pop_ds());
+                    break;
+                }
+                case OpCode::print:
+                    std::cout << call_method1(magic_methods::str, context)->as_str() << std::endl;
+                    break;
+                case OpCode::import: {
+                    const std::string& name = current_frame.get_code()->get_import_name(
+                        instr.get_arg(0));
+                    current_frame.push_ds(import_module(name, context));
+                    break;
+                }
+                default:
+                    break;
+                }
+            } catch (Object* exc) {
+                if (!current_frame.has_catch_ip()) {
+                    throw;
+                }
+
+                current_frame.set_instruction_pointer(current_frame.get_catch_ip());
+                current_frame.pop_catch_ip();
+                current_frame.push_ds(exc);
             }
         }
 

@@ -70,6 +70,10 @@ namespace emerald {
             return parse_function_statement();
         case Token::OBJECT:
             return parse_object_statement();
+        case Token::TRY:
+            return parse_try_catch_statement();
+        case Token::THROW:
+            return parse_throw_statement();
         case Token::RET:
             return parse_return_statement();
         case Token::IMPORT:
@@ -79,7 +83,7 @@ namespace emerald {
         }
     }
 
-    std::shared_ptr<StatementBlock> Parser::parse_statement_block(std::initializer_list<Token::Type> end_tokens) {
+    std::shared_ptr<StatementBlock> Parser::parse_statement_block(std::vector<Token::Type> end_tokens) {
         std::shared_ptr<SourcePosition> start = start_pos();
 
         std::vector<std::shared_ptr<Statement>> statements;
@@ -255,6 +259,32 @@ namespace emerald {
         expect(Token::END);
 
         return std::make_shared<ObjectStatement>(end_pos(start), identifier, parent, block);
+    }
+
+    std::shared_ptr<TryCatchStatement> Parser::parse_try_catch_statement() {
+        expect(Token::TRY);
+
+        std::shared_ptr<SourcePosition> start = start_pos();
+
+        std::shared_ptr<StatementBlock> try_block = parse_statement_block({ Token::CATCH });
+        expect(Token::CATCH);
+
+        expect(Token::IDENTIFIER);
+        std::string exception_identifier = _scanner.current()->get_lexeme();
+
+        std::shared_ptr<StatementBlock> catch_block = parse_statement_block({ Token::END });
+        expect(Token::END);
+
+        return std::make_shared<TryCatchStatement>(end_pos(start), try_block, exception_identifier, catch_block);
+    }
+
+    std::shared_ptr<ThrowStatement> Parser::parse_throw_statement() {
+        expect(Token::THROW);
+
+        std::shared_ptr<SourcePosition> start = start_pos();
+
+        std::shared_ptr<Expression> expression = parse_expression();
+        return std::make_shared<ThrowStatement>(end_pos(start), expression);
     }
 
     std::shared_ptr<ReturnStatement> Parser::parse_return_statement() {
@@ -455,15 +485,6 @@ namespace emerald {
             }
 
             return std::make_shared<CloneExpression>(end_pos(start), parent, args);
-        }
-        case Token::SUPER: {
-            std::shared_ptr<SourcePosition> start = start_pos();
-
-            expect(Token::LPAREN);
-            std::shared_ptr<Expression> object = parse_trailer();
-            expect(Token::RPAREN);
-
-            return std::make_shared<SuperExpression>(end_pos(start), object);
         }
         default:
             report_unexpected_token(token);
