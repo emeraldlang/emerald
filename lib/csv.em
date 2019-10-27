@@ -9,14 +9,14 @@ let _default_config = {
 
 object CsvReader
 
-    def __init__ : self, stream, config = {}
+    def __init__ : stream, config = {}
         self.stream = stream
         self.config = core.extend({}, _default_config, config)
         self.headers = None
         self.records = []
     end
 
-    def read : self
+    def read
         if self.config.has_header &&
                 self.headers != None then
             self.headers = self.stream
@@ -44,7 +44,7 @@ object CsvReader
         return res
     end
 
-    def __str__ : self
+    def __str__
         return '<csv_reader>'
     end
 
@@ -53,22 +53,22 @@ end
 
 object CsvWriter
 
-    def __init__ : self, stream, config = {}
+    def __init__ : stream, config = {}
         self.stream = stream
         self.config = core.extend({}, _default_config, config)
         self.headers = None
         self.records = []
     end
 
-    def write_headers : self, headers
+    def write_headers : headers
         self.headers = headers
     end
 
-    def write : self, record
+    def write : record
         self.records.push(record)
     end
 
-    def flush : self
+    def flush
         let buffer = ''
         if self.headers != None then
             for let i = 0 to self.records.size() do
@@ -92,7 +92,7 @@ object CsvWriter
         self.records.clear()
     end
 
-    def __str__ : self
+    def __str__
         return '<csv_writer>'
     end
 

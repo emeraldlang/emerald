@@ -31,6 +31,7 @@ namespace emerald {
     X(StatementBlock)           \
     X(DoStatement)              \
     X(ForStatement)             \
+    X(ForInStatement)           \
     X(WhileStatement)           \
     X(BreakStatement)           \
     X(ContinueStatement)        \
@@ -58,7 +59,8 @@ namespace emerald {
     X(NullLiteral)              \
     X(ArrayLiteral)             \
     X(ObjectLiteral)            \
-    X(CloneExpression)
+    X(CloneExpression)          \
+    X(SelfExpression)
 
 #define AST_NODES           \
     X(FunctionParameter)    \
@@ -166,6 +168,25 @@ namespace emerald {
         std::shared_ptr<Expression> _to;
         bool _increments;
         std::shared_ptr<Expression> _by;
+        std::shared_ptr<StatementBlock> _block;
+    };
+
+    class ForInStatement final : public Statement {
+    public:
+        ForInStatement(std::shared_ptr<SourcePosition> position, const std::string& identifier,
+            std::shared_ptr<Expression> iterable, std::shared_ptr<StatementBlock> block)
+            : Statement(position, nForInStatement),
+            _identifier(identifier),
+            _iterable(iterable),
+            _block(block) {}
+
+        const std::string& get_identifier() const { return _identifier; }
+        const std::shared_ptr<Expression>& get_iterable() const { return _iterable; }
+        const std::shared_ptr<StatementBlock>& get_block() const { return _block; }
+
+    private:
+        std::string _identifier;
+        std::shared_ptr<Expression> _iterable;
         std::shared_ptr<StatementBlock> _block;
     };
 
@@ -528,6 +549,12 @@ namespace emerald {
     private:
         std::shared_ptr<LValueExpression> _parent;
         std::vector<std::shared_ptr<Expression>> _args;
+    };
+
+    class SelfExpression final : public Expression {
+    public:
+        SelfExpression(std::shared_ptr<SourcePosition> position)
+            : Expression(position, nSelfExpression) {}
     };
 
     class FunctionParameter final : public ASTNode {

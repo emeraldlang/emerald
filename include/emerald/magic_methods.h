@@ -53,6 +53,11 @@ namespace magic_methods {
     /* Casts */                 \
     X(str)                      \
     X(boolean)                  \
+    /* Iterators */             \
+    X(iter)                     \
+    X(cur)                      \
+    X(done)                     \
+    X(next)                     \
     /* Other */                 \
     X(call)                     \
     X(clone)                    \

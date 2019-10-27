@@ -23,31 +23,31 @@ namespace emerald {
 namespace natives {
 
     NATIVE_FUNCTION(object_eq) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
-        return BOOLEAN(args[0] == args[1]);
+        return BOOLEAN(receiver == args[0]);
     }
 
     NATIVE_FUNCTION(object_neq) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
-        return BOOLEAN(args[0] != args[1]);
+        return BOOLEAN(receiver != args[1]);
     }
 
     NATIVE_FUNCTION(object_str) {
-        EXPECT_NUM_ARGS(1);
+        EXPECT_NUM_ARGS(0);
 
-        return ALLOC_STRING(args[0]->as_str());
+        return ALLOC_STRING(receiver->as_str());
     }
 
     NATIVE_FUNCTION(object_boolean) {
-        EXPECT_NUM_ARGS(1);
+        EXPECT_NUM_ARGS(0);
 
-        return BOOLEAN(args[0]->as_bool());
+        return BOOLEAN(receiver->as_bool());
     }
 
     NATIVE_FUNCTION(object_clone) {
-        EXPECT_NUM_ARGS(1);
+        EXPECT_NUM_ARGS(0);
 
         CONVERT_RECV_TO(Object, self);
 
@@ -59,10 +59,10 @@ namespace natives {
     }
 
     NATIVE_FUNCTION(object_keys) {
-        EXPECT_NUM_ARGS(1);
+        EXPECT_NUM_ARGS(0);
 
         Array* keys = ALLOC_EMPTY_ARRAY();
-        for (const auto& pair : args[0]->get_properties()) {
+        for (const auto& pair : receiver->get_properties()) {
             keys->push(ALLOC_STRING(pair.first));
         }
 
@@ -70,22 +70,22 @@ namespace natives {
     }
 
     NATIVE_FUNCTION(object_get_prop) {
-        EXPECT_NUM_ARGS(3);
+        EXPECT_NUM_ARGS(2);
 
-        TRY_CONVERT_ARG_TO(1, String, name);
+        TRY_CONVERT_ARG_TO(0, String, name);
 
-        if (Object* property = args[0]->get_property(name->as_str())) {
+        if (Object* property = receiver->get_property(name->get_value())) {
             return property;
         }
 
-        return args[2];
+        return args[1];
     }
 
     NATIVE_FUNCTION(object_set_prop) {
-        EXPECT_NUM_ARGS(3);
+        EXPECT_NUM_ARGS(2);
 
-        TRY_CONVERT_ARG_TO(1, String, name);
-        args[0]->set_property(name->as_str(), args[2]);
+        TRY_CONVERT_ARG_TO(0, String, name);
+        receiver->set_property(name->get_value(), args[1]);
 
         return NONE;
     }

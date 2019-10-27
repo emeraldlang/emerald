@@ -16,6 +16,7 @@
 */
 
 #include <algorithm>
+#include <iostream>
 
 #include "fmt/format.h"
 
@@ -108,6 +109,8 @@ namespace emerald {
     }
 
     void Object::reach() {
+        _parent->mark();
+
         for (std::pair<std::string, Object*> pair : get_properties()) {
             pair.second->mark();
         }
@@ -190,6 +193,50 @@ namespace emerald {
         return !(*this == other);
     }
 
+    void Array::reach() {
+        Object::reach();
+
+        for (Object* obj : _value) {
+            obj->mark();
+        }
+    }
+
+    Array::Iterator::Iterator(ExecutionContext* context)
+        : Object(context, context->get_native_objects().get_array_iterator_prototype()),
+        _i(0) {}
+
+    Array::Iterator::Iterator(ExecutionContext* context, Object* parent)
+        : Object(context, parent),
+        _i(0) {}
+
+    std::string Array::Iterator::as_str() const {
+        return "<array_iterator>";
+    }
+
+    void Array::Iterator::init(Array* arr) {
+        _arr = arr;
+    }
+
+    Object* Array::Iterator::cur() const {
+        return _arr->at(_i);
+    }
+
+    bool Array::Iterator::done() const {
+        return _i == _arr->size();
+    }
+
+    Object* Array::Iterator::next() {
+        if (_i == _arr->size()) {
+            return _arr->back();
+        }
+
+        return _arr->at(++_i);
+    }
+
+    void Array::Iterator::reach() {
+        _arr->mark();
+    }
+
     Boolean::Boolean(ExecutionContext* context, bool value)
         : Object(context, context->get_native_objects().get_boolean_prototype()),
         _value(value) {}
@@ -248,6 +295,10 @@ namespace emerald {
         return _globals;
     }
 
+    void Function::reach() {
+        _globals->mark();
+    }
+
     NativeFunction::NativeFunction(ExecutionContext* context, Callable callable)
         : Object(context, context->get_native_objects().get_object_prototype()),
         _callable(callable) {}
@@ -263,12 +314,12 @@ namespace emerald {
         return _callable;
     }
 
-    Object* NativeFunction::invoke(const std::vector<Object*>& args, ExecutionContext* context) {
-        return _callable(args, context);
+    Object* NativeFunction::invoke(Object* receiver, const std::vector<Object*>& args, ExecutionContext* context) {
+        return _callable(receiver, args, context);
     }
 
-    Object* NativeFunction::operator()(const std::vector<Object*>& args, ExecutionContext* context) {
-        return _callable(args, context);
+    Object* NativeFunction::operator()(Object* receiver, const std::vector<Object*>& args, ExecutionContext* context) {
+        return _callable(receiver, args, context);
     }
 
     Null::Null(ExecutionContext* context)

@@ -56,8 +56,8 @@ namespace emerald {
         return true;
     }
 
-    void Stack::push_frame(std::shared_ptr<const Code> code, Module* globals) {
-        _stack.emplace_back(code, globals);
+    void Stack::push_frame(Object* receiver, std::shared_ptr<const Code> code, Module* globals) {
+        _stack.emplace_back(receiver, code, globals);
     }
 
     const Module* Stack::peek_globals() const {
@@ -75,11 +75,12 @@ namespace emerald {
     std::vector<HeapManaged*> Stack::get_roots() {
         std::vector<HeapManaged*> roots;
         for (Frame& frame : _stack) {
+            roots.push_back(frame.get_receiver());
+            roots.push_back(frame.get_globals());
+
             for (std::pair<std::string, Object*> local : frame.get_locals()) {
                 roots.push_back(local.second);
             }
-
-            roots.push_back(frame.get_globals());
 
             for (Object* obj : frame.get_data_stack()) {
                 roots.push_back(obj);
@@ -89,10 +90,15 @@ namespace emerald {
         return roots;
     }
 
-    Stack::Frame::Frame(std::shared_ptr<const Code> code, Module* globals)
-        : _code(code), 
+    Stack::Frame::Frame(Object* receiver, std::shared_ptr<const Code> code, Module* globals)
+        : _receiver(receiver), 
+        _code(code), 
         _ip(0),
         _globals(globals) {}
+
+    Object* Stack::Frame::get_receiver() const {
+        return _receiver;
+    }
 
     std::shared_ptr<const Code> Stack::Frame::get_code() const {
         return _code;

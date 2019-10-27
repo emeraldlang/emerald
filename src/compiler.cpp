@@ -72,13 +72,42 @@ namespace emerald {
             code()->write_new_num((for_statement->increments()) ? 1 : -1);
         }
 
-        write_fs_load_iter(for_statement);
+        write_fs_load(for_statement);
 
         code()->write_add();
         write_st(for_statement->get_init_statement()->get_identifier());
 
         write_fs_condition(for_statement);
         code()->write_jmp_true(beginning);
+
+        code()->bind_label(end);
+        _loop_stack.pop();
+    }
+
+    void Compiler::VisitForInStatement(const std::shared_ptr<ForInStatement>& for_in_statement) {
+        size_t condition = code()->create_label();
+        size_t beginning = code()->create_label();
+        size_t end = code()->create_label();
+        _loop_stack.emplace(condition, beginning, end);
+
+        Visit(for_in_statement->get_iterable());
+        code()->write_get_iter();
+
+        code()->write_iter_done();
+        code()->write_jmp_true(end);
+
+        code()->write_iter_cur();
+        write_st(for_in_statement->get_identifier());
+
+        code()->bind_label(beginning);
+
+        Visit(for_in_statement->get_block());
+
+        code()->write_iter_next();
+        write_st(for_in_statement->get_identifier());
+
+        code()->write_iter_done();
+        code()->write_jmp_false(beginning);
 
         code()->bind_label(end);
         _loop_stack.pop();
@@ -205,7 +234,7 @@ namespace emerald {
 
         pop_func();
 
-        code()->write_call(0);
+        code()->write_call(false, 0);
 
         write_st(object_statement->get_identifier());
     }
@@ -362,21 +391,19 @@ namespace emerald {
 
     void Compiler::VisitCallExpression(const std::shared_ptr<CallExpression>& call_expression) {
         const std::shared_ptr<Expression>& callee = call_expression->get_callee();
-        size_t num_args;
+        size_t num_args = call_expression->get_args().size();
 
         for (const std::shared_ptr<Expression>& arg : iterutils::reverse(call_expression->get_args())) {
             Visit(arg);
         }
 
         if (std::shared_ptr<Property> property = ASTNode::as<Property>(callee)) {
-            num_args = call_expression->get_args().size() + 1;
             VisitPropertyLoad(property, true);
+            code()->write_call(true, num_args);
         } else {
-            num_args = call_expression->get_args().size();
             Visit(callee);
+            code()->write_call(false, num_args);
         }
-
-        code()->write_call(num_args);
     }
 
     void Compiler::VisitProperty(const std::shared_ptr<Property>& property) {
@@ -479,7 +506,11 @@ namespace emerald {
 
         code()->write_init(clone_expression->get_args().size());
     }
-    
+
+    void Compiler::VisitSelfExpression(const std::shared_ptr<SelfExpression>&) {
+        code()->write_self();
+    }
+
     void Compiler::VisitFunctionParameter(const std::shared_ptr<FunctionParameter>& function_parameter) {
         size_t skip_default_eval = code()->create_label();
         code()->write_jmp_data(skip_default_eval);
@@ -516,7 +547,7 @@ namespace emerald {
         return code == _code;
     }
 
-    void Compiler::write_fs_load_iter(const std::shared_ptr<ForStatement>& for_statement) {
+    void Compiler::write_fs_load(const std::shared_ptr<ForStatement>& for_statement) {
         const std::string& name = for_statement->get_init_statement()->get_identifier();
         if (is_top_level()) {
             code()->write_ldgbl(name);
@@ -528,7 +559,7 @@ namespace emerald {
     void Compiler::write_fs_condition(const std::shared_ptr<ForStatement>& for_statement) {
         Visit(for_statement->get_to_expression());
 
-        write_fs_load_iter(for_statement);
+        write_fs_load(for_statement);
 
         if (for_statement->increments()) {
             code()->write_lt();

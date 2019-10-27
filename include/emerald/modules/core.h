@@ -26,7 +26,11 @@
     X(core_str)         \
     X(core_bool)        \
     X(core_range)       \
-    X(core_super)
+    X(core_super)       \
+    X(core_iter)        \
+    X(core_cur)         \
+    X(core_done)        \
+    X(core_next)
 
 namespace emerald {
 namespace modules {

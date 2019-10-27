@@ -33,6 +33,7 @@
     X(TO, "to", 0)                      \
     X(DOWNTO, "downto", 0)              \
     X(BY, "by", 0)                      \
+    X(IN, "in", 0)                      \
     X(WHILE, "while", 0)                \
     X(BREAK, "break", 0)                \
     X(CONTINUE, "continue", 0)          \
@@ -47,6 +48,7 @@
     X(CLONE, "clone", 0)                \
     X(CLONES, "clones", 0)              \
     X(OBJECT, "object", 0)              \
+    X(SELF, "self", 0)                  \
     X(IMPORT, "import", 0)              \
     /* Seperators */                    \
     X(COLON, ":", 0)                    \

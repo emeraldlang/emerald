@@ -34,6 +34,9 @@ namespace emerald {
         const Array* get_array_prototype() const;
         Array* get_array_prototype();
 
+        const Array::Iterator* get_array_iterator_prototype() const;
+        Array::Iterator* get_array_iterator_prototype();
+
         const Number* get_number_prototype() const;
         Number* get_number_prototype();
 
@@ -53,6 +56,7 @@ namespace emerald {
         Object* _object;
 
         Array* _array;
+        Array::Iterator* _array_iterator;
         Number* _number;
         String* _string;
 

@@ -14,7 +14,7 @@
 **  You should have received a copy of the GNU General Public License
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-
+#include <iostream>
 #include "emerald/modules/core.h"
 #include "emerald/execution_context.h"
 #include "emerald/interpreter.h"
@@ -40,11 +40,15 @@ namespace modules {
     }
 
     NATIVE_FUNCTION(core_str) {
-        return Interpreter::execute_method(magic_methods::str, args, context);
+        EXPECT_NUM_ARGS(1);
+
+        return Interpreter::execute_method(args[0], magic_methods::str, {}, context);
     }
 
     NATIVE_FUNCTION(core_bool) {
-        return Interpreter::execute_method(magic_methods::boolean, args, context);
+        EXPECT_NUM_ARGS(1);
+
+        return Interpreter::execute_method(args[0], magic_methods::boolean, {}, context);
     }
 
     NATIVE_FUNCTION(core_range) {
@@ -69,6 +73,30 @@ namespace modules {
         return NONE;
     }
 
+    NATIVE_FUNCTION(core_iter) {
+        EXPECT_NUM_ARGS(1);
+
+        return Interpreter::execute_method(args[0], magic_methods::iter, {}, context);
+    }
+
+    NATIVE_FUNCTION(core_cur) {
+        EXPECT_NUM_ARGS(1);
+
+        return Interpreter::execute_method(args[0], magic_methods::cur, {}, context);
+    }
+
+    NATIVE_FUNCTION(core_done) {
+        EXPECT_NUM_ARGS(1);
+
+        return Interpreter::execute_method(args[0], magic_methods::done, {}, context);
+    }
+
+    NATIVE_FUNCTION(core_next) {
+        EXPECT_NUM_ARGS(1);
+
+        return Interpreter::execute_method(args[0], magic_methods::next, {}, context);
+    }
+
     MODULE_INITIALIZATION_FUNC(init_core_module) {
         Module* module = context->get_heap().allocate<Module>(context, "core");
 
@@ -84,6 +112,10 @@ namespace modules {
         module->set_property("bool", ALLOC_NATIVE_FUNCTION(core_bool));
         module->set_property("range", ALLOC_NATIVE_FUNCTION(core_range));
         module->set_property("super", ALLOC_NATIVE_FUNCTION(core_super));
+        module->set_property("iter", ALLOC_NATIVE_FUNCTION(core_iter));
+        module->set_property("cur", ALLOC_NATIVE_FUNCTION(core_cur));
+        module->set_property("done", ALLOC_NATIVE_FUNCTION(core_done));
+        module->set_property("next", ALLOC_NATIVE_FUNCTION(core_next));
 
         return module;
     }

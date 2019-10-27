@@ -26,49 +26,70 @@ namespace emerald {
 namespace natives {
 
     NATIVE_FUNCTION(string_add) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
-        return ALLOC_STRING(args[0]->as_str() + args[1]->as_str());
+        CONVERT_RECV_TO(String, self);
+        CONVERT_ARG_TO(0, String, other);
+
+        return ALLOC_STRING(self->get_value() + other->get_value());
     }
 
     NATIVE_FUNCTION(string_eq) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
-        return BOOLEAN(args[0]->as_str() == args[1]->as_str());
+        CONVERT_RECV_TO(String, self);
+        CONVERT_ARG_TO(0, String, other);
+
+        return BOOLEAN(self->get_value() == other->get_value());
     }
 
     NATIVE_FUNCTION(string_neq) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
-        return BOOLEAN(args[0]->as_str() != args[1]->as_str());
+        CONVERT_RECV_TO(String, self);
+        CONVERT_ARG_TO(0, String, other);
+
+        return BOOLEAN(self->get_value() != other->get_value());
     }
 
     NATIVE_FUNCTION(string_lt) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
-        return BOOLEAN(args[0]->as_str() < args[1]->as_str());
+        CONVERT_RECV_TO(String, self);
+        CONVERT_ARG_TO(0, String, other);
+
+        return BOOLEAN(self->get_value() < other->get_value());
     }
 
     NATIVE_FUNCTION(string_gt) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
-        return BOOLEAN(args[0]->as_str() > args[1]->as_str());
+        CONVERT_RECV_TO(String, self);
+        CONVERT_ARG_TO(0, String, other);
+
+        return BOOLEAN(self->get_value() > other->get_value());
     }
 
     NATIVE_FUNCTION(string_lte) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
-        return BOOLEAN(args[0]->as_str() <= args[1]->as_str());
+        CONVERT_RECV_TO(String, self);
+        CONVERT_ARG_TO(0, String, other);
+
+        return BOOLEAN(self->get_value() <= other->get_value());
     }
 
     NATIVE_FUNCTION(string_gte) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
-        return BOOLEAN(args[0]->as_str() > args[1]->as_str());
+        CONVERT_RECV_TO(String, self);
+        CONVERT_ARG_TO(0, String, other);
+
+        return BOOLEAN(self->get_value() > other->get_value());
     }
 
     NATIVE_FUNCTION(string_clone) {
-        EXPECT_NUM_ARGS(1);
+        EXPECT_NUM_ARGS(0);
 
         CONVERT_RECV_TO(String, self);
 
@@ -76,67 +97,82 @@ namespace natives {
     }
 
     NATIVE_FUNCTION(string_empty) {
-        EXPECT_NUM_ARGS(1);
+        EXPECT_NUM_ARGS(0);
 
-        return BOOLEAN(args[0]->as_str().empty());
+        CONVERT_RECV_TO(String, self);
+
+        return BOOLEAN(self->get_value().empty());
     }
 
     NATIVE_FUNCTION(string_length) {
-        EXPECT_NUM_ARGS(1);
+        EXPECT_NUM_ARGS(0);
 
-        return ALLOC_NUMBER(args[0]->as_str().size());
+        CONVERT_RECV_TO(String, self);
+
+        return ALLOC_NUMBER(self->get_value().size());
     }
 
     NATIVE_FUNCTION(string_at) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
-        CONVERT_ARG_TO(1, Number, index);
+        CONVERT_RECV_TO(String, self);
+        CONVERT_ARG_TO(0, Number, index);
 
-        return ALLOC_STRING(std::string(1, args[0]->as_str()[(long)index->get_value()]));
+        return ALLOC_STRING(std::string(1, self->get_value()[(long)index->get_value()]));
     }
 
     NATIVE_FUNCTION(string_back) {
-        EXPECT_NUM_ARGS(1);
+        EXPECT_NUM_ARGS(0);
 
-        return ALLOC_STRING(std::string(1, args[0]->as_str().back()));
+        CONVERT_RECV_TO(String, self);
+
+        return ALLOC_STRING(std::string(1, self->get_value().back()));
     }
 
     NATIVE_FUNCTION(string_front) {
-        EXPECT_NUM_ARGS(1);
+        EXPECT_NUM_ARGS(0);
 
-        return ALLOC_STRING(std::string(1, args[0]->as_str().back()));
+        CONVERT_RECV_TO(String, self);
+
+        return ALLOC_STRING(std::string(1, self->get_value().back()));
     }
 
     NATIVE_FUNCTION(string_compare) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
-        return ALLOC_NUMBER(args[0]->as_str().compare(args[1]->as_str()));
+        CONVERT_RECV_TO(String, self);
+        CONVERT_ARG_TO(0, String, other);
+
+        return ALLOC_NUMBER(self->get_value().compare(other->get_value()));
     }
 
     NATIVE_FUNCTION(string_find) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
-        return ALLOC_NUMBER(args[0]->as_str().find(args[1]->as_str()));
+        CONVERT_RECV_TO(String, self);
+        CONVERT_ARG_TO(0, String, other);
+
+        return ALLOC_NUMBER(self->get_value().find(other->get_value()));
     }
 
     NATIVE_FUNCTION(string_substr) {
-        EXPECT_NUM_ARGS(3);
+        EXPECT_NUM_ARGS(2);
 
-        CONVERT_ARG_TO(1, Number, pos);
-        CONVERT_ARG_TO(2, Number, len);
+        CONVERT_RECV_TO(String, self);
+        CONVERT_ARG_TO(0, Number, pos);
+        CONVERT_ARG_TO(1, Number, len);
 
-        return ALLOC_STRING(args[0]->as_str().substr(pos->get_value(), len->get_value()));
+        return ALLOC_STRING(self->get_value().substr(pos->get_value(), len->get_value()));
     }
 
     NATIVE_FUNCTION(string_format) {
-        EXPECT_ATLEAST_NUM_ARGS(1);
-
         CONVERT_RECV_TO(String, self);
 
         using ctx = fmt::format_context;
         std::vector<fmt::basic_format_arg<ctx>> fmt_args;
-        for (size_t i = 1; i < args.size(); i++) {
-            fmt_args.push_back(fmt::internal::make_arg<ctx>(args[i]->as_str()));
+        for (size_t i = 0; i < args.size(); i++) {
+            Object* arg = Interpreter::execute_method(args[i], magic_methods::str, {}, context);
+            fmt_args.push_back(fmt::internal::make_arg<ctx>(arg->as_str()));
         }
 
         return ALLOC_STRING(
@@ -144,10 +180,10 @@ namespace natives {
     }
 
     NATIVE_FUNCTION(string_split) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
         CONVERT_RECV_TO(String, self);
-        CONVERT_ARG_TO(1, String, seperator);
+        CONVERT_ARG_TO(0, String, seperator);
 
         std::vector<Object*> res;
         for (const std::string& part : strutils::split(
@@ -160,10 +196,10 @@ namespace natives {
     }
 
     NATIVE_FUNCTION(string_append) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
         CONVERT_RECV_TO(String, self);
-        CONVERT_ARG_TO(1, String, str);
+        CONVERT_ARG_TO(0, String, str);
 
         self->get_value().append(str->get_value());
 

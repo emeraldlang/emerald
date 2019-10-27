@@ -24,7 +24,6 @@
 #include "emerald/interpreter.h"
 #include "emerald/magic_methods.h"
 #include "emerald/object.h"
-#include "emerald/objectutils.h"
 #include "emerald/strutils.h"
 
 #define EXPECT_NUM_ARGS_OP(count, op)                           \
@@ -41,20 +40,22 @@
 #define EXPECT_NUM_ARGS(count) EXPECT_NUM_ARGS_OP(count, !=)
 #define EXPECT_ATLEAST_NUM_ARGS(count) EXPECT_NUM_ARGS_OP(count, <)
 
-#define CONVERT_ARG_TO(i, Type, name)                       \
+#define CONVERT_VAL_TO(val, Type, name)                         \
     Type* name  = nullptr;                                      \
     do {                                                        \
-        name = dynamic_cast<Type*>(args[i]);                    \
+        name = dynamic_cast<Type*>(val);                        \
         if (name == nullptr) {                                  \
             throw context->get_heap().allocate<Exception>(      \
                 context, "");                                   \
         }                                                       \
     } while (false)
 
-#define CONVERT_RECV_TO(Type, name) TRY_CONVERT_ARG_TO(0, Type, name)
+#define CONVERT_ARG_TO(i, Type, name) CONVERT_VAL_TO(args[i], Type, name)
+#define CONVERT_RECV_TO(Type, name) CONVERT_VAL_TO(receiver, Type, name)
 
-#define TRY_CONVERT_ARG_TO(i, Type, name) Type* name = dynamic_cast<Type*>(args[i])
-#define TRY_CONVERT_RECV_TO(Type, name) TRY_CONVERT_ARG_TO(0, Type, name)
+#define TRY_CONVERT_VAL_TO(val, Type, name) Type* name = dynamic_cast<Type*>(val)
+#define TRY_CONVERT_ARG_TO(i, Type, name) TRY_CONVERT_VAL_TO(args[i], Type, name)
+#define TRY_CONVERT_RECV_TO(Type, name) TRY_CONVERT_VAL_TO(receiver, Type, name)
 
 #define TRY_CONVERT_OPTIONAL_ARG_TO(i, Type, name)  \
     Type* name;                                     \
@@ -69,8 +70,8 @@
 
 #define BOOLEAN(val) context->get_native_objects().get_boolean(val)
 #define NONE context->get_native_objects().get_null()
-#define ALLOC_EMPTY_ARRAY() context->get_heap().allocate<Array>(context);
-#define ALLOC_ARRAY(arr) context->get_heap().allocate<Array>(context, arr);
+#define ALLOC_EMPTY_ARRAY() context->get_heap().allocate<Array>(context)
+#define ALLOC_ARRAY(arr) context->get_heap().allocate<Array>(context, arr)
 #define ALLOC_NATIVE_FUNCTION(function) context->get_heap().allocate<NativeFunction>(context, function)
 #define ALLOC_NUMBER(num) context->get_heap().allocate<Number>(context, num)
 #define ALLOC_STRING(str) context->get_heap().allocate<String>(context, str)
@@ -81,7 +82,7 @@ namespace objectutils {
     template <class InputIt1, class InputIt2>
     inline bool compare_range(InputIt1 first1, InputIt1 last1, InputIt2 first2, ExecutionContext* context) {
         return std::equal(first1, last1, first2, [&context](Object* lhs, Object* rhs) {
-            return Interpreter::execute_method(magic_methods::eq, { lhs, rhs }, context);
+            return Interpreter::execute_method(lhs, magic_methods::eq, { rhs }, context);
         });
     }
 
@@ -93,8 +94,9 @@ namespace objectutils {
             seperator,
             [&context](Object* obj) {
                 return Interpreter::execute_method(
+                    obj,
                     magic_methods::str,
-                    { obj },
+                    {},
                     context)->as_str();
             });
     }

@@ -23,6 +23,7 @@
 #define ARRAY_NATIVES   \
     X(array_eq)         \
     X(array_neq)        \
+    X(array_iter)       \
     X(array_clone)      \
     X(array_at)         \
     X(array_front)      \
@@ -34,11 +35,19 @@
     X(array_pop)        \
     X(array_join)
 
+#define ARRAY_ITERATOR_NATIVES  \
+    X(array_iterator_cur)       \
+    X(array_iterator_done)      \
+    X(array_iterator_next)      \
+    X(array_iterator_clone)     \
+    X(array_iterator_init)
+
 namespace emerald {
 namespace natives {
 
 #define X(name) NATIVE_FUNCTION(name);
     ARRAY_NATIVES
+    ARRAY_ITERATOR_NATIVES
 #undef X
 
 } // namespace natives

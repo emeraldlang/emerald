@@ -113,33 +113,55 @@ namespace emerald {
         return std::make_shared<DoStatement>(end_pos(start), body);
     }
 
-    std::shared_ptr<ForStatement> Parser::parse_for_statement() {
+    std::shared_ptr<Statement> Parser::parse_for_statement() {
         expect(Token::FOR);
 
         std::shared_ptr<SourcePosition> start = start_pos();
 
-        std::shared_ptr<DeclarationStatement> init = parse_declaration_statement();
+        expect(Token::LET);
+        std::shared_ptr<SourcePosition> start_let = start_pos();
 
-        bool increments;
-        if (match(Token::TO)) {
-            increments = true;
-        } else if (match(Token::DOWNTO)) {
-            increments = false;
+        expect(Token::IDENTIFIER);
+        std::string identifier = _scanner.current()->get_lexeme();
+
+        if (match(Token::IN)) {
+            std::shared_ptr<Expression> iterator = parse_expression();
+
+            expect(Token::DO);
+            std::shared_ptr<StatementBlock> block = parse_statement_block({ Token::END });
+            expect(Token::END);
+
+            return std::make_shared<ForInStatement>(end_pos(start), identifier, iterator, block);
         } else {
-            report_unexpected_token(_scanner.scan());
+            std::shared_ptr<Expression> init_expression;
+            if (match(Token::ASSIGN)) {
+                init_expression = parse_expression();
+            }
+
+            std::shared_ptr<DeclarationStatement> init = std::make_shared<DeclarationStatement>(
+                end_pos(start_let), identifier, init_expression);
+
+            bool increments;
+            if (match(Token::TO)) {
+                increments = true;
+            } else if (match(Token::DOWNTO)) {
+                increments = false;
+            } else {
+                report_unexpected_token(_scanner.scan());
+            }
+            std::shared_ptr<Expression> to = parse_expression();
+
+            std::shared_ptr<Expression> by;
+            if (match(Token::BY)) {
+                by = parse_expression();
+            }
+
+            expect(Token::DO);
+            std::shared_ptr<StatementBlock> block = parse_statement_block({ Token::END });
+            expect(Token::END);
+
+            return std::make_shared<ForStatement>(end_pos(start), init, to, increments, by, block);
         }
-        std::shared_ptr<Expression> to = parse_expression();
-
-        std::shared_ptr<Expression> by;
-        if (match(Token::BY)) {
-            by = parse_expression();
-        }
-
-        expect(Token::DO);
-        std::shared_ptr<StatementBlock> block = parse_statement_block({ Token::END });
-        expect(Token::END);
-
-        return std::make_shared<ForStatement>(end_pos(start), init, to, increments, by, block);
     }
 
     std::shared_ptr<WhileStatement> Parser::parse_while_statement() {
@@ -486,6 +508,8 @@ namespace emerald {
 
             return std::make_shared<CloneExpression>(end_pos(start), parent, args);
         }
+        case Token::SELF:
+            return std::make_shared<SelfExpression>(token->get_source_position());
         default:
             report_unexpected_token(token);
             return nullptr;

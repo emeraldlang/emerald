@@ -21,6 +21,8 @@
 #include <string>
 #include <vector>
 
+#include "emerald/magic_methods.h"
+
 namespace emerald {
 
     class Code;
@@ -32,22 +34,42 @@ namespace emerald {
     public:
         static Object* execute(ExecutionContext* context);
         static Object* execute_code(std::shared_ptr<const Code> code, ExecutionContext* context);
-        static Object* execute_method(const std::string& name, const std::vector<Object*> args, ExecutionContext* context);
+        static Object* execute_method(Object* receiver, const std::string& name, const std::vector<Object*>& args, ExecutionContext* context);
         static Object* execute_module(const std::string& module_name);
         static Module* import_module(const std::string& name, ExecutionContext* context);
+        template <class T>
+        static T* create_obj(Object* parent, const std::vector<Object*>& args, ExecutionContext* context);
 
     private:
-        static Object* call_obj(Object* obj, const std::vector<Object*>& args, ExecutionContext* context);
+        static Object* call_obj(Object* obj, Object* receiver, const std::vector<Object*>& args, ExecutionContext* context);
 
-        static Object* call_method(const std::string& name, size_t num_args, ExecutionContext* context);
-        static Object* call_method1(const std::string& name, ExecutionContext* context) { return call_method(name, 1, context); }
-        static Object* call_method2(const std::string& name, ExecutionContext* context) { return call_method(name, 2, context); }
-        static Object* call_method(const std::string& name, const std::vector<Object*>& args, ExecutionContext* context);
+        static Object* call_method(Object* receiver, const std::string& name, size_t num_args, ExecutionContext* context);
+        static Object* call_method0(Object* receiver, const std::string& name, ExecutionContext* context) { return call_method(receiver, name, 0, context); }
+        static Object* call_method1(Object* receiver, const std::string& name, ExecutionContext* context) { return call_method(receiver, name, 1, context); }
+        static Object* call_method2(Object* receiver, const std::string& name, ExecutionContext* context) { return call_method(receiver, name, 2, context); }
+        static Object* call_method(Object* receiver, const std::string& name, const std::vector<Object*>& args, ExecutionContext* context);
 
         static Module* get_module(const std::string& name, bool& created, ExecutionContext* context);
 
         static Object* new_obj(bool explicit_parent, size_t num_props, ExecutionContext* context);
     };
+
+    template <class T>
+    T* Interpreter::create_obj(Object* parent, const std::vector<Object*>& args, ExecutionContext* context) {
+        T* obj = static_cast<T*>(
+            Interpreter::execute_method(
+                parent,
+                magic_methods::clone,
+                {},
+                context));
+        Interpreter::execute_method(
+            obj,
+            magic_methods::init,
+            args,
+            context);
+
+        return obj;
+    }
 
 } // namespace emerald
 

@@ -104,7 +104,7 @@ namespace emerald {
         void write_str();
         void write_boolean();
 
-        void write_call(size_t num_args);
+        void write_call(bool receiver, size_t num_args);
         void write_ret();
 
         void write_new_obj(bool explicit_parent, size_t num_props);
@@ -117,10 +117,16 @@ namespace emerald {
         void write_null();
         void write_get_prop(bool push_self_back = false);
         void write_set_prop(bool push_self_back = false);
+        void write_self();
 
         void write_enter_try(size_t label);
         void write_exit_try(size_t label);
         void write_throw_exc();
+
+        void write_get_iter();
+        void write_iter_cur();
+        void write_iter_done();
+        void write_iter_next();
 
         void write_ldgbl(const std::string& name);
         void write_stgbl(const std::string& name);

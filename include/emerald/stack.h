@@ -41,8 +41,9 @@ namespace emerald {
 
         class Frame {
         public:
-            Frame(std::shared_ptr<const Code> code, Module* globals);
+            Frame(Object* receiver, std::shared_ptr<const Code> code, Module* globals);
 
+            Object* get_receiver() const;
             std::shared_ptr<const Code> get_code() const;
 
             size_t get_instruction_pointer() const;
@@ -86,6 +87,8 @@ namespace emerald {
             size_t get_catch_ip();
 
         private:
+            Object* _receiver;
+
             std::shared_ptr<const Code> _code;
             size_t _ip;
 
@@ -104,7 +107,7 @@ namespace emerald {
         Frame& peek();
 
         bool pop_frame();
-        void push_frame(std::shared_ptr<const Code> code, Module* globals);
+        void push_frame(Object* receiver, std::shared_ptr<const Code> code, Module* globals);
 
         const Module* peek_globals() const;
         Module* peek_globals();

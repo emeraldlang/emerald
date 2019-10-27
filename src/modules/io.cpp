@@ -96,18 +96,18 @@ namespace modules {
     }
 
     NATIVE_FUNCTION(file_stream_clone) {
-        EXPECT_NUM_ARGS(1);
+        EXPECT_NUM_ARGS(0);
 
         CONVERT_RECV_TO(FileStream, self); 
         return context->get_heap().allocate<FileStream>(context, self);
     }
 
     NATIVE_FUNCTION(file_stream_open) {
-        EXPECT_NUM_ARGS(3);
+        EXPECT_NUM_ARGS(2);
 
         CONVERT_RECV_TO(FileStream, stream);
-        CONVERT_ARG_TO(1, String, filename);
-        CONVERT_ARG_TO(2, String, access);
+        CONVERT_ARG_TO(0, String, filename);
+        CONVERT_ARG_TO(1, String, access);
 
         std::fstream::openmode openmode;
         const std::string& access_str = access->get_value();
@@ -128,7 +128,7 @@ namespace modules {
     }
     
     NATIVE_FUNCTION(file_stream_is_open) {
-        EXPECT_NUM_ARGS(1);
+        EXPECT_NUM_ARGS(0);
 
         CONVERT_RECV_TO(FileStream, stream);
 
@@ -136,11 +136,9 @@ namespace modules {
     }
 
     NATIVE_FUNCTION(file_stream_read) {
-        EXPECT_ATLEAST_NUM_ARGS(1);
-
         CONVERT_RECV_TO(FileStream, stream);
 
-        TRY_CONVERT_OPTIONAL_ARG_TO(1, Number, count);
+        TRY_CONVERT_OPTIONAL_ARG_TO(0, Number, count);
         std::string result;
         if (count) {
             result = stream->read((long)count->get_value());
@@ -152,7 +150,7 @@ namespace modules {
     }
 
     NATIVE_FUNCTION(file_stream_readline) {
-        EXPECT_NUM_ARGS(1);
+        EXPECT_NUM_ARGS(0);
 
         CONVERT_RECV_TO(FileStream, stream);
 
@@ -160,10 +158,10 @@ namespace modules {
     }
 
     NATIVE_FUNCTION(file_stream_write) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
         CONVERT_RECV_TO(FileStream, stream);
-        CONVERT_ARG_TO(1, String, s);
+        CONVERT_ARG_TO(0, String, s);
 
         stream->write(s->get_value());
 
@@ -171,7 +169,7 @@ namespace modules {
     }
 
     NATIVE_FUNCTION(string_stream_clone) {
-        EXPECT_NUM_ARGS(1);
+        EXPECT_NUM_ARGS(0);
 
         CONVERT_RECV_TO(StringStream, self);
 
@@ -179,16 +177,16 @@ namespace modules {
     }
 
     NATIVE_FUNCTION(string_stream_read) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
         CONVERT_RECV_TO(StringStream, stream);
-        CONVERT_ARG_TO(1, Number, count);
+        CONVERT_ARG_TO(0, Number, count);
 
         return ALLOC_STRING(stream->read((long)count->get_value()));
     }
 
     NATIVE_FUNCTION(string_stream_readline) {
-        EXPECT_NUM_ARGS(1);
+        EXPECT_NUM_ARGS(0);
 
         CONVERT_RECV_TO(StringStream, stream);
 
@@ -196,10 +194,10 @@ namespace modules {
     }
 
     NATIVE_FUNCTION(string_stream_write) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
         CONVERT_RECV_TO(StringStream, stream);
-        CONVERT_ARG_TO(1, String, s);
+        CONVERT_ARG_TO(0, String, s);
 
         stream->write(s->get_value());
 

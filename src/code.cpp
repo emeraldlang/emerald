@@ -199,8 +199,8 @@ namespace emerald {
         WRITE_OP(OpCode::boolean);
     }
 
-    void Code::write_call(size_t num_args) {
-        WRITE_OP_WARGS(OpCode::call, { num_args });
+    void Code::write_call(bool receiver, size_t num_args) {
+        WRITE_OP_WARGS(OpCode::call, { receiver, num_args });
     }
 
     void Code::write_ret() {
@@ -212,7 +212,7 @@ namespace emerald {
     }
 
     void Code::write_init(size_t num_args) {
-        WRITE_OP_WARGS(OpCode::init, { num_args + 1 });
+        WRITE_OP_WARGS(OpCode::init, { num_args });
     }
 
     std::shared_ptr<Code> Code::write_new_func(const std::string& label) {
@@ -266,6 +266,10 @@ namespace emerald {
         WRITE_OP_WARGS(OpCode::set_prop, { push_self_back });
     }
 
+    void Code::write_self() {
+        WRITE_OP(OpCode::self);
+    }
+
     void Code::write_enter_try(size_t label) {
         WRITE_OP_WARGS(OpCode::enter_try, { get_label_offset(label) });
     }
@@ -276,6 +280,22 @@ namespace emerald {
 
     void Code::write_throw_exc() {
         WRITE_OP(OpCode::throw_exc);
+    }
+
+    void Code::write_get_iter() {
+        WRITE_OP(OpCode::get_iter);
+    }
+
+    void Code::write_iter_cur() {
+        WRITE_OP(OpCode::iter_cur);
+    }
+
+    void Code::write_iter_done() {
+        WRITE_OP(OpCode::iter_done);
+    }
+
+    void Code::write_iter_next() {
+        WRITE_OP(OpCode::iter_next);
     }
 
     void Code::write_ldgbl(const std::string& name) {

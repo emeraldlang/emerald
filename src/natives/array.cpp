@@ -25,11 +25,11 @@ namespace emerald {
 namespace natives {
 
     NATIVE_FUNCTION(array_eq) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
         CONVERT_RECV_TO(Array, self);
 
-        if (TRY_CONVERT_ARG_TO(1, Array, other)) {
+        if (TRY_CONVERT_ARG_TO(0, Array, other)) {
             return BOOLEAN(*self == *other);
         }
 
@@ -37,19 +37,30 @@ namespace natives {
     }
 
     NATIVE_FUNCTION(array_neq) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
         CONVERT_RECV_TO(Array, self);
 
-        if (TRY_CONVERT_ARG_TO(1, Array, other)) {
+        if (TRY_CONVERT_ARG_TO(0, Array, other)) {
             return BOOLEAN(*self != *other);
         }
 
         return BOOLEAN(true);
     }
 
+    NATIVE_FUNCTION(array_iter) {
+        EXPECT_NUM_ARGS(0);
+
+        CONVERT_RECV_TO(Array, self);
+
+        return Interpreter::create_obj<Array::Iterator>(
+            self,
+            { self },
+            context);
+    }
+
     NATIVE_FUNCTION(array_clone) {
-        EXPECT_NUM_ARGS(1);
+        EXPECT_NUM_ARGS(0);
 
         CONVERT_RECV_TO(Array, self);
 
@@ -57,16 +68,16 @@ namespace natives {
     }
 
     NATIVE_FUNCTION(array_at) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
         CONVERT_RECV_TO(Array, arr);
-        CONVERT_ARG_TO(1, Number, index);
+        CONVERT_ARG_TO(0, Number, index);
 
         return arr->at((long)index->get_value());
     }
 
     NATIVE_FUNCTION(array_front) {
-        EXPECT_NUM_ARGS(1);
+        EXPECT_NUM_ARGS(0);
 
         CONVERT_RECV_TO(Array, arr);
 
@@ -74,7 +85,7 @@ namespace natives {
     }
 
     NATIVE_FUNCTION(array_back) {
-        EXPECT_NUM_ARGS(1);
+        EXPECT_NUM_ARGS(0);
 
         CONVERT_RECV_TO(Array, arr);
 
@@ -82,7 +93,7 @@ namespace natives {
     }
 
     NATIVE_FUNCTION(array_empty) {
-        EXPECT_NUM_ARGS(1);
+        EXPECT_NUM_ARGS(0);
 
         CONVERT_RECV_TO(Array, arr);
 
@@ -90,7 +101,7 @@ namespace natives {
     }
 
     NATIVE_FUNCTION(array_size) {
-        EXPECT_NUM_ARGS(1);
+        EXPECT_NUM_ARGS(0);
 
         CONVERT_RECV_TO(Array, arr);
 
@@ -98,7 +109,7 @@ namespace natives {
     }
 
     NATIVE_FUNCTION(array_clear) {
-        EXPECT_NUM_ARGS(1);
+        EXPECT_NUM_ARGS(0);
 
         CONVERT_RECV_TO(Array, arr);
 
@@ -113,7 +124,7 @@ namespace natives {
         CONVERT_RECV_TO(Array, arr);
 
         size_t n = args.size();
-        for (size_t i = 1; i < n; i++) {
+        for (size_t i = 0; i < n; i++) {
             arr->push(args[i]);
         }
 
@@ -121,7 +132,7 @@ namespace natives {
     }
 
     NATIVE_FUNCTION(array_pop) {
-        EXPECT_NUM_ARGS(1);
+        EXPECT_NUM_ARGS(0);
 
         CONVERT_RECV_TO(Array, arr);
 
@@ -129,12 +140,55 @@ namespace natives {
     }
 
     NATIVE_FUNCTION(array_join) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
         CONVERT_RECV_TO(Array, arr);
-        CONVERT_ARG_TO(1, String, seperator);
+        CONVERT_ARG_TO(0, String, seperator);
 
         return ALLOC_STRING(arr->join(seperator->get_value()));
+    }
+
+    NATIVE_FUNCTION(array_iterator_cur) {
+        EXPECT_NUM_ARGS(0);
+
+        CONVERT_RECV_TO(Array::Iterator, self);
+
+        return self->cur();
+    }
+
+    NATIVE_FUNCTION(array_iterator_done) {
+        EXPECT_NUM_ARGS(0);
+
+        CONVERT_RECV_TO(Array::Iterator, self);
+
+        return BOOLEAN(self->done());
+    }
+
+    NATIVE_FUNCTION(array_iterator_next) {
+        EXPECT_NUM_ARGS(0);
+
+        CONVERT_RECV_TO(Array::Iterator, self);
+
+        return self->next();
+    }
+
+    NATIVE_FUNCTION(array_iterator_clone) {
+        EXPECT_NUM_ARGS(0);
+
+        CONVERT_RECV_TO(Array::Iterator, self);
+
+        return context->get_heap().allocate<Array::Iterator>(context, self);
+    }
+
+    NATIVE_FUNCTION(array_iterator_init) {
+        EXPECT_NUM_ARGS(1);
+
+        CONVERT_RECV_TO(Array::Iterator, self);
+        CONVERT_ARG_TO(0, Array, arr);
+
+        self->init(arr);
+
+        return NONE;
     }
 
 } // namespace natives

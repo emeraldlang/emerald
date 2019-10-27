@@ -64,7 +64,7 @@ namespace emerald {
     X(str, 0)                   \
     X(boolean, 0)               \
     /* Functions */             \
-    X(call, 1)                  \
+    X(call, 2)                  \
     X(ret, 0)                   \
     /* Objects */               \
     X(new_obj, 2)               \
@@ -77,10 +77,16 @@ namespace emerald {
     X(null, 0)                  \
     X(get_prop, 1)              \
     X(set_prop, 1)              \
+    X(self, 0)                  \
     /* Exceptions */            \
     X(enter_try, 1)             \
     X(exit_try, 1)              \
     X(throw_exc, 0)             \
+    /* Iterators */             \
+    X(get_iter, 0)              \
+    X(iter_cur, 0)              \
+    X(iter_done, 0)             \
+    X(iter_next, 0)             \
     /* Loads & Stores */        \
     X(ldgbl, 1)                 \
     X(stgbl, 1)                 \

@@ -27,20 +27,20 @@ namespace emerald {
 namespace natives {
 
     NATIVE_FUNCTION(boolean_eq) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
         CONVERT_RECV_TO(Boolean, self);
-        Object* other = Interpreter::execute_method(magic_methods::boolean, { args[1] }, context);
+        Object* other = Interpreter::execute_method(args[0], magic_methods::boolean, {}, context);
 
         return BOOLEAN(self->as_bool() == other->as_bool());
     }
 
     NATIVE_FUNCTION(boolean_neq) {
-        return BOOLEAN(!boolean_eq(args, context)->as_bool());
+        return BOOLEAN(!boolean_eq(receiver, args, context)->as_bool());
     }
 
     NATIVE_FUNCTION(boolean_clone) {
-        EXPECT_NUM_ARGS(1);
+        EXPECT_NUM_ARGS(0);
 
         CONVERT_RECV_TO(Boolean, self);
 

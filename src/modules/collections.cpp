@@ -120,15 +120,17 @@ namespace modules {
     size_t Set::hash::operator()(Object* val) const {
         return std::hash<std::string>{}(
             Interpreter::execute_method(
+                val,
                 magic_methods::str,
-                { val },
+                {},
                 val->get_context())->as_str());
     }
 
     bool Set::key_eq::operator()(Object* lhs, Object* rhs) const {
         return Interpreter::execute_method(
+            lhs,
             magic_methods::eq,
-            { lhs, rhs },
+            { rhs },
             lhs->get_context())->as_bool();
     }
 
@@ -180,11 +182,11 @@ namespace modules {
     }
 
     NATIVE_FUNCTION(queue_eq) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
         CONVERT_RECV_TO(Queue, self);
 
-        if (TRY_CONVERT_ARG_TO(1, Queue, other)) {
+        if (TRY_CONVERT_ARG_TO(0, Queue, other)) {
             return BOOLEAN(*self == *other);
         }
 
@@ -192,11 +194,11 @@ namespace modules {
     }
 
     NATIVE_FUNCTION(queue_neq) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
         CONVERT_RECV_TO(Queue, self);
 
-        if (TRY_CONVERT_ARG_TO(1, Queue, other)) {
+        if (TRY_CONVERT_ARG_TO(0, Queue, other)) {
             return BOOLEAN(*self != *other);
         }
 
@@ -204,7 +206,7 @@ namespace modules {
     }
 
     NATIVE_FUNCTION(queue_clone) {
-        EXPECT_NUM_ARGS(1);
+        EXPECT_NUM_ARGS(0);
 
         CONVERT_RECV_TO(Queue, self);
 
@@ -212,7 +214,7 @@ namespace modules {
     }
 
     NATIVE_FUNCTION(queue_peek) {
-        EXPECT_NUM_ARGS(1);
+        EXPECT_NUM_ARGS(0);
 
         CONVERT_RECV_TO(Queue, self);
 
@@ -233,7 +235,7 @@ namespace modules {
         CONVERT_RECV_TO(Queue, self);
 
         size_t n = args.size();
-        for (size_t i = 1; i < n; i++) {
+        for (size_t i = 0; i < n; i++) {
             self->enqueue(args[i]);
         }
 
@@ -241,7 +243,7 @@ namespace modules {
     }
 
     NATIVE_FUNCTION(queue_empty) {
-        EXPECT_NUM_ARGS(1);
+        EXPECT_NUM_ARGS(0);
 
         CONVERT_RECV_TO(Queue, self);
 
@@ -249,7 +251,7 @@ namespace modules {
     }
 
     NATIVE_FUNCTION(queue_size) {
-        EXPECT_NUM_ARGS(1);
+        EXPECT_NUM_ARGS(0);
 
         CONVERT_RECV_TO(Queue, self);
 
@@ -257,11 +259,11 @@ namespace modules {
     }
 
     NATIVE_FUNCTION(set_eq) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
         CONVERT_RECV_TO(Set, self);
 
-        if (TRY_CONVERT_ARG_TO(1, Set, other)) {
+        if (TRY_CONVERT_ARG_TO(0, Set, other)) {
             return BOOLEAN(*self == *other);
         }
 
@@ -269,11 +271,11 @@ namespace modules {
     }
 
     NATIVE_FUNCTION(set_neq) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
         CONVERT_RECV_TO(Set, self);
 
-        if (TRY_CONVERT_ARG_TO(1, Set, other)) {
+        if (TRY_CONVERT_ARG_TO(0, Set, other)) {
             return BOOLEAN(*self != *other);
         }
 
@@ -281,7 +283,7 @@ namespace modules {
     }
 
     NATIVE_FUNCTION(set_clone) {
-        EXPECT_NUM_ARGS(1);
+        EXPECT_NUM_ARGS(0);
 
         CONVERT_RECV_TO(Set, self);
 
@@ -294,7 +296,7 @@ namespace modules {
         CONVERT_RECV_TO(Set, self);
 
         size_t n = args.size();
-        for (size_t i = 1; i < n; i++) {
+        for (size_t i = 0; i < n; i++) {
             self->add(args[i]);
         }
 
@@ -302,23 +304,23 @@ namespace modules {
     }
 
     NATIVE_FUNCTION(set_contains) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
         CONVERT_RECV_TO(Set, self);
 
-        return BOOLEAN(self->contains(args[1]));
+        return BOOLEAN(self->contains(args[0]));
     }
 
     NATIVE_FUNCTION(set_remove) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
         CONVERT_RECV_TO(Set, self);
 
-        return ALLOC_NUMBER(self->remove(args[1]));
+        return ALLOC_NUMBER(self->remove(args[0]));
     }
 
     NATIVE_FUNCTION(set_empty) {
-        EXPECT_NUM_ARGS(1);
+        EXPECT_NUM_ARGS(0);
 
         CONVERT_RECV_TO(Set, self);
 
@@ -326,7 +328,7 @@ namespace modules {
     }
 
     NATIVE_FUNCTION(set_size) {
-        EXPECT_NUM_ARGS(1);
+        EXPECT_NUM_ARGS(0);
 
         CONVERT_RECV_TO(Set, self);
 
@@ -334,11 +336,11 @@ namespace modules {
     }
 
     NATIVE_FUNCTION(stack_eq) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
         CONVERT_RECV_TO(Stack, self);
 
-        if (TRY_CONVERT_ARG_TO(1, Stack, other)) {
+        if (TRY_CONVERT_ARG_TO(0, Stack, other)) {
             return BOOLEAN(*self == *other);
         }
 
@@ -346,11 +348,11 @@ namespace modules {
     }
 
     NATIVE_FUNCTION(stack_neq) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
         CONVERT_RECV_TO(Stack, self);
 
-        if (TRY_CONVERT_ARG_TO(1, Stack, other)) {
+        if (TRY_CONVERT_ARG_TO(0, Stack, other)) {
             return BOOLEAN(*self != *other);
         }
 
@@ -358,7 +360,7 @@ namespace modules {
     }
 
     NATIVE_FUNCTION(stack_clone) {
-        EXPECT_NUM_ARGS(1);
+        EXPECT_NUM_ARGS(0);
 
         CONVERT_RECV_TO(Stack, self);
 
@@ -366,7 +368,7 @@ namespace modules {
     }
 
     NATIVE_FUNCTION(stack_peek) {
-        EXPECT_NUM_ARGS(1);
+        EXPECT_NUM_ARGS(0);
 
         CONVERT_RECV_TO(Stack, self);
 
@@ -374,7 +376,7 @@ namespace modules {
     }
 
     NATIVE_FUNCTION(stack_pop) {
-        EXPECT_NUM_ARGS(1);
+        EXPECT_NUM_ARGS(0);
 
         CONVERT_RECV_TO(Stack, self);
 
@@ -387,7 +389,7 @@ namespace modules {
         CONVERT_RECV_TO(Stack, self);
 
         size_t n = args.size();
-        for (size_t i = 1; i < n; i++) {
+        for (size_t i = 0; i < n; i++) {
             self->push(args[i]);
         }
 
@@ -395,7 +397,7 @@ namespace modules {
     }
 
     NATIVE_FUNCTION(stack_empty) {
-        EXPECT_NUM_ARGS(1);
+        EXPECT_NUM_ARGS(0);
 
         CONVERT_RECV_TO(Stack, self);
 
@@ -403,7 +405,7 @@ namespace modules {
     }
 
     NATIVE_FUNCTION(stack_size) {
-        EXPECT_NUM_ARGS(1);
+        EXPECT_NUM_ARGS(0);
 
         CONVERT_RECV_TO(Stack, self);
 

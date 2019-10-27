@@ -27,7 +27,7 @@
 #include "emerald/heap.h"
 #include "emerald/heap_managed.h"
 
-#define NATIVE_FUNCTION(name) Object* name(const std::vector<Object*>& args, ExecutionContext* context)
+#define NATIVE_FUNCTION(name) Object* name(Object* receiver, const std::vector<Object*>& args, ExecutionContext* context)
 
 // Inheritance Hierarchy
 // - Object
@@ -84,6 +84,26 @@ namespace emerald {
         Array(ExecutionContext* context, const std::vector<Object*>& value = {});
         Array(ExecutionContext* context, Object* parent, const std::vector<Object*>& value = {});
 
+        class Iterator final : public Object {
+        public:
+            Iterator(ExecutionContext* context);
+            Iterator(ExecutionContext* context, Object* parent);
+
+            std::string as_str() const override;
+
+            void init(Array* arr);
+
+            Object* cur() const;
+            bool done() const;
+            Object* next();
+
+        private:
+            Array* _arr;
+            size_t _i;
+
+            void reach() override;
+        };
+
         bool as_bool() const override;
         std::string as_str() const override;
 
@@ -106,6 +126,8 @@ namespace emerald {
 
     private:
         std::vector<Object*> _value;
+
+        void reach() override;
     };
 
     class Boolean final : public Object {
@@ -148,11 +170,13 @@ namespace emerald {
     private:
         std::shared_ptr<const Code> _code;
         Module* _globals;
+
+        void reach() override;
     };
 
     class NativeFunction final : public Object {
     public:
-        using Callable = std::function<Object*(const std::vector<Object*>&, ExecutionContext*)>;
+        using Callable = std::function<Object*(Object*, const std::vector<Object*>&, ExecutionContext*)>;
 
         NativeFunction(ExecutionContext* context, Callable callable);
         NativeFunction(ExecutionContext* context, Object* parent, Callable callable);
@@ -161,8 +185,8 @@ namespace emerald {
 
         const Callable& get_callable() const;
 
-        Object* invoke(const std::vector<Object*>& args, ExecutionContext* context);
-        Object* operator()(const std::vector<Object*>& args, ExecutionContext* context);
+        Object* invoke(Object* receiver, const std::vector<Object*>& args, ExecutionContext* context);
+        Object* operator()(Object* receiver, const std::vector<Object*>& args, ExecutionContext* context);
 
     private:
         Callable _callable;

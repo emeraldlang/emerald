@@ -23,7 +23,7 @@ namespace emerald {
 namespace natives {
 
     NATIVE_FUNCTION(number_neg) {
-        EXPECT_NUM_ARGS(1);
+        EXPECT_NUM_ARGS(0);
 
         CONVERT_RECV_TO(Number, val);
 
@@ -31,55 +31,55 @@ namespace natives {
     }
 
     NATIVE_FUNCTION(number_add) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
         CONVERT_RECV_TO(Number, lhs);
-        CONVERT_ARG_TO(1, Number, rhs);
+        CONVERT_ARG_TO(0, Number, rhs);
 
         return ALLOC_NUMBER(lhs->get_value() + rhs->get_value());
     }
 
     NATIVE_FUNCTION(number_sub) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
         CONVERT_RECV_TO(Number, lhs);
-        CONVERT_ARG_TO(1, Number, rhs);
+        CONVERT_ARG_TO(0, Number, rhs);
 
         return ALLOC_NUMBER(lhs->get_value() - rhs->get_value());
     }
 
     NATIVE_FUNCTION(number_mul) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
         CONVERT_RECV_TO(Number, lhs);
-        CONVERT_ARG_TO(1, Number, rhs);
+        CONVERT_ARG_TO(0, Number, rhs);
 
         return ALLOC_NUMBER(lhs->get_value() * rhs->get_value());
     }
 
     NATIVE_FUNCTION(number_div) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
         CONVERT_RECV_TO(Number, lhs);
-        CONVERT_ARG_TO(1, Number, rhs);
+        CONVERT_ARG_TO(0, Number, rhs);
 
         return ALLOC_NUMBER(lhs->get_value() / rhs->get_value());
     }
 
     NATIVE_FUNCTION(number_mod) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
         CONVERT_RECV_TO(Number, lhs);
-        CONVERT_ARG_TO(1, Number, rhs);
+        CONVERT_ARG_TO(0, Number, rhs);
 
         return ALLOC_NUMBER((long)lhs->get_value() % (long)rhs->get_value());
     }
 
     NATIVE_FUNCTION(number_iadd) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
         CONVERT_RECV_TO(Number, lhs);
-        CONVERT_ARG_TO(1, Number, rhs);
+        CONVERT_ARG_TO(0, Number, rhs);
 
         lhs->set_value(lhs->get_value() + rhs->get_value());
 
@@ -87,10 +87,10 @@ namespace natives {
     }
 
     NATIVE_FUNCTION(number_isub) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
         CONVERT_RECV_TO(Number, lhs);
-        CONVERT_ARG_TO(1, Number, rhs);
+        CONVERT_ARG_TO(0, Number, rhs);
 
         lhs->set_value(lhs->get_value() - rhs->get_value());
 
@@ -98,10 +98,10 @@ namespace natives {
     }
 
     NATIVE_FUNCTION(number_imul) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
         CONVERT_RECV_TO(Number, lhs);
-        CONVERT_ARG_TO(1, Number, rhs);
+        CONVERT_ARG_TO(0, Number, rhs);
 
         lhs->set_value(lhs->get_value() * rhs->get_value());
 
@@ -109,10 +109,10 @@ namespace natives {
     }
 
     NATIVE_FUNCTION(number_idiv) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
         CONVERT_RECV_TO(Number, lhs);
-        CONVERT_ARG_TO(1, Number, rhs);
+        CONVERT_ARG_TO(0, Number, rhs);
 
         lhs->set_value(lhs->get_value() / rhs->get_value());
 
@@ -120,10 +120,10 @@ namespace natives {
     }
 
     NATIVE_FUNCTION(number_imod) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
         CONVERT_RECV_TO(Number, lhs);
-        CONVERT_ARG_TO(1, Number, rhs);
+        CONVERT_ARG_TO(0, Number, rhs);
 
         lhs->set_value((long)lhs->get_value() % (long)rhs->get_value());
 
@@ -131,106 +131,106 @@ namespace natives {
     }
 
     NATIVE_FUNCTION(number_eq) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
         CONVERT_RECV_TO(Number, lhs);
-        CONVERT_ARG_TO(1, Number, rhs);
+        CONVERT_ARG_TO(0, Number, rhs);
 
         return BOOLEAN(lhs->get_value() == rhs->get_value());
     }
 
     NATIVE_FUNCTION(number_neq) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
         CONVERT_RECV_TO(Number, lhs);
-        CONVERT_ARG_TO(1, Number, rhs);
+        CONVERT_ARG_TO(0, Number, rhs);
 
         return BOOLEAN(lhs->get_value() != rhs->get_value());
     }
 
     NATIVE_FUNCTION(number_lt) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
         CONVERT_RECV_TO(Number, lhs);
-        CONVERT_ARG_TO(1, Number, rhs);
+        CONVERT_ARG_TO(0, Number, rhs);
 
         return BOOLEAN(lhs->get_value() < rhs->get_value());
     }
 
     NATIVE_FUNCTION(number_gt) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
         CONVERT_RECV_TO(Number, lhs);
-        CONVERT_ARG_TO(1, Number, rhs);
+        CONVERT_ARG_TO(0, Number, rhs);
 
         return BOOLEAN(lhs->get_value() > rhs->get_value());
     }
 
     NATIVE_FUNCTION(number_lte) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
         CONVERT_RECV_TO(Number, lhs);
-        CONVERT_ARG_TO(1, Number, rhs);
+        CONVERT_ARG_TO(0, Number, rhs);
 
         return BOOLEAN(lhs->get_value() <= rhs->get_value());
     }
 
     NATIVE_FUNCTION(number_gte) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
         CONVERT_RECV_TO(Number, lhs);
-        CONVERT_ARG_TO(1, Number, rhs);
+        CONVERT_ARG_TO(0, Number, rhs);
 
         return BOOLEAN(lhs->get_value() >= rhs->get_value());
     }
 
     NATIVE_FUNCTION(number_bit_or) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
         CONVERT_RECV_TO(Number, lhs);
-        CONVERT_ARG_TO(1, Number, rhs);
+        CONVERT_ARG_TO(0, Number, rhs);
 
         return ALLOC_NUMBER((long)lhs->get_value() | (long)rhs->get_value());
     }
 
     NATIVE_FUNCTION(number_bit_xor) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
         CONVERT_RECV_TO(Number, lhs);
-        CONVERT_ARG_TO(1, Number, rhs);
+        CONVERT_ARG_TO(0, Number, rhs);
 
         return ALLOC_NUMBER((long)lhs->get_value() ^ (long)rhs->get_value());
     }
 
     NATIVE_FUNCTION(number_bit_and) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
         CONVERT_RECV_TO(Number, lhs);
-        CONVERT_ARG_TO(1, Number, rhs);
+        CONVERT_ARG_TO(0, Number, rhs);
 
         return ALLOC_NUMBER((long)lhs->get_value() & (long)rhs->get_value());
     }
 
     NATIVE_FUNCTION(number_bit_shl) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
         CONVERT_RECV_TO(Number, lhs);
-        CONVERT_ARG_TO(1, Number, rhs);
+        CONVERT_ARG_TO(0, Number, rhs);
 
         return ALLOC_NUMBER((long)lhs->get_value() << (long)rhs->get_value());
     }
 
     NATIVE_FUNCTION(number_bit_shr) {
-        EXPECT_NUM_ARGS(2);
+        EXPECT_NUM_ARGS(1);
 
         CONVERT_RECV_TO(Number, lhs);
-        CONVERT_ARG_TO(1, Number, rhs);
+        CONVERT_ARG_TO(0, Number, rhs);
 
         return ALLOC_NUMBER((long)lhs->get_value() >> (long)rhs->get_value());
     }
 
     NATIVE_FUNCTION(number_clone) {
-        EXPECT_NUM_ARGS(1);
+        EXPECT_NUM_ARGS(0);
 
         CONVERT_RECV_TO(Number, self);
 

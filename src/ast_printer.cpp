@@ -79,6 +79,19 @@ namespace emerald {
         end_indentation_block();
     }
 
+    void ASTPrinter::VisitForInStatement(const std::shared_ptr<ForInStatement>& for_in_statement) {
+        start_indentation_block("for_in");
+
+        _oss << indent() << "(" << for_in_statement->get_identifier() << ")" << std::endl;
+
+        Visit(for_in_statement->get_iterable());
+        _oss << std::endl;
+
+        Visit(for_in_statement->get_block());
+
+        end_indentation_block();
+    }
+
     void ASTPrinter::VisitWhileStatement(const std::shared_ptr<WhileStatement>& while_statement) {
         start_indentation_block("while");
 
@@ -327,6 +340,10 @@ namespace emerald {
         }
 
         end_indentation_block();
+    }
+
+    void ASTPrinter::VisitSelfExpression(const std::shared_ptr<SelfExpression>&) {
+        _oss << indent() << "(self)" << std::endl;
     }
 
     void ASTPrinter::VisitFunctionParameter(const std::shared_ptr<FunctionParameter>& function_parameter) {

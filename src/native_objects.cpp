@@ -53,6 +53,14 @@ namespace emerald {
         return _array;
     }
 
+    const Array::Iterator* NativeObjects::get_array_iterator_prototype() const {
+        return _array_iterator;
+    }
+
+    Array::Iterator* NativeObjects::get_array_iterator_prototype() {
+        return _array_iterator;
+    }
+
     const Number* NativeObjects::get_number_prototype() const {
         return _number;
     }
@@ -116,6 +124,8 @@ namespace emerald {
         _array->set_property(magic_methods::eq, ALLOC_NATIVE_FUNCTION(natives::array_eq));
         _array->set_property(magic_methods::neq, ALLOC_NATIVE_FUNCTION(natives::array_neq));
 
+        _object->set_property(magic_methods::iter, ALLOC_NATIVE_FUNCTION(natives::array_iter));
+
         _array->set_property(magic_methods::clone, ALLOC_NATIVE_FUNCTION(natives::array_clone));
 
         _array->set_property("at", ALLOC_NATIVE_FUNCTION(natives::array_at));
@@ -127,6 +137,15 @@ namespace emerald {
         _array->set_property("push", ALLOC_NATIVE_FUNCTION(natives::array_push));
         _array->set_property("pop", ALLOC_NATIVE_FUNCTION(natives::array_pop));
         _array->set_property("join", ALLOC_NATIVE_FUNCTION(natives::array_join));
+
+        _array_iterator = context->get_heap().allocate<Array::Iterator>(context, _object);
+
+        _array_iterator->set_property(magic_methods::cur, ALLOC_NATIVE_FUNCTION(natives::array_iterator_cur));
+        _array_iterator->set_property(magic_methods::done, ALLOC_NATIVE_FUNCTION(natives::array_iterator_done));
+        _array_iterator->set_property(magic_methods::next, ALLOC_NATIVE_FUNCTION(natives::array_iterator_next));
+
+        _array_iterator->set_property(magic_methods::clone, ALLOC_NATIVE_FUNCTION(natives::array_iterator_clone));
+        _array_iterator->set_property(magic_methods::init, ALLOC_NATIVE_FUNCTION(natives::array_iterator_init));
     }
 
     void NativeObjects::initialize_number(ExecutionContext* context) {
