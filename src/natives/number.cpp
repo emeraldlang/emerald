@@ -17,6 +17,7 @@
 
 #include "emerald/execution_context.h"
 #include "emerald/natives/number.h"
+#include "emerald/native_frame.h"
 #include "emerald/objectutils.h"
 
 namespace emerald {

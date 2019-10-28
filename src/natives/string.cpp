@@ -19,6 +19,7 @@
 
 #include "emerald/execution_context.h"
 #include "emerald/natives/string.h"
+#include "emerald/native_frame.h"
 #include "emerald/objectutils.h"
 #include "emerald/strutils.h"
 
@@ -170,8 +171,9 @@ namespace natives {
 
         using ctx = fmt::format_context;
         std::vector<fmt::basic_format_arg<ctx>> fmt_args;
-        for (size_t i = 0; i < args.size(); i++) {
-            Object* arg = Interpreter::execute_method(args[i], magic_methods::str, {}, context);
+        size_t n = frame->num_args();
+        for (size_t i = 0; i < n; i++) {
+            Object* arg = Interpreter::execute_method(frame->get_arg(i), magic_methods::str, {}, context);
             fmt_args.push_back(fmt::internal::make_arg<ctx>(arg->as_str()));
         }
 
@@ -185,14 +187,14 @@ namespace natives {
         CONVERT_RECV_TO(String, self);
         CONVERT_ARG_TO(0, String, seperator);
 
-        std::vector<Object*> res;
+        LOCAL(Array, res, ALLOC_EMPTY_ARRAY());
         for (const std::string& part : strutils::split(
                 self->get_value(),
                 seperator->get_value())) {
-            res.push_back(ALLOC_STRING(part));
+            res->push(ALLOC_STRING(part));
         }
 
-        return ALLOC_ARRAY(res);
+        return res;
     }
 
     NATIVE_FUNCTION(string_append) {

@@ -22,6 +22,7 @@
 #include "emerald/magic_methods.h"
 #include "emerald/module.h"
 #include "emerald/modules/collections.h"
+#include "emerald/native_frame.h"
 #include "emerald/objectutils.h"
 #include "emerald/strutils.h"
 
@@ -234,9 +235,9 @@ namespace modules {
 
         CONVERT_RECV_TO(Queue, self);
 
-        size_t n = args.size();
+        size_t n = frame->num_args();
         for (size_t i = 0; i < n; i++) {
-            self->enqueue(args[i]);
+            self->enqueue(frame->get_arg(i));
         }
 
         return ALLOC_NUMBER(self->size());
@@ -295,9 +296,9 @@ namespace modules {
 
         CONVERT_RECV_TO(Set, self);
 
-        size_t n = args.size();
+        size_t n = frame->num_args();
         for (size_t i = 0; i < n; i++) {
-            self->add(args[i]);
+            self->add(frame->get_arg(i));
         }
 
         return ALLOC_NUMBER(self->size());
@@ -308,7 +309,7 @@ namespace modules {
 
         CONVERT_RECV_TO(Set, self);
 
-        return BOOLEAN(self->contains(args[0]));
+        return BOOLEAN(self->contains(frame->get_arg(0)));
     }
 
     NATIVE_FUNCTION(set_remove) {
@@ -316,7 +317,7 @@ namespace modules {
 
         CONVERT_RECV_TO(Set, self);
 
-        return ALLOC_NUMBER(self->remove(args[0]));
+        return ALLOC_NUMBER(self->remove(frame->get_arg(0)));
     }
 
     NATIVE_FUNCTION(set_empty) {
@@ -388,9 +389,9 @@ namespace modules {
 
         CONVERT_RECV_TO(Stack, self);
 
-        size_t n = args.size();
+        size_t n = frame->num_args();
         for (size_t i = 0; i < n; i++) {
-            self->push(args[i]);
+            self->push(frame->get_arg(i));
         }
 
         return ALLOC_NUMBER(self->size());

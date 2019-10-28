@@ -27,7 +27,7 @@
 #include "emerald/heap.h"
 #include "emerald/heap_managed.h"
 
-#define NATIVE_FUNCTION(name) Object* name(Object* receiver, const std::vector<Object*>& args, ExecutionContext* context)
+#define NATIVE_FUNCTION(name) Object* name(Object* receiver, NativeFrame* frame, ExecutionContext* context)
 
 // Inheritance Hierarchy
 // - Object
@@ -43,6 +43,7 @@
 namespace emerald {
 
     class ExecutionContext;
+    class NativeFrame;
     class Module;
 
     class Object : public HeapManaged {
@@ -176,7 +177,7 @@ namespace emerald {
 
     class NativeFunction final : public Object {
     public:
-        using Callable = std::function<Object*(Object*, const std::vector<Object*>&, ExecutionContext*)>;
+        using Callable = std::function<Object*(Object*, NativeFrame*, ExecutionContext*)>;
 
         NativeFunction(ExecutionContext* context, Callable callable);
         NativeFunction(ExecutionContext* context, Object* parent, Callable callable);
@@ -185,8 +186,8 @@ namespace emerald {
 
         const Callable& get_callable() const;
 
-        Object* invoke(Object* receiver, const std::vector<Object*>& args, ExecutionContext* context);
-        Object* operator()(Object* receiver, const std::vector<Object*>& args, ExecutionContext* context);
+        Object* invoke(Object* receiver, NativeFrame* frame, ExecutionContext* context);
+        Object* operator()(Object* receiver, NativeFrame* frame, ExecutionContext* context);
 
     private:
         Callable _callable;

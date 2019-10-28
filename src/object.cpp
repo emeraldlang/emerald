@@ -16,12 +16,12 @@
 */
 
 #include <algorithm>
-#include <iostream>
 
 #include "fmt/format.h"
 
 #include "emerald/execution_context.h"
 #include "emerald/interpreter.h"
+#include "emerald/native_frame.h"
 #include "emerald/magic_methods.h"
 #include "emerald/module.h"
 #include "emerald/object.h"
@@ -109,7 +109,9 @@ namespace emerald {
     }
 
     void Object::reach() {
-        _parent->mark();
+        if (_parent != nullptr) {
+            _parent->mark();
+        }
 
         for (std::pair<std::string, Object*> pair : get_properties()) {
             pair.second->mark();
@@ -203,10 +205,12 @@ namespace emerald {
 
     Array::Iterator::Iterator(ExecutionContext* context)
         : Object(context, context->get_native_objects().get_array_iterator_prototype()),
+        _arr(nullptr),
         _i(0) {}
 
     Array::Iterator::Iterator(ExecutionContext* context, Object* parent)
         : Object(context, parent),
+        _arr(nullptr),
         _i(0) {}
 
     std::string Array::Iterator::as_str() const {
@@ -234,7 +238,11 @@ namespace emerald {
     }
 
     void Array::Iterator::reach() {
-        _arr->mark();
+        Object::reach();
+
+        if (_arr) {
+            _arr->mark();
+        }
     }
 
     Boolean::Boolean(ExecutionContext* context, bool value)
@@ -296,6 +304,8 @@ namespace emerald {
     }
 
     void Function::reach() {
+        Object::reach();
+
         _globals->mark();
     }
 
@@ -314,12 +324,12 @@ namespace emerald {
         return _callable;
     }
 
-    Object* NativeFunction::invoke(Object* receiver, const std::vector<Object*>& args, ExecutionContext* context) {
-        return _callable(receiver, args, context);
+    Object* NativeFunction::invoke(Object* receiver, NativeFrame* frame, ExecutionContext* context) {
+        return _callable(receiver, frame, context);
     }
 
-    Object* NativeFunction::operator()(Object* receiver, const std::vector<Object*>& args, ExecutionContext* context) {
-        return _callable(receiver, args, context);
+    Object* NativeFunction::operator()(Object* receiver, NativeFrame* frame, ExecutionContext* context) {
+        return _callable(receiver, frame, context);
     }
 
     Null::Null(ExecutionContext* context)

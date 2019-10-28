@@ -101,6 +101,20 @@ namespace emerald {
         return _null;
     }
 
+    std::vector<HeapManaged*> NativeObjects::get_roots() {
+        return std::vector<HeapManaged*>({
+            _object,
+            _array,
+            _array_iterator,
+            _number,
+            _string,
+            _boolean,
+            _true,
+            _false,
+            _null
+        });
+    }
+
     void NativeObjects::initialize_object(ExecutionContext* context) {
         _object = context->get_heap().allocate<Object>(context);
 

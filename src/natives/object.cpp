@@ -17,6 +17,7 @@
 
 #include "emerald/execution_context.h"
 #include "emerald/natives/object.h"
+#include "emerald/native_frame.h"
 #include "emerald/objectutils.h"
 
 namespace emerald {
@@ -25,13 +26,13 @@ namespace natives {
     NATIVE_FUNCTION(object_eq) {
         EXPECT_NUM_ARGS(1);
 
-        return BOOLEAN(receiver == args[0]);
+        return BOOLEAN(receiver == frame->get_arg(0));
     }
 
     NATIVE_FUNCTION(object_neq) {
         EXPECT_NUM_ARGS(1);
 
-        return BOOLEAN(receiver != args[1]);
+        return BOOLEAN(receiver != frame->get_arg(0));
     }
 
     NATIVE_FUNCTION(object_str) {
@@ -61,7 +62,7 @@ namespace natives {
     NATIVE_FUNCTION(object_keys) {
         EXPECT_NUM_ARGS(0);
 
-        Array* keys = ALLOC_EMPTY_ARRAY();
+        LOCAL(Array, keys, ALLOC_EMPTY_ARRAY());
         for (const auto& pair : receiver->get_properties()) {
             keys->push(ALLOC_STRING(pair.first));
         }
@@ -78,14 +79,14 @@ namespace natives {
             return property;
         }
 
-        return args[1];
+        return frame->get_arg(1);
     }
 
     NATIVE_FUNCTION(object_set_prop) {
         EXPECT_NUM_ARGS(2);
 
         TRY_CONVERT_ARG_TO(0, String, name);
-        receiver->set_property(name->get_value(), args[1]);
+        receiver->set_property(name->get_value(), frame->get_arg(1));
 
         return NONE;
     }

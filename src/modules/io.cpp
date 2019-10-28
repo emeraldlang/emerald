@@ -21,6 +21,7 @@
 #include "emerald/magic_methods.h"
 #include "emerald/module.h"
 #include "emerald/modules/io.h"
+#include "emerald/native_frame.h"
 #include "emerald/objectutils.h"
 
 namespace emerald {

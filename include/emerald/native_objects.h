@@ -18,13 +18,14 @@
 #ifndef _EMERALD_NATIVE_OBJECTS_H
 #define _EMERALD_NATIVE_OBJECTS_H
 
+#include "emerald/heap_root_source.h"
 #include "emerald/object.h"
 
 namespace emerald {
 
     class ExecutionContext;
 
-    class NativeObjects {
+    class NativeObjects : public HeapRootSource {
     public:
         NativeObjects(ExecutionContext* context);
 
@@ -51,6 +52,8 @@ namespace emerald {
 
         const Null* get_null() const;
         Null* get_null();
+
+        std::vector<HeapManaged*> get_roots() override;
 
     private:
         Object* _object;

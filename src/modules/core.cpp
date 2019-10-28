@@ -14,13 +14,13 @@
 **  You should have received a copy of the GNU General Public License
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-#include <iostream>
-#include "emerald/modules/core.h"
+
 #include "emerald/execution_context.h"
 #include "emerald/interpreter.h"
-#include "emerald/natives/boolean.h"
 #include "emerald/magic_methods.h"
 #include "emerald/module.h"
+#include "emerald/modules/core.h"
+#include "emerald/native_frame.h"
 #include "emerald/objectutils.h"
 
 namespace emerald {
@@ -29,33 +29,34 @@ namespace modules {
     NATIVE_FUNCTION(core_extend) {
         EXPECT_ATLEAST_NUM_ARGS(1);
 
-        size_t n = args.size();
+        Object* target = frame->get_arg(0);
+        size_t n = frame->num_args();
         for (size_t i = 1; i < n; i++) {
-            for (const auto& pair : args[i]->get_properties()) {
-                args[0]->set_property(pair.first, pair.second);
+            for (const auto& pair : frame->get_arg(i)->get_properties()) {
+                target->set_property(pair.first, pair.second);
             }
         }
 
-        return args[0];
+        return target;
     }
 
     NATIVE_FUNCTION(core_str) {
         EXPECT_NUM_ARGS(1);
 
-        return Interpreter::execute_method(args[0], magic_methods::str, {}, context);
+        return Interpreter::execute_method(frame->get_arg(0), magic_methods::str, {}, context);
     }
 
     NATIVE_FUNCTION(core_bool) {
         EXPECT_NUM_ARGS(1);
 
-        return Interpreter::execute_method(args[0], magic_methods::boolean, {}, context);
+        return Interpreter::execute_method(frame->get_arg(0), magic_methods::boolean, {}, context);
     }
 
     NATIVE_FUNCTION(core_range) {
         EXPECT_NUM_ARGS(1);
 
         TRY_CONVERT_ARG_TO(0, Number, n);
-        Array* res = ALLOC_EMPTY_ARRAY();
+        LOCAL(Array, res, ALLOC_EMPTY_ARRAY());
         for (size_t i = 0; i < n->get_value(); i++) {
             res->push(ALLOC_NUMBER(i));
         }
@@ -66,7 +67,7 @@ namespace modules {
     NATIVE_FUNCTION(core_super) {
         EXPECT_NUM_ARGS(1);
 
-        if (Object* parent = args[0]->get_parent()) {
+        if (Object* parent = frame->get_arg(0)->get_parent()) {
             return parent;
         }
 
@@ -76,25 +77,25 @@ namespace modules {
     NATIVE_FUNCTION(core_iter) {
         EXPECT_NUM_ARGS(1);
 
-        return Interpreter::execute_method(args[0], magic_methods::iter, {}, context);
+        return Interpreter::execute_method(frame->get_arg(0), magic_methods::iter, {}, context);
     }
 
     NATIVE_FUNCTION(core_cur) {
         EXPECT_NUM_ARGS(1);
 
-        return Interpreter::execute_method(args[0], magic_methods::cur, {}, context);
+        return Interpreter::execute_method(frame->get_arg(0), magic_methods::cur, {}, context);
     }
 
     NATIVE_FUNCTION(core_done) {
         EXPECT_NUM_ARGS(1);
 
-        return Interpreter::execute_method(args[0], magic_methods::done, {}, context);
+        return Interpreter::execute_method(frame->get_arg(0), magic_methods::done, {}, context);
     }
 
     NATIVE_FUNCTION(core_next) {
         EXPECT_NUM_ARGS(1);
 
-        return Interpreter::execute_method(args[0], magic_methods::next, {}, context);
+        return Interpreter::execute_method(frame->get_arg(0), magic_methods::next, {}, context);
     }
 
     MODULE_INITIALIZATION_FUNC(init_core_module) {

@@ -47,6 +47,7 @@ add_library(emerald_s SHARED
     src/natives/number.cpp
     src/natives/object.cpp
     src/natives/string.cpp
+    src/native_frame.cpp
     src/native_objects.cpp
     src/object.cpp
     src/opcode.cpp

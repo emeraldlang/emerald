@@ -24,6 +24,7 @@
 #include "emerald/execution_context.h"
 #include "emerald/interpreter.h"
 #include "emerald/iterutils.h"
+#include "emerald/native_frame.h"
 #include "emerald/module.h"
 #include "emerald/objectutils.h"
 
@@ -360,7 +361,12 @@ namespace emerald {
 
             return execute(context);
         } else if (NativeFunction* func = dynamic_cast<NativeFunction*>(obj)) {
-            return (*func)(receiver, args, context);
+            NativeFrame frame(args);
+            Heap& heap = context->get_heap();
+            heap.add_root_source(&frame);
+            Object* res = (*func)(receiver, &frame, context);
+            heap.remove_root_source(&frame);
+            return res;
         } else if (Object* prop = obj->get_property(magic_methods::call)) {
             return call_obj(prop, obj, args, context);
         } else {

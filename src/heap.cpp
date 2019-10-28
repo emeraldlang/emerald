@@ -44,6 +44,10 @@ namespace emerald {
         _root_source_set.insert(root_source);
     }
 
+    void Heap::remove_root_source(HeapRootSource* root_source) {
+        _root_source_set.erase(root_source);
+    }
+
     void Heap::collect() {
         for (HeapRootSource* root_source : _root_source_set) {
             for (HeapManaged* managed : root_source->get_roots()) {

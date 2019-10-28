@@ -28,12 +28,12 @@
 
 #define EXPECT_NUM_ARGS_OP(count, op)                           \
     do {                                                        \
-        if (args.size() op count) {                             \
+        if (frame->num_args() op count) {                       \
             throw context->get_heap().allocate<Exception>(      \
                 context, fmt::format(                           \
                     "expected {0} args, got {1}",               \
                     count,                                      \
-                    args.size()));                              \
+                    frame->num_args()));                        \
         }                                                       \
     } while (false)
 
@@ -50,23 +50,28 @@
         }                                                       \
     } while (false)
 
-#define CONVERT_ARG_TO(i, Type, name) CONVERT_VAL_TO(args[i], Type, name)
+#define CONVERT_ARG_TO(i, Type, name) CONVERT_VAL_TO(frame->get_arg(i), Type, name)
 #define CONVERT_RECV_TO(Type, name) CONVERT_VAL_TO(receiver, Type, name)
 
 #define TRY_CONVERT_VAL_TO(val, Type, name) Type* name = dynamic_cast<Type*>(val)
-#define TRY_CONVERT_ARG_TO(i, Type, name) TRY_CONVERT_VAL_TO(args[i], Type, name)
+#define TRY_CONVERT_ARG_TO(i, Type, name) TRY_CONVERT_VAL_TO(frame->get_arg(i), Type, name)
 #define TRY_CONVERT_RECV_TO(Type, name) TRY_CONVERT_VAL_TO(receiver, Type, name)
 
-#define TRY_CONVERT_OPTIONAL_ARG_TO(i, Type, name)  \
-    Type* name;                                     \
-    do {                                            \
-        if (i < args.size()) {                      \
-            name = dynamic_cast<Type*>(args[i]);    \
-        } else {                                    \
-            name = nullptr;                         \
-        }                                           \
+#define TRY_CONVERT_OPTIONAL_ARG_TO(i, Type, name)          \
+    Type* name;                                             \
+    do {                                                    \
+        if (i < frame->num_args()) {                        \
+            name = dynamic_cast<Type*>(frame->get_arg(i));  \
+        } else {                                            \
+            name = nullptr;                                 \
+        }                                                   \
     } while (false)
 
+#define LOCAL(Type, name, val) Type* name = ({  \
+    Type* res = val;                            \
+    frame->set_local("name", res);              \
+    res;                                        \
+})
 
 #define BOOLEAN(val) context->get_native_objects().get_boolean(val)
 #define NONE context->get_native_objects().get_null()

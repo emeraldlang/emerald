@@ -19,8 +19,9 @@
 
 #include "emerald/execution_context.h"
 #include "emerald/interpreter.h"
-#include "emerald/natives/boolean.h"
 #include "emerald/magic_methods.h"
+#include "emerald/natives/boolean.h"
+#include "emerald/native_frame.h"
 #include "emerald/objectutils.h"
 
 namespace emerald {
@@ -30,13 +31,13 @@ namespace natives {
         EXPECT_NUM_ARGS(1);
 
         CONVERT_RECV_TO(Boolean, self);
-        Object* other = Interpreter::execute_method(args[0], magic_methods::boolean, {}, context);
+        Object* other = Interpreter::execute_method(frame->get_arg(0), magic_methods::boolean, {}, context);
 
         return BOOLEAN(self->as_bool() == other->as_bool());
     }
 
     NATIVE_FUNCTION(boolean_neq) {
-        return BOOLEAN(!boolean_eq(receiver, args, context)->as_bool());
+        return BOOLEAN(!boolean_eq(receiver, frame, context)->as_bool());
     }
 
     NATIVE_FUNCTION(boolean_clone) {

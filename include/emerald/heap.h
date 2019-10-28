@@ -39,6 +39,7 @@ namespace emerald {
         T* allocate(Args&&... args);
 
         void add_root_source(HeapRootSource* root_source);
+        void remove_root_source(HeapRootSource* root_source);
         
         void collect();
 

@@ -17,8 +17,9 @@
 
 #include "emerald/execution_context.h"
 #include "emerald/interpreter.h"
-#include "emerald/natives/array.h"
 #include "emerald/magic_methods.h"
+#include "emerald/natives/array.h"
+#include "emerald/native_frame.h"
 #include "emerald/objectutils.h"
 
 namespace emerald {
@@ -54,7 +55,7 @@ namespace natives {
         CONVERT_RECV_TO(Array, self);
 
         return Interpreter::create_obj<Array::Iterator>(
-            self,
+            context->get_native_objects().get_array_iterator_prototype(),
             { self },
             context);
     }
@@ -123,9 +124,9 @@ namespace natives {
 
         CONVERT_RECV_TO(Array, arr);
 
-        size_t n = args.size();
+        size_t n = frame->num_args();
         for (size_t i = 0; i < n; i++) {
-            arr->push(args[i]);
+            arr->push(frame->get_arg(i));
         }
 
         return ALLOC_NUMBER(arr->size());
