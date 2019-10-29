@@ -54,6 +54,10 @@ namespace emerald {
         _locals[name] = val;
     }
 
+    Object*& NativeFrame::operator[](const std::string& name) {
+        return _locals[name];
+    }
+
     std::vector<HeapManaged*> NativeFrame::get_roots() {
         std::vector<HeapManaged*> roots;
 

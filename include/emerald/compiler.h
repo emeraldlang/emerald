@@ -57,6 +57,10 @@ namespace emerald {
         ALL_NODES
 #undef X
 
+        void VisitLogicalAndExpression(const std::shared_ptr<BinaryOp> binary_op);
+        void VisitLogicalOrExpression(const std::shared_ptr<BinaryOp>& binary_op);
+        void VisitArithmeticExpression(const std::shared_ptr<BinaryOp>& binary_op);
+
         void VisitPropertyLoad(const std::shared_ptr<Property>& property, bool push_self_back = false);
         void VisitPropertyStore(const std::shared_ptr<Property>& property, const std::shared_ptr<Expression>& val, bool push_self_back = false);
 

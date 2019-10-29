@@ -69,7 +69,9 @@ namespace emerald {
 
         void write_jmp(size_t label);
         void write_jmp_true(size_t label);
+        void write_jmp_true_or_pop(size_t label);
         void write_jmp_false(size_t label);
+        void write_jmp_false_or_pop(size_t label);
         void write_jmp_data(size_t label);
 
         void write_neg();

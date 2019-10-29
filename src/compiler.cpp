@@ -310,14 +310,44 @@ namespace emerald {
     }
 
     void Compiler::VisitBinaryOp(const std::shared_ptr<BinaryOp>& binary_op) {
+        switch (binary_op->get_operator()->get_type()) {
+        case Token::LOGIC_AND:
+            VisitLogicalAndExpression(binary_op);
+            break;
+        case Token::LOGIC_OR:
+            VisitLogicalOrExpression(binary_op);
+            break;
+        default:
+            VisitArithmeticExpression(binary_op);
+            break;
+        }
+    }
+
+    void Compiler::Compiler::VisitLogicalAndExpression(const std::shared_ptr<BinaryOp> binary_op) {
+        size_t end = code()->create_label();
+
+        Visit(binary_op->get_left_expression());
+        code()->write_jmp_false_or_pop(end);
+        Visit(binary_op->get_right_expression());
+
+        code()->bind_label(end);
+    }
+
+    void Compiler::VisitLogicalOrExpression(const std::shared_ptr<BinaryOp>& binary_op) {
+        size_t end = code()->create_label();
+
+        Visit(binary_op->get_left_expression());
+        code()->write_jmp_true_or_pop(end);
+        Visit(binary_op->get_right_expression());
+
+        code()->bind_label(end);
+    }
+
+    void Compiler::VisitArithmeticExpression(const std::shared_ptr<BinaryOp>& binary_op) {
         Visit(binary_op->get_right_expression());
         Visit(binary_op->get_left_expression());
 
         switch (binary_op->get_operator()->get_type()) {
-        // case Token::LOGIC_OR:
-        //     break;
-        // case Token::LOGIC_AND:
-        //     break;
         case Token::BIT_OR:
             code()->write_bit_or();
             break;

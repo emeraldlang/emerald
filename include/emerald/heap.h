@@ -40,8 +40,11 @@ namespace emerald {
 
         void add_root_source(HeapRootSource* root_source);
         void remove_root_source(HeapRootSource* root_source);
-        
+
         void collect();
+
+        size_t threshold() const;
+        void set_threshold(size_t threshold);
 
     private:
         std::unordered_set<HeapManaged*> _managed_set;

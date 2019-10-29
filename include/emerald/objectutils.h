@@ -67,19 +67,27 @@
         }                                                   \
     } while (false)
 
-#define LOCAL(Type, name, val) Type* name = ({  \
-    Type* res = val;                            \
-    frame->set_local("name", res);              \
-    res;                                        \
-})
+#define LOCAL(Type, name) Type* name; (*frame)[#name] = name
 
-#define BOOLEAN(val) context->get_native_objects().get_boolean(val)
+#define BOOLEAN(val) BOOLEAN_IN_CTX(val, context)
+#define BOOLEAN_IN_CTX(val, ctx) (ctx)->get_native_objects().get_boolean(val)
+
 #define NONE context->get_native_objects().get_null()
+
 #define ALLOC_EMPTY_ARRAY() context->get_heap().allocate<Array>(context)
-#define ALLOC_ARRAY(arr) context->get_heap().allocate<Array>(context, arr)
+
+#define ALLOC_EXCEPTION(msg) ALLOC_EXCEPTION_IN_CTX(msg, context)
+#define ALLOC_EXCEPTION_IN_CTX(msg, ctx) (ctx)->get_heap().allocate<Exception>(ctx, msg)
+
 #define ALLOC_NATIVE_FUNCTION(function) context->get_heap().allocate<NativeFunction>(context, function)
-#define ALLOC_NUMBER(num) context->get_heap().allocate<Number>(context, num)
-#define ALLOC_STRING(str) context->get_heap().allocate<String>(context, str)
+
+#define ALLOC_NUMBER(num) ALLOC_NUMBER_IN_CTX(num, context)
+#define ALLOC_NUMBER_IN_CTX(num, ctx) (ctx)->get_heap().allocate<Number>(ctx, num)
+
+#define ALLOC_MODULE(name) context->get_heap().allocate<Module>(context, name)
+
+#define ALLOC_STRING(str) ALLOC_STRING_IN_CTX(str, context)
+#define ALLOC_STRING_IN_CTX(str, ctx) (ctx)->get_heap().allocate<String>(ctx, str)
 
 namespace emerald {
 namespace objectutils {
@@ -87,7 +95,7 @@ namespace objectutils {
     template <class InputIt1, class InputIt2>
     inline bool compare_range(InputIt1 first1, InputIt1 last1, InputIt2 first2, ExecutionContext* context) {
         return std::equal(first1, last1, first2, [&context](Object* lhs, Object* rhs) {
-            return Interpreter::execute_method(lhs, magic_methods::eq, { rhs }, context);
+            return Interpreter::execute_method<Boolean>(lhs, magic_methods::eq, { rhs }, context)->get_native_value();
         });
     }
 
@@ -98,13 +106,48 @@ namespace objectutils {
             end,
             seperator,
             [&context](Object* obj) {
-                return Interpreter::execute_method(
+                return Interpreter::execute_method<String>(
                     obj,
                     magic_methods::str,
                     {},
-                    context)->as_str();
+                    context)->get_value();
             });
     }
+
+    class ObjectIterator {
+    public:
+        ObjectIterator(ExecutionContext* context, Object* iterator)
+            : _context(context),
+            _iterator(iterator) {}
+
+        Object* cur() const {
+            return Interpreter::execute_method<Object>(
+                _iterator,
+                magic_methods::cur,
+                {},
+                _context);
+        }
+
+        Boolean* done() {
+            return Interpreter::execute_method<Boolean>(
+                _iterator,
+                magic_methods::done,
+                {},
+                _context);
+        }
+
+        Object* next() {
+            return Interpreter::execute_method<Object>(
+                _iterator,
+                magic_methods::next,
+                {},
+                _context);
+        }
+
+    private:
+        ExecutionContext* _context;
+        Object* _iterator;
+    };
 
 } // namespace objectutils
 } // namespace emerald

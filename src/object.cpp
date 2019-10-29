@@ -136,6 +136,14 @@ namespace emerald {
         + "]";
     }
 
+    void Array::init(Object* iterator) {
+        objectutils::ObjectIterator iter = objectutils::ObjectIterator(get_context(), iterator);
+        while (!iter.done()) {
+            _value.push_back(iter.cur());
+            iter.next();
+        }
+    }
+
     Object* Array::at(size_t i) const {
         if (i >= _value.size()) {
             return nullptr;
@@ -152,21 +160,20 @@ namespace emerald {
         return _value.back();
     }
 
-    bool Array::empty() const {
-        return _value.empty();
+    Boolean* Array::empty() const {
+        return BOOLEAN_IN_CTX(_value.empty(), get_context());
     }
 
-    size_t Array::size() {
-        return _value.size();
+    Number* Array::size() {
+        return ALLOC_NUMBER_IN_CTX(_value.size(), get_context());
     }
 
     void Array::clear() {
         _value.clear();
     }
 
-    size_t Array::push(Object* obj) {
+    void Array::push(Object* obj) {
         _value.push_back(obj);
-        return _value.size();
     }
 
     Object* Array::pop() {
@@ -175,12 +182,13 @@ namespace emerald {
         return obj;
     }
 
-    std::string Array::join(const std::string& seperator) {
-        return objectutils::join_range(
+    String* Array::join(String* seperator) {
+        ExecutionContext* context = get_context();
+        return ALLOC_STRING(objectutils::join_range(
             _value.begin(),
             _value.end(),
-            seperator,
-            get_context());
+            seperator->get_value(),
+            context));
     }
 
     bool Array::operator==(const Array& other) const {
@@ -225,12 +233,12 @@ namespace emerald {
         return _arr->at(_i);
     }
 
-    bool Array::Iterator::done() const {
-        return _i == _arr->size();
+    Boolean* Array::Iterator::done() const {
+        return BOOLEAN_IN_CTX(_i == _arr->size()->get_value(), get_context());
     }
 
     Object* Array::Iterator::next() {
-        if (_i == _arr->size()) {
+        if (_i == _arr->size()->get_value()) {
             return _arr->back();
         }
 
@@ -261,8 +269,20 @@ namespace emerald {
         return (_value) ? "True" : "False";
     }
 
-    bool Boolean::get_value() const {
+    void Boolean::init(Boolean* val) {
+        _value = val->get_native_value();
+    }
+
+    bool Boolean::get_native_value() const {
         return _value;
+    }
+
+    Boolean* Boolean::eq(Boolean* other) const {
+        return BOOLEAN_IN_CTX(_value == other->_value, get_context());
+    }
+
+    Boolean* Boolean::neq(Boolean* other) const {
+        return BOOLEAN_IN_CTX(_value != other->_value, get_context());
     }
 
     Exception::Exception(ExecutionContext* context, const std::string& message)

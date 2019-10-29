@@ -36,8 +36,8 @@ namespace modules {
         : Object(context, parent) {}
 
     std::string Queue::as_str() const {
-        return "queue(" + 
-            objectutils::join_range(_value.begin(), _value.end(), ",", get_context()) 
+        return "queue(" +
+            objectutils::join_range(_value.begin(), _value.end(), ",", get_context())
         + ")";
     }
 
@@ -83,8 +83,8 @@ namespace modules {
         : Object(context, parent) {}
 
     std::string Set::as_str() const {
-        return "set(" + 
-            objectutils::join_range(_value.begin(), _value.end(), ",", get_context()) 
+        return "set(" +
+            objectutils::join_range(_value.begin(), _value.end(), ",", get_context())
         + ")";
     }
 
@@ -120,19 +120,19 @@ namespace modules {
 
     size_t Set::hash::operator()(Object* val) const {
         return std::hash<std::string>{}(
-            Interpreter::execute_method(
+            Interpreter::execute_method<String>(
                 val,
                 magic_methods::str,
                 {},
-                val->get_context())->as_str());
+                val->get_context())->get_value());
     }
 
     bool Set::key_eq::operator()(Object* lhs, Object* rhs) const {
-        return Interpreter::execute_method(
+        return Interpreter::execute_method<Boolean>(
             lhs,
             magic_methods::eq,
             { rhs },
-            lhs->get_context())->as_bool();
+            lhs->get_context())->get_native_value();
     }
 
     Stack::Stack(ExecutionContext* context)
@@ -142,8 +142,8 @@ namespace modules {
         : Object(context, parent) {}
 
     std::string Stack::as_str() const {
-        return "stack(" + 
-            objectutils::join_range(_value.begin(), _value.end(), ",", get_context()) 
+        return "stack(" +
+            objectutils::join_range(_value.begin(), _value.end(), ",", get_context())
         + ")";
     }
 
@@ -417,7 +417,7 @@ namespace modules {
         Heap& heap = context->get_heap();
         NativeObjects& native_objects = context->get_native_objects();
 
-        Module* module = heap.allocate<Module>(context, "collections");
+        Module* module = ALLOC_MODULE("collections");
 
         Queue* queue = heap.allocate<Queue>(context, native_objects.get_object_prototype());
         queue->set_property(magic_methods::eq, ALLOC_NATIVE_FUNCTION(queue_eq));

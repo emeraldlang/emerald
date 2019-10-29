@@ -42,6 +42,10 @@
 
 namespace emerald {
 
+    class Boolean;
+    class Number;
+    class String;
+
     class ExecutionContext;
     class NativeFrame;
     class Module;
@@ -95,7 +99,7 @@ namespace emerald {
             void init(Array* arr);
 
             Object* cur() const;
-            bool done() const;
+            Boolean* done() const;
             Object* next();
 
         private:
@@ -108,19 +112,21 @@ namespace emerald {
         bool as_bool() const override;
         std::string as_str() const override;
 
+        void init(Object* iterator);
+
         Object* at(size_t i) const;
         Object* front() const;
         Object* back() const;
 
-        bool empty() const;
-        size_t size();
+        Boolean* empty() const;
+        Number* size();
 
         void clear();
 
-        size_t push(Object* obj);
+        void push(Object* obj);
         Object* pop();
 
-        std::string join(const std::string& seperator);
+        String* join(String* seperator);
 
         bool operator==(const Array& other) const;
         bool operator!=(const Array& other) const;
@@ -139,7 +145,12 @@ namespace emerald {
         bool as_bool() const override;
         std::string as_str() const override;
 
-        bool get_value() const;
+        void init(Boolean* val);
+
+        bool get_native_value() const;
+
+        Boolean* eq(Boolean* other) const;
+        Boolean* neq(Boolean* other) const;
 
     private:
         bool _value;

@@ -44,6 +44,8 @@ namespace emerald {
 
         void set_local(const std::string& name, Object* val);
 
+        Object*& operator[](const std::string& name);
+
         std::vector<HeapManaged*> get_roots() override;
 
     private:

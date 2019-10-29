@@ -21,20 +21,23 @@
 #include <string>
 #include <vector>
 
+#include "fmt/format.h"
+
+#include "emerald/execution_context.h"
 #include "emerald/magic_methods.h"
+#include "emerald/object.h"
 
 namespace emerald {
 
     class Code;
-    class ExecutionContext;
-    class Object;
     class Module;
 
     class Interpreter {
     public:
         static Object* execute(ExecutionContext* context);
         static Object* execute_code(std::shared_ptr<const Code> code, ExecutionContext* context);
-        static Object* execute_method(Object* receiver, const std::string& name, const std::vector<Object*>& args, ExecutionContext* context);
+        template <class T>
+        static T* execute_method(Object* receiver, const std::string& name, const std::vector<Object*>& args, ExecutionContext* context);
         static Object* execute_module(const std::string& module_name);
         static Module* import_module(const std::string& name, ExecutionContext* context);
         template <class T>
@@ -55,14 +58,28 @@ namespace emerald {
     };
 
     template <class T>
+    T* Interpreter::execute_method(Object* receiver, const std::string& name, const std::vector<Object*>& args, ExecutionContext* context) {
+        if (T* res = dynamic_cast<T*>(execute_method<Object>(receiver, name, args, context))) {
+            return res;
+        }
+
+        std::string msg = fmt::format("expected {0} to return a {1}", magic_methods::boolean, typeid(T).name());
+        throw context->get_heap().allocate<Exception>(context, msg);
+    }
+
+    template <>
+    inline Object* Interpreter::execute_method<Object>(Object* receiver, const std::string& name, const std::vector<Object*>& args, ExecutionContext* context) {
+        return call_method(receiver, name, args, context);
+    }
+
+    template <class T>
     T* Interpreter::create_obj(Object* parent, const std::vector<Object*>& args, ExecutionContext* context) {
-        T* obj = static_cast<T*>(
-            Interpreter::execute_method(
+        T* obj = Interpreter::execute_method<T>(
                 parent,
                 magic_methods::clone,
                 {},
-                context));
-        Interpreter::execute_method(
+                context);
+        Interpreter::execute_method<Null>(
             obj,
             magic_methods::init,
             args,

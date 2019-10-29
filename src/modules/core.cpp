@@ -43,20 +43,20 @@ namespace modules {
     NATIVE_FUNCTION(core_str) {
         EXPECT_NUM_ARGS(1);
 
-        return Interpreter::execute_method(frame->get_arg(0), magic_methods::str, {}, context);
+        return Interpreter::execute_method<String>(frame->get_arg(0), magic_methods::str, {}, context);
     }
 
     NATIVE_FUNCTION(core_bool) {
         EXPECT_NUM_ARGS(1);
 
-        return Interpreter::execute_method(frame->get_arg(0), magic_methods::boolean, {}, context);
+        return Interpreter::execute_method<Boolean>(frame->get_arg(0), magic_methods::boolean, {}, context);
     }
 
     NATIVE_FUNCTION(core_range) {
         EXPECT_NUM_ARGS(1);
 
         TRY_CONVERT_ARG_TO(0, Number, n);
-        LOCAL(Array, res, ALLOC_EMPTY_ARRAY());
+        LOCAL(Array, res) = ALLOC_EMPTY_ARRAY();
         for (size_t i = 0; i < n->get_value(); i++) {
             res->push(ALLOC_NUMBER(i));
         }
@@ -77,29 +77,29 @@ namespace modules {
     NATIVE_FUNCTION(core_iter) {
         EXPECT_NUM_ARGS(1);
 
-        return Interpreter::execute_method(frame->get_arg(0), magic_methods::iter, {}, context);
+        return Interpreter::execute_method<Object>(frame->get_arg(0), magic_methods::iter, {}, context);
     }
 
     NATIVE_FUNCTION(core_cur) {
         EXPECT_NUM_ARGS(1);
 
-        return Interpreter::execute_method(frame->get_arg(0), magic_methods::cur, {}, context);
+        return Interpreter::execute_method<Object>(frame->get_arg(0), magic_methods::cur, {}, context);
     }
 
     NATIVE_FUNCTION(core_done) {
         EXPECT_NUM_ARGS(1);
 
-        return Interpreter::execute_method(frame->get_arg(0), magic_methods::done, {}, context);
+        return Interpreter::execute_method<Boolean>(frame->get_arg(0), magic_methods::done, {}, context);
     }
 
     NATIVE_FUNCTION(core_next) {
         EXPECT_NUM_ARGS(1);
 
-        return Interpreter::execute_method(frame->get_arg(0), magic_methods::next, {}, context);
+        return Interpreter::execute_method<Object>(frame->get_arg(0), magic_methods::next, {}, context);
     }
 
     MODULE_INITIALIZATION_FUNC(init_core_module) {
-        Module* module = context->get_heap().allocate<Module>(context, "core");
+        Module* module = ALLOC_MODULE("core");
 
         NativeObjects& native_objects = context->get_native_objects();
         module->set_property("Object", native_objects.get_object_prototype());

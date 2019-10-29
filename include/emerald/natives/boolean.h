@@ -23,7 +23,8 @@
 #define BOOLEAN_NATIVES     \
     X(boolean_eq)           \
     X(boolean_neq)          \
-    X(boolean_clone)
+    X(boolean_clone)        \
+    X(boolean_init)
 
 namespace emerald {
 namespace natives {

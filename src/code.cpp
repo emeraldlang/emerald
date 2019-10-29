@@ -87,8 +87,16 @@ namespace emerald {
         WRITE_OP_WARGS(OpCode::jmp_true, { get_label_offset(label) });
     }
 
+    void Code::write_jmp_true_or_pop(size_t label) {
+        WRITE_OP_WARGS(OpCode::jmp_true_or_pop, { get_label_offset(label) });
+    }
+
     void Code::write_jmp_false(size_t label) {
         WRITE_OP_WARGS(OpCode::jmp_false, { get_label_offset(label) });
+    }
+
+    void Code::write_jmp_false_or_pop(size_t label) {
+        WRITE_OP_WARGS(OpCode::jmp_false_or_pop, { get_label_offset(label) });
     }
 
     void Code::write_jmp_data(size_t label) {

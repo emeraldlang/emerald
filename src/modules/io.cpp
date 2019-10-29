@@ -209,7 +209,7 @@ namespace modules {
         Heap& heap = context->get_heap();
         NativeObjects& native_objects = context->get_native_objects();
 
-        Module* module = heap.allocate<Module>(context, "io");
+        Module* module = ALLOC_MODULE("io");
 
         FileStream* file_stream = heap.allocate<FileStream>(context, native_objects.get_object_prototype());
         file_stream->set_property(magic_methods::clone, ALLOC_NATIVE_FUNCTION(file_stream_clone));

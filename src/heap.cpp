@@ -68,4 +68,12 @@ namespace emerald {
         }
     }
 
+    size_t Heap::threshold() const {
+        return _threshold;
+    }
+
+    void Heap::set_threshold(size_t threshold) {
+        _threshold = threshold;
+    }
+
 } // namespace emerald

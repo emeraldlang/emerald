@@ -17,11 +17,8 @@
 
 #include <iostream>
 
-#include "fmt/format.h"
-
 #include "emerald/code.h"
 #include "emerald/code_cache.h"
-#include "emerald/execution_context.h"
 #include "emerald/interpreter.h"
 #include "emerald/iterutils.h"
 #include "emerald/native_frame.h"
@@ -49,9 +46,23 @@ namespace emerald {
                         current_frame.set_instruction_pointer(instr.get_arg(0));
                     }
                     break;
+                case OpCode::jmp_true_or_pop:
+                    if (call_method0(current_frame.peek_ds(), magic_methods::boolean, context)->as_bool()) {
+                        current_frame.set_instruction_pointer(instr.get_arg(0));
+                    } else {
+                        current_frame.pop_ds();
+                    }
+                    break;
                 case OpCode::jmp_false:
                     if (!call_method0(current_frame.pop_ds(), magic_methods::boolean, context)->as_bool()) {
                         current_frame.set_instruction_pointer(instr.get_arg(0));
+                    }
+                    break;
+                case OpCode::jmp_false_or_pop:
+                    if (!call_method0(current_frame.peek_ds(), magic_methods::boolean, context)->as_bool()) {
+                        current_frame.set_instruction_pointer(instr.get_arg(0));
+                    } else {
+                        current_frame.pop_ds();
                     }
                     break;
                 case OpCode::jmp_data:
@@ -320,10 +331,6 @@ namespace emerald {
         context->get_stack().push_frame(NONE, code, context->get_stack().peek_globals());
 
         return execute(context);
-    }
-
-    Object* Interpreter::execute_method(Object* receiver, const std::string& name, const std::vector<Object*>& args, ExecutionContext* context) {
-        return call_method(receiver, name, args, context);
     }
 
     Object* Interpreter::execute_module(const std::string& module_name) {

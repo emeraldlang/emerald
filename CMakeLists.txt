@@ -40,8 +40,10 @@ add_library(emerald_s SHARED
     src/module_registry.cpp
     src/modules/collections.cpp
     src/modules/core.cpp
+    src/modules/gc.cpp
     src/modules/init.cpp
     src/modules/io.cpp
+    src/modules/net.cpp
     src/natives/array.cpp
     src/natives/boolean.cpp
     src/natives/number.cpp

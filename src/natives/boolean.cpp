@@ -31,13 +31,22 @@ namespace natives {
         EXPECT_NUM_ARGS(1);
 
         CONVERT_RECV_TO(Boolean, self);
-        Object* other = Interpreter::execute_method(frame->get_arg(0), magic_methods::boolean, {}, context);
+        if (TRY_CONVERT_ARG_TO(0, Boolean, other)) {
+            return self->eq(other);
+        }
 
-        return BOOLEAN(self->as_bool() == other->as_bool());
+        return BOOLEAN(false);
     }
 
     NATIVE_FUNCTION(boolean_neq) {
-        return BOOLEAN(!boolean_eq(receiver, frame, context)->as_bool());
+        EXPECT_NUM_ARGS(1);
+
+        CONVERT_RECV_TO(Boolean, self);
+        if (TRY_CONVERT_ARG_TO(0, Boolean, other)) {
+            return self->neq(other);
+        }
+
+        return BOOLEAN(true);
     }
 
     NATIVE_FUNCTION(boolean_clone) {
@@ -47,6 +56,21 @@ namespace natives {
 
         return context->get_heap().allocate<Boolean>(context, self);
     }
+
+    NATIVE_FUNCTION(boolean_init) {
+        EXPECT_NUM_ARGS(1);
+
+        CONVERT_RECV_TO(Boolean, self);
+        Boolean* val = Interpreter::execute_method<Boolean>(
+            frame->get_arg(0),
+            magic_methods::boolean,
+            {},
+            context);
+        self->init(val);
+
+        return NONE;
+    }
+
 
 } // namespace natives
 } // namepsace emerald

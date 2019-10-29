@@ -62,7 +62,7 @@ namespace natives {
     NATIVE_FUNCTION(object_keys) {
         EXPECT_NUM_ARGS(0);
 
-        LOCAL(Array, keys, ALLOC_EMPTY_ARRAY());
+        LOCAL(Array, keys) = ALLOC_EMPTY_ARRAY();
         for (const auto& pair : receiver->get_properties()) {
             keys->push(ALLOC_STRING(pair.first));
         }

@@ -29,7 +29,9 @@ namespace emerald {
     X(nop, 0)                   \
     X(jmp, 1)                   \
     X(jmp_true, 1)              \
+    X(jmp_true_or_pop, 1)       \
     X(jmp_false, 1)             \
+    X(jmp_false_or_pop, 1)      \
     X(jmp_data, 1)              \
     /* Unary */                 \
     X(neg, 0)                   \

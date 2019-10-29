@@ -138,9 +138,10 @@ namespace emerald {
         _array->set_property(magic_methods::eq, ALLOC_NATIVE_FUNCTION(natives::array_eq));
         _array->set_property(magic_methods::neq, ALLOC_NATIVE_FUNCTION(natives::array_neq));
 
-        _object->set_property(magic_methods::iter, ALLOC_NATIVE_FUNCTION(natives::array_iter));
+        _array->set_property(magic_methods::iter, ALLOC_NATIVE_FUNCTION(natives::array_iter));
 
         _array->set_property(magic_methods::clone, ALLOC_NATIVE_FUNCTION(natives::array_clone));
+        _array->set_property(magic_methods::init, ALLOC_NATIVE_FUNCTION(natives::array_init));
 
         _array->set_property("at", ALLOC_NATIVE_FUNCTION(natives::array_at));
         _array->set_property("front", ALLOC_NATIVE_FUNCTION(natives::array_front));
@@ -228,6 +229,7 @@ namespace emerald {
         _boolean->set_property(magic_methods::neq, ALLOC_NATIVE_FUNCTION(natives::boolean_neq));
 
         _boolean->set_property(magic_methods::clone, ALLOC_NATIVE_FUNCTION(natives::boolean_clone));
+        _boolean->set_property(magic_methods::init, ALLOC_NATIVE_FUNCTION(natives::boolean_init));
 
         _true = context->get_heap().allocate<Boolean>(context, _boolean, true);
         _false = context->get_heap().allocate<Boolean>(context, _boolean, false);

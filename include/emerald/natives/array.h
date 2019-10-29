@@ -25,6 +25,7 @@
     X(array_neq)        \
     X(array_iter)       \
     X(array_clone)      \
+    X(array_init)       \
     X(array_at)         \
     X(array_front)      \
     X(array_back)       \
