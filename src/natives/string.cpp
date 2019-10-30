@@ -32,7 +32,7 @@ namespace natives {
         CONVERT_RECV_TO(String, self);
         CONVERT_ARG_TO(0, String, other);
 
-        return ALLOC_STRING(self->get_value() + other->get_value());
+        return ALLOC_STRING(self->get_native_value() + other->get_native_value());
     }
 
     NATIVE_FUNCTION(string_eq) {
@@ -41,7 +41,7 @@ namespace natives {
         CONVERT_RECV_TO(String, self);
         CONVERT_ARG_TO(0, String, other);
 
-        return BOOLEAN(self->get_value() == other->get_value());
+        return BOOLEAN(self->get_native_value() == other->get_native_value());
     }
 
     NATIVE_FUNCTION(string_neq) {
@@ -50,7 +50,7 @@ namespace natives {
         CONVERT_RECV_TO(String, self);
         CONVERT_ARG_TO(0, String, other);
 
-        return BOOLEAN(self->get_value() != other->get_value());
+        return BOOLEAN(self->get_native_value() != other->get_native_value());
     }
 
     NATIVE_FUNCTION(string_lt) {
@@ -59,7 +59,7 @@ namespace natives {
         CONVERT_RECV_TO(String, self);
         CONVERT_ARG_TO(0, String, other);
 
-        return BOOLEAN(self->get_value() < other->get_value());
+        return BOOLEAN(self->get_native_value() < other->get_native_value());
     }
 
     NATIVE_FUNCTION(string_gt) {
@@ -68,7 +68,7 @@ namespace natives {
         CONVERT_RECV_TO(String, self);
         CONVERT_ARG_TO(0, String, other);
 
-        return BOOLEAN(self->get_value() > other->get_value());
+        return BOOLEAN(self->get_native_value() > other->get_native_value());
     }
 
     NATIVE_FUNCTION(string_lte) {
@@ -77,7 +77,7 @@ namespace natives {
         CONVERT_RECV_TO(String, self);
         CONVERT_ARG_TO(0, String, other);
 
-        return BOOLEAN(self->get_value() <= other->get_value());
+        return BOOLEAN(self->get_native_value() <= other->get_native_value());
     }
 
     NATIVE_FUNCTION(string_gte) {
@@ -86,7 +86,7 @@ namespace natives {
         CONVERT_RECV_TO(String, self);
         CONVERT_ARG_TO(0, String, other);
 
-        return BOOLEAN(self->get_value() > other->get_value());
+        return BOOLEAN(self->get_native_value() > other->get_native_value());
     }
 
     NATIVE_FUNCTION(string_clone) {
@@ -102,7 +102,7 @@ namespace natives {
 
         CONVERT_RECV_TO(String, self);
 
-        return BOOLEAN(self->get_value().empty());
+        return BOOLEAN(self->get_native_value().empty());
     }
 
     NATIVE_FUNCTION(string_length) {
@@ -110,7 +110,7 @@ namespace natives {
 
         CONVERT_RECV_TO(String, self);
 
-        return ALLOC_NUMBER(self->get_value().size());
+        return ALLOC_NUMBER(self->get_native_value().size());
     }
 
     NATIVE_FUNCTION(string_at) {
@@ -119,7 +119,7 @@ namespace natives {
         CONVERT_RECV_TO(String, self);
         CONVERT_ARG_TO(0, Number, index);
 
-        return ALLOC_STRING(std::string(1, self->get_value()[(long)index->get_value()]));
+        return ALLOC_STRING(std::string(1, self->get_native_value()[(long)index->get_native_value()]));
     }
 
     NATIVE_FUNCTION(string_back) {
@@ -127,7 +127,7 @@ namespace natives {
 
         CONVERT_RECV_TO(String, self);
 
-        return ALLOC_STRING(std::string(1, self->get_value().back()));
+        return ALLOC_STRING(std::string(1, self->get_native_value().back()));
     }
 
     NATIVE_FUNCTION(string_front) {
@@ -135,7 +135,7 @@ namespace natives {
 
         CONVERT_RECV_TO(String, self);
 
-        return ALLOC_STRING(std::string(1, self->get_value().back()));
+        return ALLOC_STRING(std::string(1, self->get_native_value().back()));
     }
 
     NATIVE_FUNCTION(string_compare) {
@@ -144,7 +144,7 @@ namespace natives {
         CONVERT_RECV_TO(String, self);
         CONVERT_ARG_TO(0, String, other);
 
-        return ALLOC_NUMBER(self->get_value().compare(other->get_value()));
+        return ALLOC_NUMBER(self->get_native_value().compare(other->get_native_value()));
     }
 
     NATIVE_FUNCTION(string_find) {
@@ -153,7 +153,7 @@ namespace natives {
         CONVERT_RECV_TO(String, self);
         CONVERT_ARG_TO(0, String, other);
 
-        return ALLOC_NUMBER(self->get_value().find(other->get_value()));
+        return ALLOC_NUMBER(self->get_native_value().find(other->get_native_value()));
     }
 
     NATIVE_FUNCTION(string_substr) {
@@ -163,7 +163,7 @@ namespace natives {
         CONVERT_ARG_TO(0, Number, pos);
         CONVERT_ARG_TO(1, Number, len);
 
-        return ALLOC_STRING(self->get_value().substr(pos->get_value(), len->get_value()));
+        return ALLOC_STRING(self->get_native_value().substr(pos->get_native_value(), len->get_native_value()));
     }
 
     NATIVE_FUNCTION(string_format) {
@@ -174,11 +174,11 @@ namespace natives {
         size_t n = frame->num_args();
         for (size_t i = 0; i < n; i++) {
             String* arg = Interpreter::execute_method<String>(frame->get_arg(i), magic_methods::str, {}, context);
-            fmt_args.push_back(fmt::internal::make_arg<ctx>(arg->get_value()));
+            fmt_args.push_back(fmt::internal::make_arg<ctx>(arg->get_native_value()));
         }
 
         return ALLOC_STRING(
-            fmt::vformat(self->get_value(), fmt::basic_format_args<ctx>(fmt_args.data(), fmt_args.size())));
+            fmt::vformat(self->get_native_value(), fmt::basic_format_args<ctx>(fmt_args.data(), fmt_args.size())));
     }
 
     NATIVE_FUNCTION(string_split) {
@@ -189,8 +189,8 @@ namespace natives {
 
         LOCAL(Array, res) = ALLOC_EMPTY_ARRAY();
         for (const std::string& part : strutils::split(
-                self->get_value(),
-                seperator->get_value())) {
+                self->get_native_value(),
+                seperator->get_native_value())) {
             res->push(ALLOC_STRING(part));
         }
 
@@ -203,7 +203,7 @@ namespace natives {
         CONVERT_RECV_TO(String, self);
         CONVERT_ARG_TO(0, String, str);
 
-        self->get_value().append(str->get_value());
+        self->get_native_value().append(str->get_native_value());
 
         return self;
     }

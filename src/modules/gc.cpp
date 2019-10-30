@@ -41,7 +41,7 @@ namespace modules {
         EXPECT_NUM_ARGS(1);
 
         CONVERT_ARG_TO(0, Number, threshold);
-        context->get_heap().set_threshold(threshold->get_value());
+        context->get_heap().set_threshold(threshold->get_native_value());
 
         return NONE;
     }

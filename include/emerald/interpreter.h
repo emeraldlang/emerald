@@ -44,13 +44,19 @@ namespace emerald {
         static T* create_obj(Object* parent, const std::vector<Object*>& args, ExecutionContext* context);
 
     private:
-        static Object* call_obj(Object* obj, Object* receiver, const std::vector<Object*>& args, ExecutionContext* context);
+        template <class T>
+        static T* call_obj(Object* obj, Object* receiver, const std::vector<Object*>& args, ExecutionContext* context);
 
-        static Object* call_method(Object* receiver, const std::string& name, size_t num_args, ExecutionContext* context);
-        static Object* call_method0(Object* receiver, const std::string& name, ExecutionContext* context) { return call_method(receiver, name, 0, context); }
-        static Object* call_method1(Object* receiver, const std::string& name, ExecutionContext* context) { return call_method(receiver, name, 1, context); }
-        static Object* call_method2(Object* receiver, const std::string& name, ExecutionContext* context) { return call_method(receiver, name, 2, context); }
-        static Object* call_method(Object* receiver, const std::string& name, const std::vector<Object*>& args, ExecutionContext* context);
+        template <class T>
+        static T* call_method(Object* receiver, const std::string& name, size_t num_args, ExecutionContext* context);
+        template <class T>
+        static T* call_method0(Object* receiver, const std::string& name, ExecutionContext* context) { return call_method<T>(receiver, name, 0, context); }
+        template <class T>
+        static T* call_method1(Object* receiver, const std::string& name, ExecutionContext* context) { return call_method<T>(receiver, name, 1, context); }
+        template <class T>
+        static T* call_method2(Object* receiver, const std::string& name, ExecutionContext* context) { return call_method<T>(receiver, name, 2, context); }
+        template <class T>
+        static T* call_method(Object* receiver, const std::string& name, const std::vector<Object*>& args, ExecutionContext* context);
 
         static Module* get_module(const std::string& name, bool& created, ExecutionContext* context);
 
@@ -59,17 +65,7 @@ namespace emerald {
 
     template <class T>
     T* Interpreter::execute_method(Object* receiver, const std::string& name, const std::vector<Object*>& args, ExecutionContext* context) {
-        if (T* res = dynamic_cast<T*>(execute_method<Object>(receiver, name, args, context))) {
-            return res;
-        }
-
-        std::string msg = fmt::format("expected {0} to return a {1}", magic_methods::boolean, typeid(T).name());
-        throw context->get_heap().allocate<Exception>(context, msg);
-    }
-
-    template <>
-    inline Object* Interpreter::execute_method<Object>(Object* receiver, const std::string& name, const std::vector<Object*>& args, ExecutionContext* context) {
-        return call_method(receiver, name, args, context);
+        return call_method<T>(receiver, name, args, context);
     }
 
     template <class T>
@@ -86,6 +82,33 @@ namespace emerald {
             context);
 
         return obj;
+    }
+
+    template <>
+    Object* Interpreter::call_obj<Object>(Object* obj, Object* receiver, const std::vector<Object*>& args, ExecutionContext* context);
+
+    template <class T>
+    T* Interpreter::call_obj(Object* obj, Object* receiver, const std::vector<Object*>& args, ExecutionContext* context) {
+        if (T* res = dynamic_cast<T*>(call_obj<Object>(obj, receiver, args, context))) {
+            return res;
+        }
+
+        throw context->get_heap().allocate<Exception>(context, "");
+    }
+
+    template <class T>
+    T* Interpreter::call_method(Object* receiver, const std::string& name, size_t num_args, ExecutionContext* context) {
+        std::vector<Object*> args = context->get_stack().peek().pop_n_ds(num_args);
+        return call_method<T>(receiver, name, args, context);
+    }
+
+    template <class T>
+    T* Interpreter::call_method(Object* receiver, const std::string& name, const std::vector<Object*>& args, ExecutionContext* context) {
+        if (Object* method = receiver->get_property(name)) {
+            return call_obj<T>(method, receiver, args, context);
+        } else {
+            throw context->get_heap().allocate<Exception>(context, fmt::format("no such method: {0}", name));
+        }
     }
 
 } // namespace emerald

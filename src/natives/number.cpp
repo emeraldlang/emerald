@@ -28,7 +28,7 @@ namespace natives {
 
         CONVERT_RECV_TO(Number, val);
 
-        return ALLOC_NUMBER(-val->get_value());
+        return ALLOC_NUMBER(-val->get_native_value());
     }
 
     NATIVE_FUNCTION(number_add) {
@@ -37,7 +37,7 @@ namespace natives {
         CONVERT_RECV_TO(Number, lhs);
         CONVERT_ARG_TO(0, Number, rhs);
 
-        return ALLOC_NUMBER(lhs->get_value() + rhs->get_value());
+        return ALLOC_NUMBER(lhs->get_native_value() + rhs->get_native_value());
     }
 
     NATIVE_FUNCTION(number_sub) {
@@ -46,7 +46,7 @@ namespace natives {
         CONVERT_RECV_TO(Number, lhs);
         CONVERT_ARG_TO(0, Number, rhs);
 
-        return ALLOC_NUMBER(lhs->get_value() - rhs->get_value());
+        return ALLOC_NUMBER(lhs->get_native_value() - rhs->get_native_value());
     }
 
     NATIVE_FUNCTION(number_mul) {
@@ -55,7 +55,7 @@ namespace natives {
         CONVERT_RECV_TO(Number, lhs);
         CONVERT_ARG_TO(0, Number, rhs);
 
-        return ALLOC_NUMBER(lhs->get_value() * rhs->get_value());
+        return ALLOC_NUMBER(lhs->get_native_value() * rhs->get_native_value());
     }
 
     NATIVE_FUNCTION(number_div) {
@@ -64,7 +64,7 @@ namespace natives {
         CONVERT_RECV_TO(Number, lhs);
         CONVERT_ARG_TO(0, Number, rhs);
 
-        return ALLOC_NUMBER(lhs->get_value() / rhs->get_value());
+        return ALLOC_NUMBER(lhs->get_native_value() / rhs->get_native_value());
     }
 
     NATIVE_FUNCTION(number_mod) {
@@ -73,7 +73,7 @@ namespace natives {
         CONVERT_RECV_TO(Number, lhs);
         CONVERT_ARG_TO(0, Number, rhs);
 
-        return ALLOC_NUMBER((long)lhs->get_value() % (long)rhs->get_value());
+        return ALLOC_NUMBER((long)lhs->get_native_value() % (long)rhs->get_native_value());
     }
 
     NATIVE_FUNCTION(number_iadd) {
@@ -82,7 +82,7 @@ namespace natives {
         CONVERT_RECV_TO(Number, lhs);
         CONVERT_ARG_TO(0, Number, rhs);
 
-        lhs->set_value(lhs->get_value() + rhs->get_value());
+        lhs->set_native_value(lhs->get_native_value() + rhs->get_native_value());
 
         return lhs;
     }
@@ -93,7 +93,7 @@ namespace natives {
         CONVERT_RECV_TO(Number, lhs);
         CONVERT_ARG_TO(0, Number, rhs);
 
-        lhs->set_value(lhs->get_value() - rhs->get_value());
+        lhs->set_native_value(lhs->get_native_value() - rhs->get_native_value());
 
         return lhs;
     }
@@ -104,7 +104,7 @@ namespace natives {
         CONVERT_RECV_TO(Number, lhs);
         CONVERT_ARG_TO(0, Number, rhs);
 
-        lhs->set_value(lhs->get_value() * rhs->get_value());
+        lhs->set_native_value(lhs->get_native_value() * rhs->get_native_value());
 
         return lhs;
     }
@@ -115,7 +115,7 @@ namespace natives {
         CONVERT_RECV_TO(Number, lhs);
         CONVERT_ARG_TO(0, Number, rhs);
 
-        lhs->set_value(lhs->get_value() / rhs->get_value());
+        lhs->set_native_value(lhs->get_native_value() / rhs->get_native_value());
 
         return lhs;
     }
@@ -126,7 +126,7 @@ namespace natives {
         CONVERT_RECV_TO(Number, lhs);
         CONVERT_ARG_TO(0, Number, rhs);
 
-        lhs->set_value((long)lhs->get_value() % (long)rhs->get_value());
+        lhs->set_native_value((long)lhs->get_native_value() % (long)rhs->get_native_value());
 
         return lhs;
     }
@@ -137,7 +137,7 @@ namespace natives {
         CONVERT_RECV_TO(Number, lhs);
         CONVERT_ARG_TO(0, Number, rhs);
 
-        return BOOLEAN(lhs->get_value() == rhs->get_value());
+        return BOOLEAN(lhs->get_native_value() == rhs->get_native_value());
     }
 
     NATIVE_FUNCTION(number_neq) {
@@ -146,7 +146,7 @@ namespace natives {
         CONVERT_RECV_TO(Number, lhs);
         CONVERT_ARG_TO(0, Number, rhs);
 
-        return BOOLEAN(lhs->get_value() != rhs->get_value());
+        return BOOLEAN(lhs->get_native_value() != rhs->get_native_value());
     }
 
     NATIVE_FUNCTION(number_lt) {
@@ -155,7 +155,7 @@ namespace natives {
         CONVERT_RECV_TO(Number, lhs);
         CONVERT_ARG_TO(0, Number, rhs);
 
-        return BOOLEAN(lhs->get_value() < rhs->get_value());
+        return BOOLEAN(lhs->get_native_value() < rhs->get_native_value());
     }
 
     NATIVE_FUNCTION(number_gt) {
@@ -164,7 +164,7 @@ namespace natives {
         CONVERT_RECV_TO(Number, lhs);
         CONVERT_ARG_TO(0, Number, rhs);
 
-        return BOOLEAN(lhs->get_value() > rhs->get_value());
+        return BOOLEAN(lhs->get_native_value() > rhs->get_native_value());
     }
 
     NATIVE_FUNCTION(number_lte) {
@@ -173,7 +173,7 @@ namespace natives {
         CONVERT_RECV_TO(Number, lhs);
         CONVERT_ARG_TO(0, Number, rhs);
 
-        return BOOLEAN(lhs->get_value() <= rhs->get_value());
+        return BOOLEAN(lhs->get_native_value() <= rhs->get_native_value());
     }
 
     NATIVE_FUNCTION(number_gte) {
@@ -182,7 +182,7 @@ namespace natives {
         CONVERT_RECV_TO(Number, lhs);
         CONVERT_ARG_TO(0, Number, rhs);
 
-        return BOOLEAN(lhs->get_value() >= rhs->get_value());
+        return BOOLEAN(lhs->get_native_value() >= rhs->get_native_value());
     }
 
     NATIVE_FUNCTION(number_bit_or) {
@@ -191,7 +191,7 @@ namespace natives {
         CONVERT_RECV_TO(Number, lhs);
         CONVERT_ARG_TO(0, Number, rhs);
 
-        return ALLOC_NUMBER((long)lhs->get_value() | (long)rhs->get_value());
+        return ALLOC_NUMBER((long)lhs->get_native_value() | (long)rhs->get_native_value());
     }
 
     NATIVE_FUNCTION(number_bit_xor) {
@@ -200,7 +200,7 @@ namespace natives {
         CONVERT_RECV_TO(Number, lhs);
         CONVERT_ARG_TO(0, Number, rhs);
 
-        return ALLOC_NUMBER((long)lhs->get_value() ^ (long)rhs->get_value());
+        return ALLOC_NUMBER((long)lhs->get_native_value() ^ (long)rhs->get_native_value());
     }
 
     NATIVE_FUNCTION(number_bit_and) {
@@ -209,7 +209,7 @@ namespace natives {
         CONVERT_RECV_TO(Number, lhs);
         CONVERT_ARG_TO(0, Number, rhs);
 
-        return ALLOC_NUMBER((long)lhs->get_value() & (long)rhs->get_value());
+        return ALLOC_NUMBER((long)lhs->get_native_value() & (long)rhs->get_native_value());
     }
 
     NATIVE_FUNCTION(number_bit_shl) {
@@ -218,7 +218,7 @@ namespace natives {
         CONVERT_RECV_TO(Number, lhs);
         CONVERT_ARG_TO(0, Number, rhs);
 
-        return ALLOC_NUMBER((long)lhs->get_value() << (long)rhs->get_value());
+        return ALLOC_NUMBER((long)lhs->get_native_value() << (long)rhs->get_native_value());
     }
 
     NATIVE_FUNCTION(number_bit_shr) {
@@ -227,7 +227,7 @@ namespace natives {
         CONVERT_RECV_TO(Number, lhs);
         CONVERT_ARG_TO(0, Number, rhs);
 
-        return ALLOC_NUMBER((long)lhs->get_value() >> (long)rhs->get_value());
+        return ALLOC_NUMBER((long)lhs->get_native_value() >> (long)rhs->get_native_value());
     }
 
     NATIVE_FUNCTION(number_clone) {
@@ -236,6 +236,16 @@ namespace natives {
         CONVERT_RECV_TO(Number, self);
 
         return context->get_heap().allocate<Number>(context, self);
+    }
+
+    NATIVE_FUNCTION(number_init) {
+        EXPECT_NUM_ARGS(1);
+
+        CONVERT_RECV_TO(Number, self);
+        CONVERT_ARG_TO(0, Number, val);
+        self->init(val);
+
+        return NONE;
     }
 
 } // namespace natives

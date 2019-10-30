@@ -110,7 +110,7 @@ namespace objectutils {
                     obj,
                     magic_methods::str,
                     {},
-                    context)->get_value();
+                    context)->get_native_value();
             });
     }
 

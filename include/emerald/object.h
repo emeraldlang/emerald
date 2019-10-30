@@ -114,7 +114,7 @@ namespace emerald {
 
         void init(Object* iterator);
 
-        Object* at(size_t i) const;
+        Object* at(Number* n) const;
         Object* front() const;
         Object* back() const;
 
@@ -126,13 +126,17 @@ namespace emerald {
         void push(Object* obj);
         Object* pop();
 
-        String* join(String* seperator);
+        String* join(String* seperator) const;
 
-        bool operator==(const Array& other) const;
-        bool operator!=(const Array& other) const;
+        Boolean* eq(Array* other) const;
+        Boolean* neq(Array* other) const;
 
     private:
+        friend class Iterator;
+
         std::vector<Object*> _value;
+
+        bool _eq(Array* other) const;
 
         void reach() override;
     };
@@ -158,10 +162,12 @@ namespace emerald {
 
     class Exception : public Object {
     public:
-        Exception(ExecutionContext* context, const std::string& message);
-        Exception(ExecutionContext* context, Object* parent, const std::string& message);
+        Exception(ExecutionContext* context, const std::string& message = "");
+        Exception(ExecutionContext* context, Object* parent, const std::string& message = "");
 
         std::string as_str() const override;
+
+        void init(String* message);
 
         const std::string& get_message() const;
 
@@ -228,8 +234,10 @@ namespace emerald {
         bool as_bool() const override;
         std::string as_str() const override;
 
-        double get_value() const;
-        void set_value(double val);
+        void init(Number* val);
+
+        double get_native_value() const;
+        void set_native_value(double val);
 
         void increment();
         void decrement();
@@ -246,8 +254,10 @@ namespace emerald {
         bool as_bool() const override;
         std::string as_str() const override;
 
-        std::string& get_value();
-        const std::string& get_value() const;
+        void init(String* val);
+
+        std::string& get_native_value();
+        const std::string& get_native_value() const;
 
     private:
         std::string _value;

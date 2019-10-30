@@ -37,37 +37,55 @@ namespace modules {
         return "<file_stream>";
     }
 
-    void FileStream::open(const std::string& filename, std::fstream::openmode mode) {
-        _stream.open(filename, mode);
+    void FileStream::open(String* filename, String* access) {
+        std::fstream::openmode openmode;
+        const std::string& access_str = access->get_native_value();
+        if (access_str == "read") {
+            openmode = std::fstream::in;
+        } else if (access_str == "write") {
+            openmode = std::fstream::out;
+        } else if (access_str == "read_write") {
+            openmode = std::fstream::in | std::fstream::out;
+        } else {
+            std::string msg = fmt::format("unknown file access: {0}", access_str);
+            throw ALLOC_EXCEPTION_IN_CTX(msg, get_context());
+        }
+
+        _stream.open(filename->get_native_value(), openmode);
     }
 
-    bool FileStream::is_open() const {
-        return _stream.is_open();
+    Boolean* FileStream::is_open() const {
+        return BOOLEAN_IN_CTX(_stream.is_open(), get_context());
     }
 
-    std::string FileStream::read() {
+    String* FileStream::read() {
         size_t cp = _stream.tellg();
         _stream.seekg(0, _stream.end);
         size_t size = _stream.tellg();
         _stream.seekg(cp);
 
-        return read(size);
+        char s[size];
+        _stream.read(s, size);
+
+        return ALLOC_STRING_IN_CTX(std::string(s), get_context());
     }
 
-    std::string FileStream::read(size_t n) {
-        char s[n];
-        _stream.read(s, n);
-        return std::string(s);
+    String* FileStream::read(Number* n) {
+        size_t size = n->get_native_value(); 
+        char s[size];
+        _stream.read(s, size);
+        return ALLOC_STRING_IN_CTX(std::string(s), get_context());
     }
 
-    std::string FileStream::readline() {
+    String* FileStream::readline() {
         std::string s;
         std::getline(_stream, s);
-        return s;
+        return ALLOC_STRING_IN_CTX(s, get_context());
     }
 
-    void FileStream::write(const std::string& s) {
-        _stream.write(s.data(), s.size());
+    void FileStream::write(String* s) {
+        const std::string& snv = s->get_native_value();
+        _stream.write(snv.data(), snv.size());
     }
 
     StringStream::StringStream(ExecutionContext* context)
@@ -80,20 +98,22 @@ namespace modules {
         return "<string_stream>";
     }
 
-    std::string StringStream::read(size_t n) {
-        char s[n];
-        _stream.read(s, n);
-        return std::string(s);
+    String* StringStream::read(Number* n) {
+        size_t size = n->get_native_value();
+        char s[size];
+        _stream.read(s, size);
+        return ALLOC_STRING_IN_CTX(std::string(s), get_context());
     }
 
-    std::string StringStream::readline() {
+    String* StringStream::readline() {
         std::string s;
         std::getline(_stream, s);
-        return s;
+        return ALLOC_STRING_IN_CTX(s, get_context());
     }
 
-    void StringStream::write(const std::string& s) {
-        _stream.write(s.data(), s.size());
+    void StringStream::write(String* s) {
+        const std::string& snv = s->get_native_value();
+        _stream.write(snv.data(), snv.size());
     }
 
     NATIVE_FUNCTION(file_stream_clone) {
@@ -106,67 +126,51 @@ namespace modules {
     NATIVE_FUNCTION(file_stream_open) {
         EXPECT_NUM_ARGS(2);
 
-        CONVERT_RECV_TO(FileStream, stream);
+        CONVERT_RECV_TO(FileStream, self);
         CONVERT_ARG_TO(0, String, filename);
         CONVERT_ARG_TO(1, String, access);
 
-        std::fstream::openmode openmode;
-        const std::string& access_str = access->get_value();
-        if (access_str == "read") {
-            openmode = std::fstream::in;
-        } else if (access_str == "write") {
-            openmode = std::fstream::out;
-        } else if (access_str == "read_write") {
-            openmode = std::fstream::in | std::fstream::out;
-        } else {
-            throw context->get_heap().allocate<Exception>(
-                context, fmt::format("unknown file access: {0}", access_str));
-        }
+        self->open(filename, access);
 
-        stream->open(filename->get_value(), openmode);
-
-        return BOOLEAN(stream->is_open());
+        return self->is_open();
     }
     
     NATIVE_FUNCTION(file_stream_is_open) {
         EXPECT_NUM_ARGS(0);
 
-        CONVERT_RECV_TO(FileStream, stream);
+        CONVERT_RECV_TO(FileStream, self);
 
-        return BOOLEAN(stream->is_open());
+        return self->is_open();
     }
 
     NATIVE_FUNCTION(file_stream_read) {
-        CONVERT_RECV_TO(FileStream, stream);
+        CONVERT_RECV_TO(FileStream, self);
 
         TRY_CONVERT_OPTIONAL_ARG_TO(0, Number, count);
-        std::string result;
         if (count) {
-            result = stream->read((long)count->get_value());
-        } else {
-            result = stream->read();
+            return self->read(count);
         }
 
-        return ALLOC_STRING(result);
+        return self->read();
     }
 
     NATIVE_FUNCTION(file_stream_readline) {
         EXPECT_NUM_ARGS(0);
 
-        CONVERT_RECV_TO(FileStream, stream);
+        CONVERT_RECV_TO(FileStream, self);
 
-        return ALLOC_STRING(stream->readline());
+        return self->readline();
     }
 
     NATIVE_FUNCTION(file_stream_write) {
         EXPECT_NUM_ARGS(1);
 
-        CONVERT_RECV_TO(FileStream, stream);
+        CONVERT_RECV_TO(FileStream, self);
         CONVERT_ARG_TO(0, String, s);
 
-        stream->write(s->get_value());
+        self->write(s);
 
-        return ALLOC_NUMBER(s->get_value().length());
+        return NONE;
     }
 
     NATIVE_FUNCTION(string_stream_clone) {
@@ -180,29 +184,29 @@ namespace modules {
     NATIVE_FUNCTION(string_stream_read) {
         EXPECT_NUM_ARGS(1);
 
-        CONVERT_RECV_TO(StringStream, stream);
+        CONVERT_RECV_TO(StringStream, self);
         CONVERT_ARG_TO(0, Number, count);
 
-        return ALLOC_STRING(stream->read((long)count->get_value()));
+        return self->read(count);
     }
 
     NATIVE_FUNCTION(string_stream_readline) {
         EXPECT_NUM_ARGS(0);
 
-        CONVERT_RECV_TO(StringStream, stream);
+        CONVERT_RECV_TO(StringStream, self);
 
-        return ALLOC_STRING(stream->readline());
+        return self->readline();
     }
 
     NATIVE_FUNCTION(string_stream_write) {
         EXPECT_NUM_ARGS(1);
 
-        CONVERT_RECV_TO(StringStream, stream);
+        CONVERT_RECV_TO(StringStream, self);
         CONVERT_ARG_TO(0, String, s);
 
-        stream->write(s->get_value());
+        self->write(s);
 
-        return ALLOC_NUMBER(s->get_value().length());
+        return NONE;
     }
 
     MODULE_INITIALIZATION_FUNC(init_io_module) {

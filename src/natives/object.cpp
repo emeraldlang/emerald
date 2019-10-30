@@ -75,7 +75,7 @@ namespace natives {
 
         TRY_CONVERT_ARG_TO(0, String, name);
 
-        if (Object* property = receiver->get_property(name->get_value())) {
+        if (Object* property = receiver->get_property(name->get_native_value())) {
             return property;
         }
 
@@ -86,7 +86,7 @@ namespace natives {
         EXPECT_NUM_ARGS(2);
 
         TRY_CONVERT_ARG_TO(0, String, name);
-        receiver->set_property(name->get_value(), frame->get_arg(1));
+        receiver->set_property(name->get_native_value(), frame->get_arg(1));
 
         return NONE;
     }

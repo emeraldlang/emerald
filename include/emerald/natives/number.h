@@ -43,7 +43,8 @@
     X(number_bit_and)   \
     X(number_bit_shl)   \
     X(number_bit_shr)   \
-    X(number_clone)
+    X(number_clone)     \
+    X(number_init)
 
 namespace emerald {
 namespace natives {

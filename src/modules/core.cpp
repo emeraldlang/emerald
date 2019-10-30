@@ -57,7 +57,7 @@ namespace modules {
 
         TRY_CONVERT_ARG_TO(0, Number, n);
         LOCAL(Array, res) = ALLOC_EMPTY_ARRAY();
-        for (size_t i = 0; i < n->get_value(); i++) {
+        for (size_t i = 0; i < n->get_native_value(); i++) {
             res->push(ALLOC_NUMBER(i));
         }
 

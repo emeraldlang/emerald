@@ -20,6 +20,7 @@
 #include "emerald/magic_methods.h"
 #include "emerald/natives/array.h"
 #include "emerald/natives/boolean.h"
+#include "emerald/natives/exception.h"
 #include "emerald/natives/number.h"
 #include "emerald/natives/object.h"
 #include "emerald/natives/string.h"
@@ -30,10 +31,11 @@ namespace emerald {
     NativeObjects::NativeObjects(ExecutionContext* context) {
         initialize_object(context);
         initialize_array(context);
+        initialize_booleans(context);
+        initialize_exception(context);
         initialize_number(context);
         initialize_string(context);
 
-        initialize_booleans(context);
         _null = context->get_heap().allocate<Null>(context);
     }
 
@@ -59,6 +61,14 @@ namespace emerald {
 
     Array::Iterator* NativeObjects::get_array_iterator_prototype() {
         return _array_iterator;
+    }
+
+    const Exception* NativeObjects::get_exception_prototype() const {
+        return _exception;
+    }
+
+    Exception* NativeObjects::get_exception_prototype() {
+        return _exception;
     }
 
     const Number* NativeObjects::get_number_prototype() const {
@@ -163,6 +173,13 @@ namespace emerald {
         _array_iterator->set_property(magic_methods::init, ALLOC_NATIVE_FUNCTION(natives::array_iterator_init));
     }
 
+    void NativeObjects::initialize_exception(ExecutionContext* context) {
+        _exception = context->get_heap().allocate<Exception>(context, _object);
+
+        _exception->set_property(magic_methods::clone, ALLOC_NATIVE_FUNCTION(natives::exception_clone));
+        _exception->set_property(magic_methods::init, ALLOC_NATIVE_FUNCTION(natives::exception_init));
+    }
+
     void NativeObjects::initialize_number(ExecutionContext* context) {
         _number = context->get_heap().allocate<Number>(context, _object);
 
@@ -193,6 +210,7 @@ namespace emerald {
         _number->set_property(magic_methods::bit_shr, ALLOC_NATIVE_FUNCTION(natives::number_bit_shr));
 
         _number->set_property(magic_methods::clone, ALLOC_NATIVE_FUNCTION(natives::number_clone));
+        _number->set_property(magic_methods::init, ALLOC_NATIVE_FUNCTION(natives::number_init));
     }
 
     void NativeObjects::initialize_string(ExecutionContext* context) {

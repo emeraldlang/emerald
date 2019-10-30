@@ -31,7 +31,7 @@ namespace natives {
         CONVERT_RECV_TO(Array, self);
 
         if (TRY_CONVERT_ARG_TO(0, Array, other)) {
-            return BOOLEAN(*self == *other);
+            return self->eq(other);
         }
 
         return BOOLEAN(false);
@@ -43,7 +43,7 @@ namespace natives {
         CONVERT_RECV_TO(Array, self);
 
         if (TRY_CONVERT_ARG_TO(0, Array, other)) {
-            return BOOLEAN(*self != *other);
+            return self->neq(other);
         }
 
         return BOOLEAN(true);
@@ -83,7 +83,7 @@ namespace natives {
         CONVERT_RECV_TO(Array, self);
         CONVERT_ARG_TO(0, Number, index);
 
-        return self->at((long)index->get_value());
+        return self->at(index);
     }
 
     NATIVE_FUNCTION(array_front) {

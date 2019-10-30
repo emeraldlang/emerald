@@ -51,29 +51,32 @@ namespace modules {
         return obj;
     }
 
-    size_t Queue::enqueue(Object* obj) {
+    void Queue::enqueue(Object* obj) {
         _value.push_back(obj);
-        return _value.size();
     }
 
-    bool Queue::empty() const {
-        return _value.empty();
+    Boolean* Queue::empty() const {
+        return BOOLEAN_IN_CTX(_value.empty(), get_context());
     }
 
-    size_t Queue::size() const {
-        return _value.size();
+    Number* Queue::size() const {
+        return ALLOC_NUMBER_IN_CTX(_value.size(), get_context());
     }
 
-    bool Queue::operator==(const Queue& other) const {
+    Boolean* Queue::eq(Queue* other) const {
+        return BOOLEAN_IN_CTX(_eq(other), get_context());
+    }
+
+    Boolean* Queue::neq(Queue* other) const {
+        return BOOLEAN_IN_CTX(!_eq(other), get_context());
+    }
+
+    bool Queue::_eq(Queue* other) const {
         return objectutils::compare_range(
             _value.begin(),
             _value.end(),
-            other._value.begin(),
+            other->_value.begin(),
             get_context());
-    }
-
-    bool Queue::operator!=(const Queue& other) const {
-        return !(*this == other);
     }
 
     Set::Set(ExecutionContext* context)
@@ -88,34 +91,32 @@ namespace modules {
         + ")";
     }
 
-    size_t Set::add(Object* obj) {
+    void Set::add(Object* obj) {
         _value.insert(obj);
-        return _value.size();
     }
 
-    bool Set::contains(Object* obj) const {
-        return _value.find(obj) != _value.end();
+    Boolean* Set::contains(Object* obj) const {
+        return BOOLEAN_IN_CTX(_value.find(obj) != _value.end(), get_context());
     }
 
-    size_t Set::remove(Object* obj) {
+    void Set::remove(Object* obj) {
         _value.erase(obj);
-        return _value.size();
     }
 
-    bool Set::empty() const {
-        return _value.empty();
+    Boolean* Set::empty() const {
+        return BOOLEAN_IN_CTX(_value.empty(), get_context());
     }
 
-    size_t Set::size() const {
-        return _value.size();
+    Number* Set::size() const {
+        return ALLOC_NUMBER_IN_CTX(_value.size(), get_context());
     }
 
-    bool Set::operator==(const Set& other) const {
-        return _value == other._value;
+    Boolean* Set::eq(Set* other) const {
+        return BOOLEAN_IN_CTX(_value == other->_value, get_context());
     }
 
-    bool Set::operator!=(const Set& other) const {
-        return !(*this == other);
+    Boolean* Set::neq(Set* other) const {
+        return BOOLEAN_IN_CTX(_value != other->_value, get_context());
     }
 
     size_t Set::hash::operator()(Object* val) const {
@@ -124,7 +125,7 @@ namespace modules {
                 val,
                 magic_methods::str,
                 {},
-                val->get_context())->get_value());
+                val->get_context())->get_native_value());
     }
 
     bool Set::key_eq::operator()(Object* lhs, Object* rhs) const {
@@ -157,29 +158,32 @@ namespace modules {
         return top;
     }
 
-    size_t Stack::push(Object* obj) {
+    void Stack::push(Object* obj) {
         _value.push_back(obj);
-        return _value.size();
     }
 
-    bool Stack::empty() const {
-        return _value.empty();
+    Boolean* Stack::empty() const {
+        return BOOLEAN_IN_CTX(_value.empty(), get_context());
     }
 
-    size_t Stack::size() const {
-        return _value.size();
+    Number* Stack::size() const {
+        return ALLOC_NUMBER_IN_CTX(_value.size(), get_context());
     }
 
-    bool Stack::operator==(const Stack& other) const {
+    Boolean* Stack::eq(Stack* other) const {
+        return BOOLEAN_IN_CTX(_eq(other), get_context());
+    }
+
+    Boolean* Stack::neq(Stack* other) const {
+        return BOOLEAN_IN_CTX(!_eq(other), get_context());
+    }
+
+    bool Stack::_eq(Stack* other) const {
         return objectutils::compare_range(
             _value.begin(),
             _value.end(),
-            other._value.begin(),
+            other->_value.begin(),
             get_context());
-    }
-
-    bool Stack::operator!=(const Stack& other) const {
-        return !(*this == other);
     }
 
     NATIVE_FUNCTION(queue_eq) {
@@ -188,7 +192,7 @@ namespace modules {
         CONVERT_RECV_TO(Queue, self);
 
         if (TRY_CONVERT_ARG_TO(0, Queue, other)) {
-            return BOOLEAN(*self == *other);
+            return self->eq(other);
         }
 
         return BOOLEAN(false);
@@ -200,7 +204,7 @@ namespace modules {
         CONVERT_RECV_TO(Queue, self);
 
         if (TRY_CONVERT_ARG_TO(0, Queue, other)) {
-            return BOOLEAN(*self != *other);
+            return self->neq(other);
         }
 
         return BOOLEAN(true);
@@ -240,7 +244,7 @@ namespace modules {
             self->enqueue(frame->get_arg(i));
         }
 
-        return ALLOC_NUMBER(self->size());
+        return self->size();
     }
 
     NATIVE_FUNCTION(queue_empty) {
@@ -248,7 +252,7 @@ namespace modules {
 
         CONVERT_RECV_TO(Queue, self);
 
-        return BOOLEAN(self->empty());
+        return self->empty();
     }
 
     NATIVE_FUNCTION(queue_size) {
@@ -256,7 +260,7 @@ namespace modules {
 
         CONVERT_RECV_TO(Queue, self);
 
-        return ALLOC_NUMBER(self->size());
+        return self->size();
     }
 
     NATIVE_FUNCTION(set_eq) {
@@ -265,7 +269,7 @@ namespace modules {
         CONVERT_RECV_TO(Set, self);
 
         if (TRY_CONVERT_ARG_TO(0, Set, other)) {
-            return BOOLEAN(*self == *other);
+            return self->eq(other);
         }
 
         return BOOLEAN(false);
@@ -277,7 +281,7 @@ namespace modules {
         CONVERT_RECV_TO(Set, self);
 
         if (TRY_CONVERT_ARG_TO(0, Set, other)) {
-            return BOOLEAN(*self != *other);
+            return self->neq(other);
         }
 
         return BOOLEAN(true);
@@ -301,7 +305,7 @@ namespace modules {
             self->add(frame->get_arg(i));
         }
 
-        return ALLOC_NUMBER(self->size());
+        return self->size();
     }
 
     NATIVE_FUNCTION(set_contains) {
@@ -309,7 +313,7 @@ namespace modules {
 
         CONVERT_RECV_TO(Set, self);
 
-        return BOOLEAN(self->contains(frame->get_arg(0)));
+        return self->contains(frame->get_arg(0));
     }
 
     NATIVE_FUNCTION(set_remove) {
@@ -317,7 +321,9 @@ namespace modules {
 
         CONVERT_RECV_TO(Set, self);
 
-        return ALLOC_NUMBER(self->remove(frame->get_arg(0)));
+        self->remove(frame->get_arg(0));
+
+        return NONE;
     }
 
     NATIVE_FUNCTION(set_empty) {
@@ -325,7 +331,7 @@ namespace modules {
 
         CONVERT_RECV_TO(Set, self);
 
-        return BOOLEAN(self->empty());
+        return self->empty();
     }
 
     NATIVE_FUNCTION(set_size) {
@@ -333,7 +339,7 @@ namespace modules {
 
         CONVERT_RECV_TO(Set, self);
 
-        return ALLOC_NUMBER(self->size());
+        return self->size();
     }
 
     NATIVE_FUNCTION(stack_eq) {
@@ -342,7 +348,7 @@ namespace modules {
         CONVERT_RECV_TO(Stack, self);
 
         if (TRY_CONVERT_ARG_TO(0, Stack, other)) {
-            return BOOLEAN(*self == *other);
+            return self->eq(other);
         }
 
         return BOOLEAN(false);
@@ -354,7 +360,7 @@ namespace modules {
         CONVERT_RECV_TO(Stack, self);
 
         if (TRY_CONVERT_ARG_TO(0, Stack, other)) {
-            return BOOLEAN(*self != *other);
+            return self->neq(other);
         }
 
         return BOOLEAN(true);
@@ -394,7 +400,7 @@ namespace modules {
             self->push(frame->get_arg(i));
         }
 
-        return ALLOC_NUMBER(self->size());
+        return self->size();
     }
 
     NATIVE_FUNCTION(stack_empty) {
@@ -402,7 +408,7 @@ namespace modules {
 
         CONVERT_RECV_TO(Stack, self);
 
-        return BOOLEAN(self->empty());
+        return self->empty();
     }
 
     NATIVE_FUNCTION(stack_size) {
@@ -410,7 +416,7 @@ namespace modules {
 
         CONVERT_RECV_TO(Stack, self);
 
-        return ALLOC_NUMBER(self->size());
+        return self->size();
     }
 
     MODULE_INITIALIZATION_FUNC(init_collections_module) {

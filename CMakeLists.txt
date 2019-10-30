@@ -46,6 +46,7 @@ add_library(emerald_s SHARED
     src/modules/net.cpp
     src/natives/array.cpp
     src/natives/boolean.cpp
+    src/natives/exception.cpp
     src/natives/number.cpp
     src/natives/object.cpp
     src/natives/string.cpp

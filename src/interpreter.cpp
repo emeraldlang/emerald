@@ -42,24 +42,24 @@ namespace emerald {
                     current_frame.set_instruction_pointer(instr.get_arg(0));
                     break;
                 case OpCode::jmp_true:
-                    if (call_method0(current_frame.pop_ds(), magic_methods::boolean, context)->as_bool()) {
+                    if (call_method0<Boolean>(current_frame.pop_ds(), magic_methods::boolean, context)->get_native_value()) {
                         current_frame.set_instruction_pointer(instr.get_arg(0));
                     }
                     break;
                 case OpCode::jmp_true_or_pop:
-                    if (call_method0(current_frame.peek_ds(), magic_methods::boolean, context)->as_bool()) {
+                    if (call_method0<Boolean>(current_frame.peek_ds(), magic_methods::boolean, context)->get_native_value()) {
                         current_frame.set_instruction_pointer(instr.get_arg(0));
                     } else {
                         current_frame.pop_ds();
                     }
                     break;
                 case OpCode::jmp_false:
-                    if (!call_method0(current_frame.pop_ds(), magic_methods::boolean, context)->as_bool()) {
+                    if (!call_method0<Boolean>(current_frame.pop_ds(), magic_methods::boolean, context)->get_native_value()) {
                         current_frame.set_instruction_pointer(instr.get_arg(0));
                     }
                     break;
                 case OpCode::jmp_false_or_pop:
-                    if (!call_method0(current_frame.peek_ds(), magic_methods::boolean, context)->as_bool()) {
+                    if (!call_method0<Boolean>(current_frame.peek_ds(), magic_methods::boolean, context)->get_native_value()) {
                         current_frame.set_instruction_pointer(instr.get_arg(0));
                     } else {
                         current_frame.pop_ds();
@@ -71,83 +71,87 @@ namespace emerald {
                     }
                     break;
                 case OpCode::neg:
-                    current_frame.push_ds(call_method0(current_frame.pop_ds(), magic_methods::neg, context));
+                    current_frame.push_ds(call_method0<Object>(current_frame.pop_ds(), magic_methods::neg, context));
                     break;
                 case OpCode::log_neg:
                     current_frame.push_ds(BOOLEAN(
-                        !call_method0(current_frame.pop_ds(), magic_methods::boolean, context)->as_bool()));
+                        !call_method0<Boolean>(
+                            current_frame.pop_ds(),
+                            magic_methods::boolean,
+                            context
+                        )->get_native_value()));
                     break;
                 case OpCode::add:
-                    current_frame.push_ds(call_method1(current_frame.pop_ds(), magic_methods::add, context));
+                    current_frame.push_ds(call_method1<Object>(current_frame.pop_ds(), magic_methods::add, context));
                     break;
                 case OpCode::sub:
-                    current_frame.push_ds(call_method1(current_frame.pop_ds(), magic_methods::sub, context));  
+                    current_frame.push_ds(call_method1<Object>(current_frame.pop_ds(), magic_methods::sub, context));  
                     break;
                 case OpCode::mul:
-                    current_frame.push_ds(call_method1(current_frame.pop_ds(), magic_methods::mul, context));
+                    current_frame.push_ds(call_method1<Object>(current_frame.pop_ds(), magic_methods::mul, context));
                     break;
                 case OpCode::div:
-                    current_frame.push_ds(call_method1(current_frame.pop_ds(), magic_methods::div, context));
+                    current_frame.push_ds(call_method1<Object>(current_frame.pop_ds(), magic_methods::div, context));
                     break;
                 case OpCode::mod:
-                    current_frame.push_ds(call_method1(current_frame.pop_ds(), magic_methods::mod, context));
+                    current_frame.push_ds(call_method1<Object>(current_frame.pop_ds(), magic_methods::mod, context));
                     break;
                 case OpCode::iadd:
-                    current_frame.push_ds(call_method1(current_frame.pop_ds(), magic_methods::iadd, context));
+                    current_frame.push_ds(call_method1<Object>(current_frame.pop_ds(), magic_methods::iadd, context));
                     break;
                 case OpCode::isub:
-                    current_frame.push_ds(call_method1(current_frame.pop_ds(), magic_methods::isub, context));
+                    current_frame.push_ds(call_method1<Object>(current_frame.pop_ds(), magic_methods::isub, context));
                     break;
                 case OpCode::imul:
-                    current_frame.push_ds(call_method1(current_frame.pop_ds(), magic_methods::imul, context));
+                    current_frame.push_ds(call_method1<Object>(current_frame.pop_ds(), magic_methods::imul, context));
                     break;
                 case OpCode::idiv:
-                    current_frame.push_ds(call_method1(current_frame.pop_ds(), magic_methods::idiv, context));
+                    current_frame.push_ds(call_method1<Object>(current_frame.pop_ds(), magic_methods::idiv, context));
                     break;
                 case OpCode::imod:
-                    current_frame.push_ds(call_method1(current_frame.pop_ds(), magic_methods::imod, context));
+                    current_frame.push_ds(call_method1<Object>(current_frame.pop_ds(), magic_methods::imod, context));
                     break;
                 case OpCode::eq:
-                    current_frame.push_ds(call_method1(current_frame.pop_ds(), magic_methods::eq, context));
+                    current_frame.push_ds(call_method1<Object>(current_frame.pop_ds(), magic_methods::eq, context));
                     break;
                 case OpCode::neq:
-                    current_frame.push_ds(call_method1(current_frame.pop_ds(), magic_methods::neq, context));
+                    current_frame.push_ds(call_method1<Object>(current_frame.pop_ds(), magic_methods::neq, context));
                     break;
                 case OpCode::lt:
-                    current_frame.push_ds(call_method1(current_frame.pop_ds(), magic_methods::lt, context));
+                    current_frame.push_ds(call_method1<Object>(current_frame.pop_ds(), magic_methods::lt, context));
                     break;
                 case OpCode::gt:
-                    current_frame.push_ds(call_method1(current_frame.pop_ds(), magic_methods::gt, context));
+                    current_frame.push_ds(call_method1<Object>(current_frame.pop_ds(), magic_methods::gt, context));
                     break;
                 case OpCode::lte:
-                    current_frame.push_ds(call_method1(current_frame.pop_ds(), magic_methods::lte, context));
+                    current_frame.push_ds(call_method1<Object>(current_frame.pop_ds(), magic_methods::lte, context));
                     break;
                 case OpCode::gte:
-                    current_frame.push_ds(call_method1(current_frame.pop_ds(), magic_methods::gte, context));
+                    current_frame.push_ds(call_method1<Object>(current_frame.pop_ds(), magic_methods::gte, context));
                     break;
                 case OpCode::bit_not:
-                    current_frame.push_ds(call_method0(current_frame.pop_ds(), magic_methods::bit_not, context));
+                    current_frame.push_ds(call_method0<Object>(current_frame.pop_ds(), magic_methods::bit_not, context));
                     break;
                 case OpCode::bit_or:
-                    current_frame.push_ds(call_method1(current_frame.pop_ds(), magic_methods::bit_or, context));
+                    current_frame.push_ds(call_method1<Object>(current_frame.pop_ds(), magic_methods::bit_or, context));
                     break;
                 case OpCode::bit_xor:
-                    current_frame.push_ds(call_method1(current_frame.pop_ds(), magic_methods::bit_xor, context));
+                    current_frame.push_ds(call_method1<Object>(current_frame.pop_ds(), magic_methods::bit_xor, context));
                     break;
                 case OpCode::bit_and:
-                    current_frame.push_ds(call_method1(current_frame.pop_ds(), magic_methods::bit_and, context));
+                    current_frame.push_ds(call_method1<Object>(current_frame.pop_ds(), magic_methods::bit_and, context));
                     break;
                 case OpCode::bit_shl:
-                    current_frame.push_ds(call_method1(current_frame.pop_ds(), magic_methods::bit_shl, context));
+                    current_frame.push_ds(call_method1<Object>(current_frame.pop_ds(), magic_methods::bit_shl, context));
                     break;
                 case OpCode::bit_shr:
-                    current_frame.push_ds(call_method1(current_frame.pop_ds(), magic_methods::bit_shr, context));
+                    current_frame.push_ds(call_method1<Object>(current_frame.pop_ds(), magic_methods::bit_shr, context));
                     break;
                 case OpCode::str:
-                    current_frame.push_ds(call_method0(current_frame.pop_ds(), magic_methods::str, context));
+                    current_frame.push_ds(call_method0<String>(current_frame.pop_ds(), magic_methods::str, context));
                     break;
                 case OpCode::boolean:
-                    current_frame.push_ds(call_method0(current_frame.pop_ds(), magic_methods::boolean, context));
+                    current_frame.push_ds(call_method0<Boolean>(current_frame.pop_ds(), magic_methods::boolean, context));
                     break;
                 case OpCode::call: {
                     Object* obj = current_frame.pop_ds();
@@ -158,7 +162,7 @@ namespace emerald {
                         receiver = current_frame.get_globals();
                     }
                     std::vector<Object*> args = current_frame.pop_n_ds(instr.get_arg(1));
-                    current_frame.push_ds(call_obj(obj, receiver, args, context));
+                    current_frame.push_ds(call_obj<Object>(obj, receiver, args, context));
                     break;
                 }
                 case OpCode::ret: {
@@ -171,7 +175,7 @@ namespace emerald {
                     break;
                 case OpCode::init: {
                     Object* receiver = current_frame.pop_ds();
-                    call_method(receiver, magic_methods::init, instr.get_arg(0), context);
+                    call_method<Object>(receiver, magic_methods::init, instr.get_arg(0), context);
                     current_frame.push_ds(receiver);
                     break;
                 }
@@ -254,22 +258,22 @@ namespace emerald {
                 case OpCode::throw_exc:
                     throw current_frame.pop_ds();
                 case OpCode::get_iter:
-                    current_frame.push_ds(call_method0(current_frame.pop_ds(), magic_methods::iter, context));
+                    current_frame.push_ds(call_method0<Object>(current_frame.pop_ds(), magic_methods::iter, context));
                     break;
                 case OpCode::iter_cur:
-                    current_frame.push_ds(call_method0(current_frame.peek_ds(), magic_methods::cur, context));
+                    current_frame.push_ds(call_method0<Object>(current_frame.peek_ds(), magic_methods::cur, context));
                     break;
                 case OpCode::iter_done: {
                     Object* iter = current_frame.peek_ds();
-                    Object* done = call_method0(iter, magic_methods::done, context);
-                    if (done->as_bool()) {
+                    Boolean* done = call_method0<Boolean>(iter, magic_methods::done, context);
+                    if (done->get_native_value()) {
                         current_frame.pop_ds();
                     }
                     current_frame.push_ds(done);
                     break;
                 }
                 case OpCode::iter_next:
-                    current_frame.push_ds(call_method0(current_frame.peek_ds(), magic_methods::next, context));
+                    current_frame.push_ds(call_method0<Object>(current_frame.peek_ds(), magic_methods::next, context));
                     break;
                 case OpCode::ldgbl: {
                     const std::string& name = current_frame.get_code()->get_global_name(
@@ -301,7 +305,7 @@ namespace emerald {
                     break;
                 }
                 case OpCode::print:
-                    std::cout << call_method0(current_frame.pop_ds(), magic_methods::str, context)->as_str() << std::endl;
+                    std::cout << call_method0<String>(current_frame.pop_ds(), magic_methods::str, context)->get_native_value() << std::endl;
                     break;
                 case OpCode::import: {
                     const std::string& name = current_frame.get_code()->get_import_name(
@@ -356,7 +360,8 @@ namespace emerald {
         return module;
     }
 
-    Object* Interpreter::call_obj(Object* obj, Object* receiver, const std::vector<Object*>& args, ExecutionContext* context) {
+    template <>
+    Object* Interpreter::call_obj<Object>(Object* obj, Object* receiver, const std::vector<Object*>& args, ExecutionContext* context) {
         Stack& stack = context->get_stack();
         if (Function* func = dynamic_cast<Function*>(obj)) {
             stack.push_frame(receiver, func->get_code(), func->get_globals());
@@ -375,22 +380,9 @@ namespace emerald {
             heap.remove_root_source(&frame);
             return res;
         } else if (Object* prop = obj->get_property(magic_methods::call)) {
-            return call_obj(prop, obj, args, context);
+            return call_obj<Object>(prop, obj, args, context);
         } else {
             throw context->get_heap().allocate<Exception>(context, "object is not callable");
-        }
-    }
-
-    Object* Interpreter::call_method(Object* receiver, const std::string& name, size_t num_args, ExecutionContext* context) {
-        std::vector<Object*> args = context->get_stack().peek().pop_n_ds(num_args);
-        return call_method(receiver, name, args, context);
-    }
-
-    Object* Interpreter::call_method(Object* receiver, const std::string& name, const std::vector<Object*>& args, ExecutionContext* context) {
-        if (Object* method = receiver->get_property(name)) {
-            return call_obj(method, receiver, args, context);
-        } else {
-            throw context->get_heap().allocate<Exception>(context, fmt::format("no such method: {0}", name));
         }
     }
 
@@ -425,7 +417,7 @@ namespace emerald {
             receiver = context->get_native_objects().get_object_prototype();
         }
 
-        Object* self = call_method0(receiver, magic_methods::clone, context);
+        Object* self = call_method0<Object>(receiver, magic_methods::clone, context);
         for (size_t i = 0; i < num_props; i++) {
             Object* key = current_frame.pop_ds();
             Object* val = current_frame.pop_ds();

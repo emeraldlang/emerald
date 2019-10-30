@@ -38,6 +38,9 @@ namespace emerald {
         const Array::Iterator* get_array_iterator_prototype() const;
         Array::Iterator* get_array_iterator_prototype();
 
+        const Exception* get_exception_prototype() const;
+        Exception* get_exception_prototype();
+
         const Number* get_number_prototype() const;
         Number* get_number_prototype();
 
@@ -60,6 +63,7 @@ namespace emerald {
 
         Array* _array;
         Array::Iterator* _array_iterator;
+        Exception* _exception;
         Number* _number;
         String* _string;
 
@@ -71,6 +75,7 @@ namespace emerald {
 
         void initialize_object(ExecutionContext* context);
         void initialize_array(ExecutionContext* context);
+        void initialize_exception(ExecutionContext* context);
         void initialize_number(ExecutionContext* context);
         void initialize_string(ExecutionContext* context);
         void initialize_booleans(ExecutionContext* context);

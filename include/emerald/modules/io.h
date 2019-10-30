@@ -49,13 +49,13 @@ namespace modules {
 
         std::string as_str() const override;
 
-        void open(const std::string& filename, std::fstream::openmode mode);
-        bool is_open() const;
+        void open(String* filename, String* access);
+        Boolean* is_open() const;
 
-        std::string read();
-        std::string read(size_t n);
-        std::string readline();
-        void write(const std::string& s);
+        String* read();
+        String* read(Number* n);
+        String* readline();
+        void write(String* s);
 
     private:
         std::fstream _stream;
@@ -68,9 +68,9 @@ namespace modules {
 
         std::string as_str() const override;
 
-        std::string read(size_t n);
-        std::string readline();
-        void write(const std::string& s);
+        String* read(Number* n);
+        String* readline();
+        void write(String* s);
 
     private:
         std::stringstream _stream;

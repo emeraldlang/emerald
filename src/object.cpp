@@ -144,7 +144,8 @@ namespace emerald {
         }
     }
 
-    Object* Array::at(size_t i) const {
+    Object* Array::at(Number* n) const {
+        size_t i = n->get_native_value();
         if (i >= _value.size()) {
             return nullptr;
         }
@@ -182,25 +183,29 @@ namespace emerald {
         return obj;
     }
 
-    String* Array::join(String* seperator) {
+    String* Array::join(String* seperator) const {
         ExecutionContext* context = get_context();
         return ALLOC_STRING(objectutils::join_range(
             _value.begin(),
             _value.end(),
-            seperator->get_value(),
+            seperator->get_native_value(),
             context));
     }
 
-    bool Array::operator==(const Array& other) const {
+    Boolean* Array::eq(Array* other) const {
+        return BOOLEAN_IN_CTX(_eq(other), get_context());
+    }
+
+    Boolean* Array::neq(Array* other) const {
+        return BOOLEAN_IN_CTX(!_eq(other), get_context());
+    }
+
+    bool Array::_eq(Array* other) const {
         return objectutils::compare_range(
             _value.begin(),
             _value.end(),
-            other._value.begin(),
+            other->_value.begin(),
             get_context());
-    }
-
-    bool Array::operator!=(const Array& other) const {
-        return !(*this == other);
     }
 
     void Array::reach() {
@@ -230,19 +235,19 @@ namespace emerald {
     }
 
     Object* Array::Iterator::cur() const {
-        return _arr->at(_i);
+        return _arr->_value[_i];
     }
 
     Boolean* Array::Iterator::done() const {
-        return BOOLEAN_IN_CTX(_i == _arr->size()->get_value(), get_context());
+        return BOOLEAN_IN_CTX(_i == _arr->_value.size(), get_context());
     }
 
     Object* Array::Iterator::next() {
-        if (_i == _arr->size()->get_value()) {
+        if (_i == _arr->_value.size()) {
             return _arr->back();
         }
 
-        return _arr->at(++_i);
+        return _arr->_value[++_i];
     }
 
     void Array::Iterator::reach() {
@@ -286,7 +291,7 @@ namespace emerald {
     }
 
     Exception::Exception(ExecutionContext* context, const std::string& message)
-        : Object(context, context->get_native_objects().get_object_prototype()),
+        : Object(context, context->get_native_objects().get_exception_prototype()),
         _message(message) {}
 
     Exception::Exception(ExecutionContext* context, Object* parent, const std::string& message)
@@ -295,6 +300,10 @@ namespace emerald {
 
     std::string Exception::as_str() const {
         return _message;
+    }
+
+    void Exception::init(String* message) {
+        _message = message->get_native_value();
     }
 
     const std::string& Exception::get_message() const {
@@ -399,11 +408,15 @@ namespace emerald {
         return fmt::format("{0:g}", _value);
     }
 
-    double Number::get_value() const {
+    void Number::init(Number* val) {
+        _value = val->get_native_value();
+    }
+
+    double Number::get_native_value() const {
         return _value;
     }
 
-    void Number::set_value(double val) {
+    void Number::set_native_value(double val) {
         _value = val;
     }
 
@@ -431,11 +444,15 @@ namespace emerald {
         return _value;
     }
 
-    std::string& String::get_value() {
+    void String::init(String* val) {
+        _value = val->get_native_value();
+    }
+
+    std::string& String::get_native_value() {
         return _value;
     }
 
-    const std::string& String::get_value() const {
+    const std::string& String::get_native_value() const {
         return _value;
     }
 

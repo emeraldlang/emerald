@@ -66,16 +66,18 @@ namespace modules {
 
         Object* peek();
         Object* dequeue();
-        size_t enqueue(Object* obj);
+        void enqueue(Object* obj);
 
-        bool empty() const;
-        size_t size() const;
+        Boolean* empty() const;
+        Number* size() const;
 
-        bool operator==(const Queue& other) const;
-        bool operator!=(const Queue& other) const;
+        Boolean* eq(Queue* other) const;
+        Boolean* neq(Queue* other) const;
 
     private:
         std::deque<Object*> _value;
+
+        bool _eq(Queue* other) const;
     };
 
     class Set : public Object {
@@ -85,15 +87,15 @@ namespace modules {
 
         std::string as_str() const override;
 
-        size_t add(Object* obj);
-        bool contains(Object* obj) const;
-        size_t remove(Object* obj);
+        void add(Object* obj);
+        Boolean* contains(Object* obj) const;
+        void remove(Object* obj);
 
-        bool empty() const;
-        size_t size() const;
+        Boolean* empty() const;
+        Number* size() const;
 
-        bool operator==(const Set& other) const;
-        bool operator!=(const Set& other) const;
+        Boolean* eq(Set* other) const;
+        Boolean* neq(Set* other) const;
 
     private:
         struct hash {
@@ -116,16 +118,18 @@ namespace modules {
 
         Object* peek() const;
         Object* pop();
-        size_t push(Object* obj);
+        void push(Object* obj);
 
-        bool empty() const;
-        size_t size() const;
+        Boolean* empty() const;
+        Number* size() const;
 
-        bool operator==(const Stack& other) const;
-        bool operator!=(const Stack& other) const;
+        Boolean* eq(Stack* other) const;
+        Boolean* neq(Stack* other) const;
 
     private:
         std::deque<Object*> _value;
+
+        bool _eq(Stack* other) const;
     };
 
 #define X(name) NATIVE_FUNCTION(name);

@@ -24,12 +24,19 @@
 #include "emerald/object.h"
 
 #define IP_ADDRESS_NATIVES          \
+    X(ip_address_clone)             \
     X(ip_address_init)              \
     X(ip_address_is_loopback)       \
     X(ip_address_is_multicast)      \
     X(ip_address_is_unspecified)    \
     X(ip_address_is_ipv4)           \
     X(ip_address_is_ipv6)
+
+#define IP_ENDPOINT_NATIVES     \
+    X(ip_endpoint_clone)        \
+    X(ip_endpoint_init)         \
+    X(ip_endpoint_get_address)  \
+    X(ip_endpoint_get_port)
 
 namespace emerald {
 namespace modules {
@@ -41,14 +48,16 @@ namespace modules {
 
         std::string as_str() const override;
 
-        void init(const std::string& str);
+        const boost::asio::ip::address& get_native_address() const;
 
-        bool is_loopback() const;
-        bool is_multicast() const;
-        bool is_unspecified() const;
+        void init(String* address);
 
-        bool is_ipv4() const;
-        bool is_ipv6() const;
+        Boolean* is_loopback() const;
+        Boolean* is_multicast() const;
+        Boolean* is_unspecified() const;
+
+        Boolean* is_ipv4() const;
+        Boolean* is_ipv6() const;
 
     private:
         boost::asio::ip::address _address;
@@ -59,14 +68,18 @@ namespace modules {
         IPEndpoint(ExecutionContext* context);
         IPEndpoint(ExecutionContext* context, Object* parent);
 
-        void init(IPAddress* address, unsigned short port);
+        const boost::asio::ip::tcp::endpoint& get_native_endpoint() const;
+
+        void init(IPAddress* address, Number* port);
 
         IPAddress* get_address() const;
-        unsigned short get_port() const;
+        Number* get_port() const;
 
     private:
         IPAddress* _address;
-        unsigned short _port;
+        Number* _port;
+
+        boost::asio::ip::tcp::endpoint _endpoint;
     };
 
     class TcpClient final : public Object {
@@ -85,11 +98,16 @@ namespace modules {
         void start();
         void stop();
 
-        bool is_listening() const;
+        Boolean* is_listening();
 
         TcpClient* accept();
 
+        IPEndpoint* get_endpoint() const;
+
     private:
+        bool _listening;
+        IPEndpoint* _endpoint;
+
         boost::asio::ip::tcp::acceptor _acceptor;
     };
 
