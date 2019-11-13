@@ -26,8 +26,9 @@
 #include "emerald/code.h"
 #include "emerald/heap.h"
 #include "emerald/heap_managed.h"
+#include "emerald/process.h"
 
-#define NATIVE_FUNCTION(name) Object* name(Object* receiver, NativeFrame* frame, ExecutionContext* context)
+#define NATIVE_FUNCTION(name) Object* name(Object* receiver, NativeFrame* frame, Process* process)
 
 // Inheritance Hierarchy
 // - Object
@@ -46,68 +47,55 @@ namespace emerald {
     class Number;
     class String;
 
-    class ExecutionContext;
+    class CloneCache;
     class NativeFrame;
     class Module;
 
     class Object : public HeapManaged {
     public:
-        Object(ExecutionContext* context);
-        Object(ExecutionContext* context, Object* parent);
+        Object(Process* process);
+        Object(Process* process, Object* parent);
         virtual ~Object();
 
         virtual bool as_bool() const;
         virtual std::string as_str() const;
 
-        ExecutionContext* get_context() const;
+        Process* get_process() const;
         Object* get_parent() const;
 
         const std::unordered_map<std::string, Object*>& get_properties() const;
 
-        virtual const Object* get_property(const std::string& key) const;
-        virtual const Object* get_own_property(const std::string& key) const;
+        const Object* get_property(const std::string& key) const;
+        const Object* get_own_property(const std::string& key) const;
         Object* get_property(const std::string& key);
         Object* get_own_property(const std::string& key);
 
-        virtual bool has_property(const std::string& key) const;
-        virtual bool has_own_property(const std::string& key) const;
+        bool has_property(const std::string& key) const;
+        bool has_own_property(const std::string& key) const;
 
-        virtual bool set_property(const std::string& key, Object* value);
+        bool set_property(const std::string& key, Object* value);
+
+        virtual Object* clone(Process* process, CloneCache& cache);
 
     protected:
+        template <class T, class... Args>
+        T* clone_impl(Process* process, CloneCache& cache, Args&&... args);
+
         virtual void reach() override;
 
     private:
-        ExecutionContext* _context;
+        Process* _process;
         Object* _parent;
 
         std::unordered_map<std::string, Object*> _properties;
     };
 
+    class ArrayIterator;
+
     class Array final : public Object {
     public:
-        Array(ExecutionContext* context, const std::vector<Object*>& value = {});
-        Array(ExecutionContext* context, Object* parent, const std::vector<Object*>& value = {});
-
-        class Iterator final : public Object {
-        public:
-            Iterator(ExecutionContext* context);
-            Iterator(ExecutionContext* context, Object* parent);
-
-            std::string as_str() const override;
-
-            void init(Array* arr);
-
-            Object* cur() const;
-            Boolean* done() const;
-            Object* next();
-
-        private:
-            Array* _arr;
-            size_t _i;
-
-            void reach() override;
-        };
+        Array(Process* process, const std::vector<Object*>& value = {});
+        Array(Process* process, Object* parent, const std::vector<Object*>& value = {});
 
         bool as_bool() const override;
         std::string as_str() const override;
@@ -131,8 +119,10 @@ namespace emerald {
         Boolean* eq(Array* other) const;
         Boolean* neq(Array* other) const;
 
+        Array* clone(Process* process, CloneCache& cache) override;
+
     private:
-        friend class Iterator;
+        friend class ArrayIterator;
 
         std::vector<Object*> _value;
 
@@ -141,10 +131,32 @@ namespace emerald {
         void reach() override;
     };
 
+    class ArrayIterator final : public Object {
+    public:
+        ArrayIterator(Process* process);
+        ArrayIterator(Process* process, Object* parent);
+
+        std::string as_str() const override;
+
+        void init(Array* arr);
+
+        Object* cur() const;
+        Boolean* done() const;
+        Object* next();
+
+        ArrayIterator* clone(Process* process, CloneCache& cache) override;
+
+    private:
+        Array* _arr;
+        size_t _i;
+
+        void reach() override;
+    };
+
     class Boolean final : public Object {
     public:
-        Boolean(ExecutionContext* context, bool value = false);
-        Boolean(ExecutionContext* context, Object* parent, bool value = false);
+        Boolean(Process* process, bool value = false);
+        Boolean(Process* process, Object* parent, bool value = false);
 
         bool as_bool() const override;
         std::string as_str() const override;
@@ -156,14 +168,16 @@ namespace emerald {
         Boolean* eq(Boolean* other) const;
         Boolean* neq(Boolean* other) const;
 
+        Boolean* clone(Process* process, CloneCache& cache) override;
+
     private:
         bool _value;
     };
 
     class Exception : public Object {
     public:
-        Exception(ExecutionContext* context, const std::string& message = "");
-        Exception(ExecutionContext* context, Object* parent, const std::string& message = "");
+        Exception(Process* process, const std::string& message = "");
+        Exception(Process* process, Object* parent, const std::string& message = "");
 
         std::string as_str() const override;
 
@@ -171,19 +185,23 @@ namespace emerald {
 
         const std::string& get_message() const;
 
+        Exception* clone(Process* process, CloneCache& cache) override;
+
     private:
         std::string _message;
     };
 
     class Function final : public Object {
     public:
-        Function(ExecutionContext* context, std::shared_ptr<const Code> code, Module* globals);
-        Function(ExecutionContext* context, Object* parent, std::shared_ptr<const Code> code, Module* globals);
+        Function(Process* process, std::shared_ptr<const Code> code, Module* globals);
+        Function(Process* process, Object* parent, std::shared_ptr<const Code> code, Module* globals);
 
         std::string as_str() const override;
 
         std::shared_ptr<const Code> get_code() const;
         Module* get_globals() const;
+
+        Function* clone(Process* process, CloneCache& cache) override;
 
     private:
         std::shared_ptr<const Code> _code;
@@ -194,42 +212,41 @@ namespace emerald {
 
     class NativeFunction final : public Object {
     public:
-        using Callable = std::function<Object*(Object*, NativeFrame*, ExecutionContext*)>;
+        using Callable = std::function<Object*(Object*, NativeFrame*, Process*)>;
 
-        NativeFunction(ExecutionContext* context, Callable callable);
-        NativeFunction(ExecutionContext* context, Object* parent, Callable callable);
+        NativeFunction(Process* process, Callable callable, Module* globals = nullptr);
+        NativeFunction(Process* process, Object* parent, Callable callable, Module* globals = nullptr);
 
         std::string as_str() const override;
 
         const Callable& get_callable() const;
+        Module* get_globals() const;
 
-        Object* invoke(Object* receiver, NativeFrame* frame, ExecutionContext* context);
-        Object* operator()(Object* receiver, NativeFrame* frame, ExecutionContext* context);
+        Object* invoke(Object* receiver, NativeFrame* frame, Process* process);
+        Object* operator()(Object* receiver, NativeFrame* frame, Process* process);
+
+        NativeFunction* clone(Process* process, CloneCache& cache) override;
 
     private:
         Callable _callable;
+        Module* _globals;
     };
 
     class Null final : public Object {
     public:
-        Null(ExecutionContext* context);
+        Null(Process* process);
+        Null(Process* process, Object* parent);
 
         bool as_bool() const override;
         std::string as_str() const override;
 
-        const Object* get_property(const std::string& key) const override;
-        const Object* get_own_property(const std::string& key) const override;
-
-        bool has_property(const std::string& key) const override;
-        bool has_own_property(const std::string& key) const override;
-
-        bool set_property(const std::string& key, Object* value) override;
+        Null* clone(Process* process, CloneCache& cache) override;
     };
 
     class Number final : public Object {
     public:
-        Number(ExecutionContext* context, double value = 0);
-        Number(ExecutionContext* context, Object* parent, double value = 0);
+        Number(Process* process, double value = 0);
+        Number(Process* process, Object* parent, double value = 0);
 
         bool as_bool() const override;
         std::string as_str() const override;
@@ -242,14 +259,16 @@ namespace emerald {
         void increment();
         void decrement();
 
+        Number* clone(Process* process, CloneCache& cache) override;
+
     private:
         double _value;
     };
 
     class String final : public Object {
     public:
-        String(ExecutionContext* context, const std::string& value = "");
-        String(ExecutionContext* context, Object* parent, const std::string& value = "");
+        String(Process* process, const std::string& value = "");
+        String(Process* process, Object* parent, const std::string& value = "");
 
         bool as_bool() const override;
         std::string as_str() const override;
@@ -259,9 +278,44 @@ namespace emerald {
         std::string& get_native_value();
         const std::string& get_native_value() const;
 
+        String* clone(Process* process, CloneCache& cache) override;
+
     private:
         std::string _value;
     };
+
+    class CloneCache final {
+    public:
+        CloneCache() = default;
+
+        void add_clone(Object* obj, Object* clone);
+        Object* get_clone(Object* obj);
+
+    private:
+        std::unordered_map<Object*, Object*> _clones;
+    };
+
+    template <class T, class... Args>
+    T* Object::clone_impl(Process* process, CloneCache& cache, Args&&... args) {
+        if (Object* obj = cache.get_clone(this)) {
+            return static_cast<T*>(obj);
+        }
+
+        T* obj = process->get_heap().allocate<T>(
+            process,
+            nullptr,
+            std::forward<Args>(args)...);
+        cache.add_clone(this, obj);
+        if (_parent) {
+            // We have to clone the object first because
+            // there may be a circular reference.
+            obj->_parent = _parent->clone(process, cache);
+        }
+        for (std::pair<std::string, Object*> pair : get_properties()) {
+            obj->set_property(pair.first, pair.second->clone(process, cache));
+        }
+        return obj;
+    }
 
 } // namespace emerald
 

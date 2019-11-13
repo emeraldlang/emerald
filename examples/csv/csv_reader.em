@@ -10,7 +10,7 @@ if stream.is_open() then
         let reader = clone csv.CsvReader(stream, {
             has_header: True
         })
-        reader.read()
+        print reader.read()
     catch exc
         print exc
     end

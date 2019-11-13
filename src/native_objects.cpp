@@ -15,7 +15,6 @@
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "emerald/execution_context.h"
 #include "emerald/native_objects.h"
 #include "emerald/magic_methods.h"
 #include "emerald/natives/array.h"
@@ -24,19 +23,21 @@
 #include "emerald/natives/number.h"
 #include "emerald/natives/object.h"
 #include "emerald/natives/string.h"
+#include "emerald/object.h"
 #include "emerald/objectutils.h"
+#include "emerald/process.h"
 
 namespace emerald {
 
-    NativeObjects::NativeObjects(ExecutionContext* context) {
-        initialize_object(context);
-        initialize_array(context);
-        initialize_booleans(context);
-        initialize_exception(context);
-        initialize_number(context);
-        initialize_string(context);
+    NativeObjects::NativeObjects(Process* process) {
+        initialize_object(process);
+        initialize_array(process);
+        initialize_booleans(process);
+        initialize_exception(process);
+        initialize_number(process);
+        initialize_string(process);
 
-        _null = context->get_heap().allocate<Null>(context);
+        _null = process->get_heap().allocate<Null>(process);
     }
 
     const Object* NativeObjects::get_object_prototype() const {
@@ -55,11 +56,11 @@ namespace emerald {
         return _array;
     }
 
-    const Array::Iterator* NativeObjects::get_array_iterator_prototype() const {
+    const ArrayIterator* NativeObjects::get_array_iterator_prototype() const {
         return _array_iterator;
     }
 
-    Array::Iterator* NativeObjects::get_array_iterator_prototype() {
+    ArrayIterator* NativeObjects::get_array_iterator_prototype() {
         return _array_iterator;
     }
 
@@ -125,132 +126,132 @@ namespace emerald {
         });
     }
 
-    void NativeObjects::initialize_object(ExecutionContext* context) {
-        _object = context->get_heap().allocate<Object>(context);
+    void NativeObjects::initialize_object(Process* process) {
+        _object = process->get_heap().allocate<Object>(process);
 
-        _object->set_property(magic_methods::eq, ALLOC_NATIVE_FUNCTION(natives::object_eq));
-        _object->set_property(magic_methods::neq, ALLOC_NATIVE_FUNCTION(natives::object_neq));
+        _object->set_property(magic_methods::eq, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::object_eq));
+        _object->set_property(magic_methods::neq, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::object_neq));
 
-        _object->set_property(magic_methods::str, ALLOC_NATIVE_FUNCTION(natives::object_str));
-        _object->set_property(magic_methods::boolean, ALLOC_NATIVE_FUNCTION(natives::object_boolean));
+        _object->set_property(magic_methods::str, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::object_str));
+        _object->set_property(magic_methods::boolean, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::object_boolean));
 
-        _object->set_property(magic_methods::clone, ALLOC_NATIVE_FUNCTION(natives::object_clone));
-        _object->set_property(magic_methods::init, ALLOC_NATIVE_FUNCTION(natives::object_init));
+        _object->set_property(magic_methods::clone, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::object_clone));
+        _object->set_property(magic_methods::init, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::object_init));
 
-        _object->set_property("keys", ALLOC_NATIVE_FUNCTION(natives::object_keys));
-        _object->set_property("get_prop", ALLOC_NATIVE_FUNCTION(natives::object_get_prop));
-        _object->set_property("set_prop", ALLOC_NATIVE_FUNCTION(natives::object_set_prop));
+        _object->set_property("keys", ALLOC_NATIVE_FUNCTION_NO_MOD(natives::object_keys));
+        _object->set_property("get_prop", ALLOC_NATIVE_FUNCTION_NO_MOD(natives::object_get_prop));
+        _object->set_property("set_prop", ALLOC_NATIVE_FUNCTION_NO_MOD(natives::object_set_prop));
     }
 
-    void NativeObjects::initialize_array(ExecutionContext* context) {
-        _array = context->get_heap().allocate<Array>(context, _object);
+    void NativeObjects::initialize_array(Process* process) {
+        _array = process->get_heap().allocate<Array>(process, _object);
 
-        _array->set_property(magic_methods::eq, ALLOC_NATIVE_FUNCTION(natives::array_eq));
-        _array->set_property(magic_methods::neq, ALLOC_NATIVE_FUNCTION(natives::array_neq));
+        _array->set_property(magic_methods::eq, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::array_eq));
+        _array->set_property(magic_methods::neq, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::array_neq));
 
-        _array->set_property(magic_methods::iter, ALLOC_NATIVE_FUNCTION(natives::array_iter));
+        _array->set_property(magic_methods::iter, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::array_iter));
 
-        _array->set_property(magic_methods::clone, ALLOC_NATIVE_FUNCTION(natives::array_clone));
-        _array->set_property(magic_methods::init, ALLOC_NATIVE_FUNCTION(natives::array_init));
+        _array->set_property(magic_methods::clone, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::array_clone));
+        _array->set_property(magic_methods::init, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::array_init));
 
-        _array->set_property("at", ALLOC_NATIVE_FUNCTION(natives::array_at));
-        _array->set_property("front", ALLOC_NATIVE_FUNCTION(natives::array_front));
-        _array->set_property("back", ALLOC_NATIVE_FUNCTION(natives::array_back));
-        _array->set_property("empty", ALLOC_NATIVE_FUNCTION(natives::array_empty));
-        _array->set_property("size", ALLOC_NATIVE_FUNCTION(natives::array_size));
-        _array->set_property("clear", ALLOC_NATIVE_FUNCTION(natives::array_clear));
-        _array->set_property("push", ALLOC_NATIVE_FUNCTION(natives::array_push));
-        _array->set_property("pop", ALLOC_NATIVE_FUNCTION(natives::array_pop));
-        _array->set_property("join", ALLOC_NATIVE_FUNCTION(natives::array_join));
+        _array->set_property("at", ALLOC_NATIVE_FUNCTION_NO_MOD(natives::array_at));
+        _array->set_property("front", ALLOC_NATIVE_FUNCTION_NO_MOD(natives::array_front));
+        _array->set_property("back", ALLOC_NATIVE_FUNCTION_NO_MOD(natives::array_back));
+        _array->set_property("empty", ALLOC_NATIVE_FUNCTION_NO_MOD(natives::array_empty));
+        _array->set_property("size", ALLOC_NATIVE_FUNCTION_NO_MOD(natives::array_size));
+        _array->set_property("clear", ALLOC_NATIVE_FUNCTION_NO_MOD(natives::array_clear));
+        _array->set_property("push", ALLOC_NATIVE_FUNCTION_NO_MOD(natives::array_push));
+        _array->set_property("pop", ALLOC_NATIVE_FUNCTION_NO_MOD(natives::array_pop));
+        _array->set_property("join", ALLOC_NATIVE_FUNCTION_NO_MOD(natives::array_join));
 
-        _array_iterator = context->get_heap().allocate<Array::Iterator>(context, _object);
+        _array_iterator = process->get_heap().allocate<ArrayIterator>(process, _object);
 
-        _array_iterator->set_property(magic_methods::cur, ALLOC_NATIVE_FUNCTION(natives::array_iterator_cur));
-        _array_iterator->set_property(magic_methods::done, ALLOC_NATIVE_FUNCTION(natives::array_iterator_done));
-        _array_iterator->set_property(magic_methods::next, ALLOC_NATIVE_FUNCTION(natives::array_iterator_next));
+        _array_iterator->set_property(magic_methods::cur, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::array_iterator_cur));
+        _array_iterator->set_property(magic_methods::done, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::array_iterator_done));
+        _array_iterator->set_property(magic_methods::next, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::array_iterator_next));
 
-        _array_iterator->set_property(magic_methods::clone, ALLOC_NATIVE_FUNCTION(natives::array_iterator_clone));
-        _array_iterator->set_property(magic_methods::init, ALLOC_NATIVE_FUNCTION(natives::array_iterator_init));
+        _array_iterator->set_property(magic_methods::clone, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::array_iterator_clone));
+        _array_iterator->set_property(magic_methods::init, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::array_iterator_init));
     }
 
-    void NativeObjects::initialize_exception(ExecutionContext* context) {
-        _exception = context->get_heap().allocate<Exception>(context, _object);
+    void NativeObjects::initialize_exception(Process* process) {
+        _exception = process->get_heap().allocate<Exception>(process, _object);
 
-        _exception->set_property(magic_methods::clone, ALLOC_NATIVE_FUNCTION(natives::exception_clone));
-        _exception->set_property(magic_methods::init, ALLOC_NATIVE_FUNCTION(natives::exception_init));
+        _exception->set_property(magic_methods::clone, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::exception_clone));
+        _exception->set_property(magic_methods::init, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::exception_init));
     }
 
-    void NativeObjects::initialize_number(ExecutionContext* context) {
-        _number = context->get_heap().allocate<Number>(context, _object);
+    void NativeObjects::initialize_number(Process* process) {
+        _number = process->get_heap().allocate<Number>(process, _object);
 
-        _number->set_property(magic_methods::neg, ALLOC_NATIVE_FUNCTION(natives::number_neg));
-        _number->set_property(magic_methods::add, ALLOC_NATIVE_FUNCTION(natives::number_add));
-        _number->set_property(magic_methods::sub, ALLOC_NATIVE_FUNCTION(natives::number_sub));
-        _number->set_property(magic_methods::mul, ALLOC_NATIVE_FUNCTION(natives::number_mul));
-        _number->set_property(magic_methods::div, ALLOC_NATIVE_FUNCTION(natives::number_div));
-        _number->set_property(magic_methods::mod, ALLOC_NATIVE_FUNCTION(natives::number_mod));
+        _number->set_property(magic_methods::neg, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::number_neg));
+        _number->set_property(magic_methods::add, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::number_add));
+        _number->set_property(magic_methods::sub, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::number_sub));
+        _number->set_property(magic_methods::mul, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::number_mul));
+        _number->set_property(magic_methods::div, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::number_div));
+        _number->set_property(magic_methods::mod, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::number_mod));
 
-        _number->set_property(magic_methods::iadd, ALLOC_NATIVE_FUNCTION(natives::number_iadd));
-        _number->set_property(magic_methods::isub, ALLOC_NATIVE_FUNCTION(natives::number_isub));
-        _number->set_property(magic_methods::imul, ALLOC_NATIVE_FUNCTION(natives::number_imul));
-        _number->set_property(magic_methods::idiv, ALLOC_NATIVE_FUNCTION(natives::number_idiv));
-        _number->set_property(magic_methods::imod, ALLOC_NATIVE_FUNCTION(natives::number_imod));
+        _number->set_property(magic_methods::iadd, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::number_iadd));
+        _number->set_property(magic_methods::isub, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::number_isub));
+        _number->set_property(magic_methods::imul, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::number_imul));
+        _number->set_property(magic_methods::idiv, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::number_idiv));
+        _number->set_property(magic_methods::imod, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::number_imod));
 
-        _number->set_property(magic_methods::eq, ALLOC_NATIVE_FUNCTION(natives::number_eq));
-        _number->set_property(magic_methods::neq, ALLOC_NATIVE_FUNCTION(natives::number_neq));
-        _number->set_property(magic_methods::lt, ALLOC_NATIVE_FUNCTION(natives::number_lt));
-        _number->set_property(magic_methods::gt, ALLOC_NATIVE_FUNCTION(natives::number_gt));
-        _number->set_property(magic_methods::lte, ALLOC_NATIVE_FUNCTION(natives::number_lte));
-        _number->set_property(magic_methods::gte, ALLOC_NATIVE_FUNCTION(natives::number_gte));
+        _number->set_property(magic_methods::eq, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::number_eq));
+        _number->set_property(magic_methods::neq, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::number_neq));
+        _number->set_property(magic_methods::lt, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::number_lt));
+        _number->set_property(magic_methods::gt, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::number_gt));
+        _number->set_property(magic_methods::lte, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::number_lte));
+        _number->set_property(magic_methods::gte, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::number_gte));
 
-        _number->set_property(magic_methods::bit_or, ALLOC_NATIVE_FUNCTION(natives::number_bit_or));
-        _number->set_property(magic_methods::bit_xor, ALLOC_NATIVE_FUNCTION(natives::number_bit_xor));
-        _number->set_property(magic_methods::bit_and, ALLOC_NATIVE_FUNCTION(natives::number_bit_and));
-        _number->set_property(magic_methods::bit_shl, ALLOC_NATIVE_FUNCTION(natives::number_bit_shl));
-        _number->set_property(magic_methods::bit_shr, ALLOC_NATIVE_FUNCTION(natives::number_bit_shr));
+        _number->set_property(magic_methods::bit_or, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::number_bit_or));
+        _number->set_property(magic_methods::bit_xor, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::number_bit_xor));
+        _number->set_property(magic_methods::bit_and, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::number_bit_and));
+        _number->set_property(magic_methods::bit_shl, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::number_bit_shl));
+        _number->set_property(magic_methods::bit_shr, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::number_bit_shr));
 
-        _number->set_property(magic_methods::clone, ALLOC_NATIVE_FUNCTION(natives::number_clone));
-        _number->set_property(magic_methods::init, ALLOC_NATIVE_FUNCTION(natives::number_init));
+        _number->set_property(magic_methods::clone, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::number_clone));
+        _number->set_property(magic_methods::init, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::number_init));
     }
 
-    void NativeObjects::initialize_string(ExecutionContext* context) {
-        _string = context->get_heap().allocate<String>(context, _object);
+    void NativeObjects::initialize_string(Process* process) {
+        _string = process->get_heap().allocate<String>(process, _object);
 
-        _string->set_property(magic_methods::add, ALLOC_NATIVE_FUNCTION(natives::string_add));
+        _string->set_property(magic_methods::add, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::string_add));
 
-        _string->set_property(magic_methods::eq, ALLOC_NATIVE_FUNCTION(natives::string_eq));
-        _string->set_property(magic_methods::neq, ALLOC_NATIVE_FUNCTION(natives::string_neq));
-        _string->set_property(magic_methods::lt, ALLOC_NATIVE_FUNCTION(natives::string_lt));
-        _string->set_property(magic_methods::gt, ALLOC_NATIVE_FUNCTION(natives::string_gt));
-        _string->set_property(magic_methods::lte, ALLOC_NATIVE_FUNCTION(natives::string_lte));
-        _string->set_property(magic_methods::gte, ALLOC_NATIVE_FUNCTION(natives::string_gte));
+        _string->set_property(magic_methods::eq, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::string_eq));
+        _string->set_property(magic_methods::neq, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::string_neq));
+        _string->set_property(magic_methods::lt, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::string_lt));
+        _string->set_property(magic_methods::gt, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::string_gt));
+        _string->set_property(magic_methods::lte, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::string_lte));
+        _string->set_property(magic_methods::gte, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::string_gte));
 
-        _string->set_property(magic_methods::clone, ALLOC_NATIVE_FUNCTION(natives::string_clone));
+        _string->set_property(magic_methods::clone, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::string_clone));
 
-        _string->set_property("empty", ALLOC_NATIVE_FUNCTION(natives::string_empty));
-        _string->set_property("len", ALLOC_NATIVE_FUNCTION(natives::string_length));
-        _string->set_property("at", ALLOC_NATIVE_FUNCTION(natives::string_at));
-        _string->set_property("back", ALLOC_NATIVE_FUNCTION(natives::string_back));
-        _string->set_property("front", ALLOC_NATIVE_FUNCTION(natives::string_front));
-        _string->set_property("compare", ALLOC_NATIVE_FUNCTION(natives::string_compare));
-        _string->set_property("find", ALLOC_NATIVE_FUNCTION(natives::string_find));  
-        _string->set_property("substr", ALLOC_NATIVE_FUNCTION(natives::string_substr));
-        _string->set_property("format", ALLOC_NATIVE_FUNCTION(natives::string_format));
-        _string->set_property("split", ALLOC_NATIVE_FUNCTION(natives::string_split));
-        _string->set_property("append", ALLOC_NATIVE_FUNCTION(natives::string_append));
+        _string->set_property("empty", ALLOC_NATIVE_FUNCTION_NO_MOD(natives::string_empty));
+        _string->set_property("len", ALLOC_NATIVE_FUNCTION_NO_MOD(natives::string_length));
+        _string->set_property("at", ALLOC_NATIVE_FUNCTION_NO_MOD(natives::string_at));
+        _string->set_property("back", ALLOC_NATIVE_FUNCTION_NO_MOD(natives::string_back));
+        _string->set_property("front", ALLOC_NATIVE_FUNCTION_NO_MOD(natives::string_front));
+        _string->set_property("compare", ALLOC_NATIVE_FUNCTION_NO_MOD(natives::string_compare));
+        _string->set_property("find", ALLOC_NATIVE_FUNCTION_NO_MOD(natives::string_find));  
+        _string->set_property("substr", ALLOC_NATIVE_FUNCTION_NO_MOD(natives::string_substr));
+        _string->set_property("format", ALLOC_NATIVE_FUNCTION_NO_MOD(natives::string_format));
+        _string->set_property("split", ALLOC_NATIVE_FUNCTION_NO_MOD(natives::string_split));
+        _string->set_property("append", ALLOC_NATIVE_FUNCTION_NO_MOD(natives::string_append));
     }
 
-    void NativeObjects::initialize_booleans(ExecutionContext* context) {
-        _boolean = context->get_heap().allocate<Boolean>(context, _object);
+    void NativeObjects::initialize_booleans(Process* process) {
+        _boolean = process->get_heap().allocate<Boolean>(process, _object);
 
-        _boolean->set_property(magic_methods::eq, ALLOC_NATIVE_FUNCTION(natives::boolean_eq));
-        _boolean->set_property(magic_methods::neq, ALLOC_NATIVE_FUNCTION(natives::boolean_neq));
+        _boolean->set_property(magic_methods::eq, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::boolean_eq));
+        _boolean->set_property(magic_methods::neq, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::boolean_neq));
 
-        _boolean->set_property(magic_methods::clone, ALLOC_NATIVE_FUNCTION(natives::boolean_clone));
-        _boolean->set_property(magic_methods::init, ALLOC_NATIVE_FUNCTION(natives::boolean_init));
+        _boolean->set_property(magic_methods::clone, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::boolean_clone));
+        _boolean->set_property(magic_methods::init, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::boolean_init));
 
-        _true = context->get_heap().allocate<Boolean>(context, _boolean, true);
-        _false = context->get_heap().allocate<Boolean>(context, _boolean, false);
+        _true = process->get_heap().allocate<Boolean>(process, _boolean, true);
+        _false = process->get_heap().allocate<Boolean>(process, _boolean, false);
      }
 
 } // namespace emerald

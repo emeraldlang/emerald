@@ -15,31 +15,28 @@
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "emerald/natives/exception.h"
-#include "emerald/native_frame.h"
-#include "emerald/objectutils.h"
-#include "emerald/process.h"
+#ifndef _EMERALD_MODULES_PROCESS_H
+#define _EMERALD_MODULES_PROCESS_H
+
+#include "emerald/module_registry.h"
+#include "emerald/object.h"
+
+#define PROCESS_NATIVES \
+    X(process_create)   \
+    X(process_id)       \
+    X(process_receive)  \
+    X(process_send)
 
 namespace emerald {
-namespace natives {
+namespace modules {
 
-    NATIVE_FUNCTION(exception_clone) {
-        EXPECT_NUM_ARGS(0);
+#define X(name) NATIVE_FUNCTION(name);
+    PROCESS_NATIVES
+#undef X
 
-        CONVERT_RECV_TO(Exception, self);
+    MODULE_INITIALIZATION_FUNC(init_process_module);
 
-        return process->get_heap().allocate<Exception>(process, self);
-    }
-
-    NATIVE_FUNCTION(exception_init) {
-        EXPECT_NUM_ARGS(1);
-
-        CONVERT_RECV_TO(Exception, self);
-        CONVERT_ARG_TO(0, String, msg);
-        self->init(msg);
-
-        return NONE;
-    }
-
-} // namespace natives
+} // namespace modules
 } // namespace emerald
+
+#endif // _EMERALD_MODULES_PROCESS_H

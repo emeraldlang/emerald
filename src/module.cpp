@@ -25,17 +25,19 @@
 #include "fmt/format.h"
 
 #include "emerald/module.h"
-#include "emerald/execution_context.h"
+#include "emerald/process.h"
+#include "emerald/objectutils.h"
 #include "emerald/strutils.h"
 
 namespace emerald {
 
-    Module::Module(ExecutionContext* context, const std::string& name)
-        : Object(context, context->get_native_objects().get_object_prototype()), 
-        _name(name) {}
+    Module::Module(Process* process, const std::string& name, std::shared_ptr<Code> code)
+        : Object(process, OBJECT_PROTOTYPE), 
+        _name(name),
+        _code(code) {}
 
-    Module::Module(ExecutionContext* context, const std::string& name, std::shared_ptr<Code> code)
-        : Object(context, context->get_native_objects().get_object_prototype()), 
+    Module::Module(Process* process, Object* parent, const std::string& name, std::shared_ptr<Code> code)
+        : Object(process, parent), 
         _name(name),
         _code(code) {}
 
@@ -53,6 +55,10 @@ namespace emerald {
 
     std::string Module::as_str() const {
         return fmt::format("<module {0}>", _name);
+    }
+
+    Module* Module::clone(Process* process, CloneCache& cache) {
+        return clone_impl<Module>(process, cache, _name, _code);
     }
 
     std::filesystem::path Module::get_module_path(

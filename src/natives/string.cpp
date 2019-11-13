@@ -17,10 +17,10 @@
 
 #include "fmt/format.h"
 
-#include "emerald/execution_context.h"
 #include "emerald/natives/string.h"
 #include "emerald/native_frame.h"
 #include "emerald/objectutils.h"
+#include "emerald/process.h"
 #include "emerald/strutils.h"
 
 namespace emerald {
@@ -94,7 +94,7 @@ namespace natives {
 
         CONVERT_RECV_TO(String, self);
 
-        return context->get_heap().allocate<String>(context, self);
+        return process->get_heap().allocate<String>(process, self);
     }
 
     NATIVE_FUNCTION(string_empty) {
@@ -173,7 +173,7 @@ namespace natives {
         std::vector<fmt::basic_format_arg<ctx>> fmt_args;
         size_t n = frame->num_args();
         for (size_t i = 0; i < n; i++) {
-            String* arg = Interpreter::execute_method<String>(frame->get_arg(i), magic_methods::str, {}, context);
+            String* arg = Interpreter::execute_method<String>(frame->get_arg(i), magic_methods::str, {}, process);
             fmt_args.push_back(fmt::internal::make_arg<ctx>(arg->get_native_value()));
         }
 

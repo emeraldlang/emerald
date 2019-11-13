@@ -29,8 +29,8 @@ namespace emerald {
 
     class Module : public Object {
     public:
-        Module(ExecutionContext* context, const std::string& name);
-        Module(ExecutionContext* context, const std::string& name, std::shared_ptr<Code> code);
+        Module(Process* process, const std::string& name, std::shared_ptr<Code> code = nullptr);
+        Module(Process* process, Object* parent, const std::string& name, std::shared_ptr<Code> code = nullptr);
 
         const std::string& get_name() const;
         std::shared_ptr<Code> get_code() const;
@@ -38,6 +38,8 @@ namespace emerald {
         bool is_native() const;
 
         std::string as_str() const override;
+
+        Module* clone(Process* process, CloneCache& cache) override;
 
         static std::filesystem::path get_module_path(
             const std::string& module_name,

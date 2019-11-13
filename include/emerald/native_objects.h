@@ -19,15 +19,23 @@
 #define _EMERALD_NATIVE_OBJECTS_H
 
 #include "emerald/heap_root_source.h"
-#include "emerald/object.h"
 
 namespace emerald {
 
-    class ExecutionContext;
+    class Object;
+    class Array;
+    class ArrayIterator;
+    class Exception;
+    class Number;
+    class String;
+    class Boolean;
+    class Null;
+
+    class Process;
 
     class NativeObjects : public HeapRootSource {
     public:
-        NativeObjects(ExecutionContext* context);
+        NativeObjects(Process* process);
 
         const Object* get_object_prototype() const;
         Object* get_object_prototype();
@@ -35,8 +43,8 @@ namespace emerald {
         const Array* get_array_prototype() const;
         Array* get_array_prototype();
 
-        const Array::Iterator* get_array_iterator_prototype() const;
-        Array::Iterator* get_array_iterator_prototype();
+        const ArrayIterator* get_array_iterator_prototype() const;
+        ArrayIterator* get_array_iterator_prototype();
 
         const Exception* get_exception_prototype() const;
         Exception* get_exception_prototype();
@@ -62,7 +70,7 @@ namespace emerald {
         Object* _object;
 
         Array* _array;
-        Array::Iterator* _array_iterator;
+        ArrayIterator* _array_iterator;
         Exception* _exception;
         Number* _number;
         String* _string;
@@ -73,12 +81,12 @@ namespace emerald {
 
         Null* _null;
 
-        void initialize_object(ExecutionContext* context);
-        void initialize_array(ExecutionContext* context);
-        void initialize_exception(ExecutionContext* context);
-        void initialize_number(ExecutionContext* context);
-        void initialize_string(ExecutionContext* context);
-        void initialize_booleans(ExecutionContext* context);
+        void initialize_object(Process* process);
+        void initialize_array(Process* process);
+        void initialize_exception(Process* process);
+        void initialize_number(Process* process);
+        void initialize_string(Process* process);
+        void initialize_booleans(Process* process);
     };
 
 } // namespace emerald

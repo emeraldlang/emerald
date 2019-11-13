@@ -15,12 +15,12 @@
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "emerald/execution_context.h"
 #include "emerald/interpreter.h"
 #include "emerald/magic_methods.h"
 #include "emerald/natives/array.h"
 #include "emerald/native_frame.h"
 #include "emerald/objectutils.h"
+#include "emerald/process.h"
 
 namespace emerald {
 namespace natives {
@@ -54,10 +54,10 @@ namespace natives {
 
         CONVERT_RECV_TO(Array, self);
 
-        return Interpreter::create_obj<Array::Iterator>(
-            context->get_native_objects().get_array_iterator_prototype(),
+        return Interpreter::create_obj<ArrayIterator>(
+            ARRAY_ITERATOR_PROTOTYPE,
             { self },
-            context);
+            process);
     }
 
     NATIVE_FUNCTION(array_clone) {
@@ -65,7 +65,7 @@ namespace natives {
 
         CONVERT_RECV_TO(Array, self);
 
-        return context->get_heap().allocate<Array>(context, self);
+        return process->get_heap().allocate<Array>(process, self);
     }
 
     NATIVE_FUNCTION(array_init) {
@@ -161,7 +161,7 @@ namespace natives {
     NATIVE_FUNCTION(array_iterator_cur) {
         EXPECT_NUM_ARGS(0);
 
-        CONVERT_RECV_TO(Array::Iterator, self);
+        CONVERT_RECV_TO(ArrayIterator, self);
 
         return self->cur();
     }
@@ -169,7 +169,7 @@ namespace natives {
     NATIVE_FUNCTION(array_iterator_done) {
         EXPECT_NUM_ARGS(0);
 
-        CONVERT_RECV_TO(Array::Iterator, self);
+        CONVERT_RECV_TO(ArrayIterator, self);
 
         return self->done();
     }
@@ -177,7 +177,7 @@ namespace natives {
     NATIVE_FUNCTION(array_iterator_next) {
         EXPECT_NUM_ARGS(0);
 
-        CONVERT_RECV_TO(Array::Iterator, self);
+        CONVERT_RECV_TO(ArrayIterator, self);
 
         return self->next();
     }
@@ -185,15 +185,15 @@ namespace natives {
     NATIVE_FUNCTION(array_iterator_clone) {
         EXPECT_NUM_ARGS(0);
 
-        CONVERT_RECV_TO(Array::Iterator, self);
+        CONVERT_RECV_TO(ArrayIterator, self);
 
-        return context->get_heap().allocate<Array::Iterator>(context, self);
+        return process->get_heap().allocate<ArrayIterator>(process, self);
     }
 
     NATIVE_FUNCTION(array_iterator_init) {
         EXPECT_NUM_ARGS(1);
 
-        CONVERT_RECV_TO(Array::Iterator, self);
+        CONVERT_RECV_TO(ArrayIterator, self);
         CONVERT_ARG_TO(0, Array, arr);
 
         self->init(arr);

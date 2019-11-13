@@ -17,12 +17,12 @@
 
 #include "fmt/format.h"
 
-#include "emerald/execution_context.h"
 #include "emerald/interpreter.h"
 #include "emerald/magic_methods.h"
 #include "emerald/natives/boolean.h"
 #include "emerald/native_frame.h"
 #include "emerald/objectutils.h"
+#include "emerald/process.h"
 
 namespace emerald {
 namespace natives {
@@ -54,7 +54,7 @@ namespace natives {
 
         CONVERT_RECV_TO(Boolean, self);
 
-        return context->get_heap().allocate<Boolean>(context, self);
+        return process->get_heap().allocate<Boolean>(process, self);
     }
 
     NATIVE_FUNCTION(boolean_init) {
@@ -65,7 +65,7 @@ namespace natives {
             frame->get_arg(0),
             magic_methods::boolean,
             {},
-            context);
+            process);
         self->init(val);
 
         return NONE;

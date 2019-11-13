@@ -15,31 +15,23 @@
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "emerald/natives/exception.h"
-#include "emerald/native_frame.h"
-#include "emerald/objectutils.h"
-#include "emerald/process.h"
+#ifndef _EMERALD_THREAD_POOL_H
+#define _EMERALD_THREAD_POOL_H
+
+#include <functional>
+
+#include <boost/asio.hpp>
 
 namespace emerald {
-namespace natives {
 
-    NATIVE_FUNCTION(exception_clone) {
-        EXPECT_NUM_ARGS(0);
+    class ThreadPool {
+    public:
+        static void queue(std::function<void()> work);
 
-        CONVERT_RECV_TO(Exception, self);
+    private:
+        static boost::asio::thread_pool _pool;
+    };
 
-        return process->get_heap().allocate<Exception>(process, self);
-    }
-
-    NATIVE_FUNCTION(exception_init) {
-        EXPECT_NUM_ARGS(1);
-
-        CONVERT_RECV_TO(Exception, self);
-        CONVERT_ARG_TO(0, String, msg);
-        self->init(msg);
-
-        return NONE;
-    }
-
-} // namespace natives
 } // namespace emerald
+
+#endif // _EMERALD_THREAD_POOL_H

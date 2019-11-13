@@ -19,22 +19,22 @@
 
 #include "fmt/format.h"
 
-#include "emerald/execution_context.h"
 #include "emerald/interpreter.h"
 #include "emerald/native_frame.h"
 #include "emerald/magic_methods.h"
 #include "emerald/module.h"
 #include "emerald/object.h"
 #include "emerald/objectutils.h"
+#include "emerald/process.h"
 
 namespace emerald {
 
-    Object::Object(ExecutionContext* context)
-        : _context(context), 
+    Object::Object(Process* process)
+        : _process(process), 
         _parent(nullptr) {}
 
-    Object::Object(ExecutionContext* context, Object* parent)
-        : _context(context), 
+    Object::Object(Process* process, Object* parent)
+        : _process(process), 
         _parent(parent) {}
 
     Object::~Object() {}
@@ -47,8 +47,8 @@ namespace emerald {
         return "<object>";
     }
 
-    ExecutionContext* Object::get_context() const {
-        return _context;
+    Process* Object::get_process() const {
+        return _process;
     }
 
     Object* Object::get_parent() const {
@@ -108,6 +108,10 @@ namespace emerald {
         return true;
     }
 
+    Object* Object::clone(Process* process, CloneCache& cache) {
+        return clone_impl<Object>(process, cache);
+    } 
+
     void Object::reach() {
         if (_parent != nullptr) {
             _parent->mark();
@@ -118,12 +122,12 @@ namespace emerald {
         }
     }
 
-    Array::Array(ExecutionContext* context, const std::vector<Object*>& value)
-        : Object(context, context->get_native_objects().get_array_prototype()),
+    Array::Array(Process* process, const std::vector<Object*>& value)
+        : Object(process, ARRAY_PROTOTYPE),
         _value(value) {}
 
-    Array::Array(ExecutionContext* context, Object* parent, const std::vector<Object*>& value)
-        : Object(context, parent),
+    Array::Array(Process* process, Object* parent, const std::vector<Object*>& value)
+        : Object(process, parent),
         _value(value) {}
 
     bool Array::as_bool() const {
@@ -132,12 +136,12 @@ namespace emerald {
     
     std::string Array::as_str() const {
         return "[" +
-            objectutils::join_range(_value.begin(), _value.end(), ",", get_context())
+            objectutils::join_range(_value.begin(), _value.end(), ",", get_process())
         + "]";
     }
 
     void Array::init(Object* iterator) {
-        objectutils::ObjectIterator iter = objectutils::ObjectIterator(get_context(), iterator);
+        objectutils::ObjectIterator iter = objectutils::ObjectIterator(get_process(), iterator);
         while (!iter.done()) {
             _value.push_back(iter.cur());
             iter.next();
@@ -162,11 +166,11 @@ namespace emerald {
     }
 
     Boolean* Array::empty() const {
-        return BOOLEAN_IN_CTX(_value.empty(), get_context());
+        return BOOLEAN_IN_CTX(_value.empty(), get_process());
     }
 
     Number* Array::size() {
-        return ALLOC_NUMBER_IN_CTX(_value.size(), get_context());
+        return ALLOC_NUMBER_IN_CTX(_value.size(), get_process());
     }
 
     void Array::clear() {
@@ -184,20 +188,28 @@ namespace emerald {
     }
 
     String* Array::join(String* seperator) const {
-        ExecutionContext* context = get_context();
+        Process* process = get_process();
         return ALLOC_STRING(objectutils::join_range(
             _value.begin(),
             _value.end(),
             seperator->get_native_value(),
-            context));
+            process));
     }
 
     Boolean* Array::eq(Array* other) const {
-        return BOOLEAN_IN_CTX(_eq(other), get_context());
+        return BOOLEAN_IN_CTX(_eq(other), get_process());
     }
 
     Boolean* Array::neq(Array* other) const {
-        return BOOLEAN_IN_CTX(!_eq(other), get_context());
+        return BOOLEAN_IN_CTX(!_eq(other), get_process());
+    }
+
+    Array* Array::clone(Process* process, CloneCache& cache) {
+        Array* clone = clone_impl<Array>(process, cache, _value);
+        for (Object* obj : _value) {
+            clone->_value.push_back(obj->clone(process, cache));
+        }
+        return clone;
     }
 
     bool Array::_eq(Array* other) const {
@@ -205,7 +217,7 @@ namespace emerald {
             _value.begin(),
             _value.end(),
             other->_value.begin(),
-            get_context());
+            get_process());
     }
 
     void Array::reach() {
@@ -216,33 +228,33 @@ namespace emerald {
         }
     }
 
-    Array::Iterator::Iterator(ExecutionContext* context)
-        : Object(context, context->get_native_objects().get_array_iterator_prototype()),
+    ArrayIterator::ArrayIterator(Process* process)
+        : Object(process, ARRAY_ITERATOR_PROTOTYPE),
         _arr(nullptr),
         _i(0) {}
 
-    Array::Iterator::Iterator(ExecutionContext* context, Object* parent)
-        : Object(context, parent),
+    ArrayIterator::ArrayIterator(Process* process, Object* parent)
+        : Object(process, parent),
         _arr(nullptr),
         _i(0) {}
 
-    std::string Array::Iterator::as_str() const {
+    std::string ArrayIterator::as_str() const {
         return "<array_iterator>";
     }
 
-    void Array::Iterator::init(Array* arr) {
+    void ArrayIterator::init(Array* arr) {
         _arr = arr;
     }
 
-    Object* Array::Iterator::cur() const {
+    Object* ArrayIterator::cur() const {
         return _arr->_value[_i];
     }
 
-    Boolean* Array::Iterator::done() const {
-        return BOOLEAN_IN_CTX(_i == _arr->_value.size(), get_context());
+    Boolean* ArrayIterator::done() const {
+        return BOOLEAN_IN_CTX(_i == _arr->_value.size(), get_process());
     }
 
-    Object* Array::Iterator::next() {
+    Object* ArrayIterator::next() {
         if (_i == _arr->_value.size()) {
             return _arr->back();
         }
@@ -250,7 +262,14 @@ namespace emerald {
         return _arr->_value[++_i];
     }
 
-    void Array::Iterator::reach() {
+    ArrayIterator* ArrayIterator::clone(Process* process, CloneCache& cache) {
+        ArrayIterator* clone = clone_impl<ArrayIterator>(process, cache);
+        clone->_arr = _arr->clone(process, cache);
+        clone->_i = _i;
+        return clone;
+    }
+
+    void ArrayIterator::reach() {
         Object::reach();
 
         if (_arr) {
@@ -258,12 +277,12 @@ namespace emerald {
         }
     }
 
-    Boolean::Boolean(ExecutionContext* context, bool value)
-        : Object(context, context->get_native_objects().get_boolean_prototype()),
+    Boolean::Boolean(Process* process, bool value)
+        : Object(process, BOOLEAN_PROTOTYPE),
         _value(value) {}
 
-    Boolean::Boolean(ExecutionContext* context, Object* parent, bool value)
-        : Object(context, parent),
+    Boolean::Boolean(Process* process, Object* parent, bool value)
+        : Object(process, parent),
         _value(value) {}
 
     bool Boolean::as_bool() const {
@@ -283,19 +302,23 @@ namespace emerald {
     }
 
     Boolean* Boolean::eq(Boolean* other) const {
-        return BOOLEAN_IN_CTX(_value == other->_value, get_context());
+        return BOOLEAN_IN_CTX(_value == other->_value, get_process());
     }
 
     Boolean* Boolean::neq(Boolean* other) const {
-        return BOOLEAN_IN_CTX(_value != other->_value, get_context());
+        return BOOLEAN_IN_CTX(_value != other->_value, get_process());
     }
 
-    Exception::Exception(ExecutionContext* context, const std::string& message)
-        : Object(context, context->get_native_objects().get_exception_prototype()),
+    Boolean* Boolean::clone(Process* process, CloneCache& cache) {
+        return clone_impl<Boolean>(process, cache, _value);
+    }
+
+    Exception::Exception(Process* process, const std::string& message)
+        : Object(process, EXCEPTION_PROTOTYPE),
         _message(message) {}
 
-    Exception::Exception(ExecutionContext* context, Object* parent, const std::string& message)
-        : Object(context, parent),
+    Exception::Exception(Process* process, Object* parent, const std::string& message)
+        : Object(process, parent),
         _message(message) {}
 
     std::string Exception::as_str() const {
@@ -310,13 +333,17 @@ namespace emerald {
         return _message;
     }
 
-    Function::Function(ExecutionContext* context, std::shared_ptr<const Code> code, Module* globals)
-        : Object(context, context->get_native_objects().get_object_prototype()),
+    Exception* Exception::clone(Process* process, CloneCache& cache) {
+        return clone_impl<Exception>(process, cache, _message);
+    }
+
+    Function::Function(Process* process, std::shared_ptr<const Code> code, Module* globals)
+        : Object(process, OBJECT_PROTOTYPE),
         _code(code),
         _globals(globals) {}
 
-    Function::Function(ExecutionContext* context, Object* parent, std::shared_ptr<const Code> code, Module* globals)
-        : Object(context, parent),
+    Function::Function(Process* process, Object* parent, std::shared_ptr<const Code> code, Module* globals)
+        : Object(process, parent),
         _code(code),
         _globals(globals) {}
 
@@ -338,13 +365,19 @@ namespace emerald {
         _globals->mark();
     }
 
-    NativeFunction::NativeFunction(ExecutionContext* context, Callable callable)
-        : Object(context, context->get_native_objects().get_object_prototype()),
-        _callable(callable) {}
+    Function* Function::clone(Process* process, CloneCache& cache) {
+        return clone_impl<Function>(process, cache, _code, _globals->clone(process, cache));
+    }
 
-    NativeFunction::NativeFunction(ExecutionContext* context, Object* parent, Callable callable)
-        : Object(context, parent),
-        _callable(callable) {}
+    NativeFunction::NativeFunction(Process* process, Callable callable, Module* globals)
+        : Object(process, OBJECT_PROTOTYPE),
+        _callable(callable),
+        _globals(globals) {}
+
+    NativeFunction::NativeFunction(Process* process, Object* parent, Callable callable, Module* globals)
+        : Object(process, parent),
+        _callable(callable),
+        _globals(globals) {}
     
     std::string NativeFunction::as_str() const {
         return "<native_function>";
@@ -353,16 +386,31 @@ namespace emerald {
         return _callable;
     }
 
-    Object* NativeFunction::invoke(Object* receiver, NativeFrame* frame, ExecutionContext* context) {
-        return _callable(receiver, frame, context);
+    Module* NativeFunction::get_globals() const {
+        return _globals;
     }
 
-    Object* NativeFunction::operator()(Object* receiver, NativeFrame* frame, ExecutionContext* context) {
-        return _callable(receiver, frame, context);
+    Object* NativeFunction::invoke(Object* receiver, NativeFrame* frame, Process* process) {
+        return _callable(receiver, frame, process);
     }
 
-    Null::Null(ExecutionContext* context)
-        : Object(context) {}
+    Object* NativeFunction::operator()(Object* receiver, NativeFrame* frame, Process* process) {
+        return _callable(receiver, frame, process);
+    }
+
+    NativeFunction* NativeFunction::clone(Process* process, CloneCache& cache) {
+        Module* globals = nullptr;
+        if (_globals) {
+            globals = _globals->clone(process, cache);
+        }
+        return clone_impl<NativeFunction>(process, cache, _callable, globals);
+    }
+
+    Null::Null(Process* process)
+        : Object(process, OBJECT_PROTOTYPE) {}
+
+    Null::Null(Process* process, Object* parent)
+        : Object(process, parent) {}
 
     bool Null::as_bool() const {
         return false;
@@ -372,32 +420,16 @@ namespace emerald {
         return "None";
     }
 
-    const Object* Null::get_property(const std::string&) const {
-        return nullptr;
+    Null* Null::clone(Process* process, CloneCache& cache) {
+        return clone_impl<Null>(process, cache);
     }
 
-    const Object* Null::get_own_property(const std::string&) const {
-        return nullptr;
-    }
-
-    bool Null::has_property(const std::string&) const {
-        return false;
-    }
-
-    bool Null::has_own_property(const std::string&) const {
-        return false;
-    }
-
-    bool Null::set_property(const std::string&, Object*) {
-        return false;
-    }
-
-    Number::Number(ExecutionContext* context, double value)
-        : Object(context, context->get_native_objects().get_number_prototype()),
+    Number::Number(Process* process, double value)
+        : Object(process, NUMBER_PROTOTYPE),
         _value(value) {}
 
-    Number::Number(ExecutionContext* context, Object* parent, double value)
-        : Object(context, parent),
+    Number::Number(Process* process, Object* parent, double value)
+        : Object(process, parent),
         _value(value) {}
 
     bool Number::as_bool() const {
@@ -428,12 +460,16 @@ namespace emerald {
         _value--;
     }
 
-    String::String(ExecutionContext* context, const std::string& value)
-        : Object(context, context->get_native_objects().get_string_prototype()),
+    Number* Number::clone(Process* process, CloneCache& cache) {
+        return clone_impl<Number>(process, cache, _value);
+    }
+
+    String::String(Process* process, const std::string& value)
+        : Object(process, STRING_PROTOTYPE),
         _value(value) {}
 
-    String::String(ExecutionContext* context, Object* parent, const std::string& value)
-        : Object(context, parent),
+    String::String(Process* process, Object* parent, const std::string& value)
+        : Object(process, parent),
         _value(value) {}
 
     bool String::as_bool() const {
@@ -454,6 +490,22 @@ namespace emerald {
 
     const std::string& String::get_native_value() const {
         return _value;
+    }
+
+    String* String::clone(Process* process, CloneCache& cache) {
+        return clone_impl<String>(process, cache, _value);
+    }
+
+    void CloneCache::add_clone(Object* obj, Object* clone) {
+        _clones[obj] = clone;
+    }
+
+    Object* CloneCache::get_clone(Object* obj) {
+        if (_clones.find(obj) != _clones.end()) {
+            return _clones.at(obj);
+        }
+
+        return nullptr;
     }
 
 } // namespace emerald

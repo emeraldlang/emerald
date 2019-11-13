@@ -15,8 +15,13 @@
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#ifndef _EMERALD_EXECUTION_CONTEXT_H
-#define _EMERALD_EXECUTION_CONTEXT_H
+#ifndef _EMERALD_PROCESS_H
+#define _EMERALD_PROCESS_H
+
+#include <condition_variable>
+#include <mutex>
+#include <queue>
+#include <unordered_map>
 
 #include "emerald/heap.h"
 #include "emerald/module_registry.h"
@@ -25,14 +30,15 @@
 
 namespace emerald {
 
-    class ExecutionContext {
+    class Processes;
+
+    class Process {
     public:
-        ExecutionContext()
-            : _native_objects(this) {
-            _heap.add_root_source(&_module_registry);
-            _heap.add_root_source(&_native_objects);
-            _heap.add_root_source(&_stack);
-        }
+        using PID = size_t;
+
+        Process(PID id);
+
+        PID get_id() const { return _id; }
 
         const Heap& get_heap() const { return _heap; }
         Heap& get_heap() { return _heap; }
@@ -46,13 +52,32 @@ namespace emerald {
         const Stack& get_stack() const { return _stack; }
         Stack& get_stack() { return _stack; }
 
+        void push_msg(Object* message);
+        Object* pop_msg();
+
     private:
+        PID _id;
+
         Heap _heap;
         ModuleRegistry _module_registry;
         NativeObjects _native_objects;
         Stack _stack;
+
+        std::queue<Object*> _mailbox;
+        std::mutex _mutex;
+        std::condition_variable _cv;
+    };
+
+    class Processes {
+    public:
+        static Process* create_process();
+        static Process* get_process(Process::PID id);
+
+    private:
+        static Process::PID _curr_id;
+        static std::unordered_map<Process::PID, Process> _map;
     };
 
 } // namespace emerald
 
-#endif // _EMERALD_EXECUTION_CONTEXT_H
+#endif // _EMERALD_PROCESS_H

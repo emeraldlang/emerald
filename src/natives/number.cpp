@@ -15,10 +15,10 @@
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "emerald/execution_context.h"
 #include "emerald/natives/number.h"
 #include "emerald/native_frame.h"
 #include "emerald/objectutils.h"
+#include "emerald/process.h"
 
 namespace emerald {
 namespace natives {
@@ -235,7 +235,7 @@ namespace natives {
 
         CONVERT_RECV_TO(Number, self);
 
-        return context->get_heap().allocate<Number>(context, self);
+        return process->get_heap().allocate<Number>(process, self);
     }
 
     NATIVE_FUNCTION(number_init) {

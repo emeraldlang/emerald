@@ -59,8 +59,8 @@ namespace modules {
 
     class Queue : public Object {
     public:
-        Queue(ExecutionContext* context);
-        Queue(ExecutionContext* context, Object* parent);
+        Queue(Process* process);
+        Queue(Process* process, Object* parent);
 
         std::string as_str() const override;
 
@@ -74,6 +74,8 @@ namespace modules {
         Boolean* eq(Queue* other) const;
         Boolean* neq(Queue* other) const;
 
+        Queue* clone(Process* process, CloneCache& cache) override;
+
     private:
         std::deque<Object*> _value;
 
@@ -82,8 +84,8 @@ namespace modules {
 
     class Set : public Object {
     public:
-        Set(ExecutionContext* context);
-        Set(ExecutionContext* context, Object* parent);
+        Set(Process* process);
+        Set(Process* process, Object* parent);
 
         std::string as_str() const override;
 
@@ -96,6 +98,8 @@ namespace modules {
 
         Boolean* eq(Set* other) const;
         Boolean* neq(Set* other) const;
+
+        Set* clone(Process* process, CloneCache& cache) override;
 
     private:
         struct hash {
@@ -111,8 +115,8 @@ namespace modules {
 
     class Stack : public Object {
     public:
-        Stack(ExecutionContext* context);
-        Stack(ExecutionContext* context, Object* parent);
+        Stack(Process* process);
+        Stack(Process* process, Object* parent);
 
         std::string as_str() const override;
 
@@ -125,6 +129,8 @@ namespace modules {
 
         Boolean* eq(Stack* other) const;
         Boolean* neq(Stack* other) const;
+
+        Stack* clone(Process* process, CloneCache& cache) override;
 
     private:
         std::deque<Object*> _value;

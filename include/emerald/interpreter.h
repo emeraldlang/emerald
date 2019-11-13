@@ -23,9 +23,9 @@
 
 #include "fmt/format.h"
 
-#include "emerald/execution_context.h"
 #include "emerald/magic_methods.h"
 #include "emerald/object.h"
+#include "emerald/process.h"
 
 namespace emerald {
 
@@ -34,80 +34,80 @@ namespace emerald {
 
     class Interpreter {
     public:
-        static Object* execute(ExecutionContext* context);
-        static Object* execute_code(std::shared_ptr<const Code> code, ExecutionContext* context);
+        static Object* execute(Process* process);
+        static Object* execute_function(Function* function, Process* process);
         template <class T>
-        static T* execute_method(Object* receiver, const std::string& name, const std::vector<Object*>& args, ExecutionContext* context);
+        static T* execute_method(Object* receiver, const std::string& name, const std::vector<Object*>& args, Process* process);
         static Object* execute_module(const std::string& module_name);
-        static Module* import_module(const std::string& name, ExecutionContext* context);
+        static Module* import_module(const std::string& name, Process* process);
         template <class T>
-        static T* create_obj(Object* parent, const std::vector<Object*>& args, ExecutionContext* context);
+        static T* create_obj(Object* parent, const std::vector<Object*>& args, Process* process);
 
     private:
         template <class T>
-        static T* call_obj(Object* obj, Object* receiver, const std::vector<Object*>& args, ExecutionContext* context);
+        static T* call_obj(Object* obj, Object* receiver, const std::vector<Object*>& args, Process* process);
 
         template <class T>
-        static T* call_method(Object* receiver, const std::string& name, size_t num_args, ExecutionContext* context);
+        static T* call_method(Object* receiver, const std::string& name, size_t num_args, Process* process);
         template <class T>
-        static T* call_method0(Object* receiver, const std::string& name, ExecutionContext* context) { return call_method<T>(receiver, name, 0, context); }
+        static T* call_method0(Object* receiver, const std::string& name, Process* process) { return call_method<T>(receiver, name, 0, process); }
         template <class T>
-        static T* call_method1(Object* receiver, const std::string& name, ExecutionContext* context) { return call_method<T>(receiver, name, 1, context); }
+        static T* call_method1(Object* receiver, const std::string& name, Process* process) { return call_method<T>(receiver, name, 1, process); }
         template <class T>
-        static T* call_method2(Object* receiver, const std::string& name, ExecutionContext* context) { return call_method<T>(receiver, name, 2, context); }
+        static T* call_method2(Object* receiver, const std::string& name, Process* process) { return call_method<T>(receiver, name, 2, process); }
         template <class T>
-        static T* call_method(Object* receiver, const std::string& name, const std::vector<Object*>& args, ExecutionContext* context);
+        static T* call_method(Object* receiver, const std::string& name, const std::vector<Object*>& args, Process* process);
 
-        static Module* get_module(const std::string& name, bool& created, ExecutionContext* context);
+        static Module* get_module(const std::string& name, bool& created, Process* process);
 
-        static Object* new_obj(bool explicit_parent, size_t num_props, ExecutionContext* context);
+        static Object* new_obj(bool explicit_parent, size_t num_props, Process* process);
     };
 
     template <class T>
-    T* Interpreter::execute_method(Object* receiver, const std::string& name, const std::vector<Object*>& args, ExecutionContext* context) {
-        return call_method<T>(receiver, name, args, context);
+    T* Interpreter::execute_method(Object* receiver, const std::string& name, const std::vector<Object*>& args, Process* process) {
+        return call_method<T>(receiver, name, args, process);
     }
 
     template <class T>
-    T* Interpreter::create_obj(Object* parent, const std::vector<Object*>& args, ExecutionContext* context) {
+    T* Interpreter::create_obj(Object* parent, const std::vector<Object*>& args, Process* process) {
         T* obj = Interpreter::execute_method<T>(
                 parent,
                 magic_methods::clone,
                 {},
-                context);
+                process);
         Interpreter::execute_method<Null>(
             obj,
             magic_methods::init,
             args,
-            context);
+            process);
 
         return obj;
     }
 
     template <>
-    Object* Interpreter::call_obj<Object>(Object* obj, Object* receiver, const std::vector<Object*>& args, ExecutionContext* context);
+    Object* Interpreter::call_obj<Object>(Object* obj, Object* receiver, const std::vector<Object*>& args, Process* process);
 
     template <class T>
-    T* Interpreter::call_obj(Object* obj, Object* receiver, const std::vector<Object*>& args, ExecutionContext* context) {
-        if (T* res = dynamic_cast<T*>(call_obj<Object>(obj, receiver, args, context))) {
+    T* Interpreter::call_obj(Object* obj, Object* receiver, const std::vector<Object*>& args, Process* process) {
+        if (T* res = dynamic_cast<T*>(call_obj<Object>(obj, receiver, args, process))) {
             return res;
         }
 
-        throw context->get_heap().allocate<Exception>(context, "");
+        throw process->get_heap().allocate<Exception>(process, "");
     }
 
     template <class T>
-    T* Interpreter::call_method(Object* receiver, const std::string& name, size_t num_args, ExecutionContext* context) {
-        std::vector<Object*> args = context->get_stack().peek().pop_n_ds(num_args);
-        return call_method<T>(receiver, name, args, context);
+    T* Interpreter::call_method(Object* receiver, const std::string& name, size_t num_args, Process* process) {
+        std::vector<Object*> args = process->get_stack().peek().pop_n_ds(num_args);
+        return call_method<T>(receiver, name, args, process);
     }
 
     template <class T>
-    T* Interpreter::call_method(Object* receiver, const std::string& name, const std::vector<Object*>& args, ExecutionContext* context) {
+    T* Interpreter::call_method(Object* receiver, const std::string& name, const std::vector<Object*>& args, Process* process) {
         if (Object* method = receiver->get_property(name)) {
-            return call_obj<T>(method, receiver, args, context);
+            return call_obj<T>(method, receiver, args, process);
         } else {
-            throw context->get_heap().allocate<Exception>(context, fmt::format("no such method: {0}", name));
+            throw process->get_heap().allocate<Exception>(process, fmt::format("no such method: {0}", name));
         }
     }
 

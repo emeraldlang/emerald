@@ -44,8 +44,8 @@ namespace modules {
 
     class FileStream final : public Object {
     public:
-        FileStream(ExecutionContext* context);
-        FileStream(ExecutionContext* context, Object* parent);
+        FileStream(Process* process);
+        FileStream(Process* process, Object* parent);
 
         std::string as_str() const override;
 
@@ -57,20 +57,24 @@ namespace modules {
         String* readline();
         void write(String* s);
 
+        FileStream* clone(Process* process, CloneCache& cache) override;
+
     private:
         std::fstream _stream;
     };
 
     class StringStream final : public Object {
     public:
-        StringStream(ExecutionContext* context);
-        StringStream(ExecutionContext* context, Object* parent);
+        StringStream(Process* process);
+        StringStream(Process* process, Object* parent);
 
         std::string as_str() const override;
 
         String* read(Number* n);
         String* readline();
         void write(String* s);
+
+        StringStream* clone(Process* process, CloneCache& cache) override;
 
     private:
         std::stringstream _stream;

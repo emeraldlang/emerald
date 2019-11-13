@@ -23,21 +23,30 @@
 #include <vector>
 
 #include "emerald/heap_root_source.h"
+#include "emerald/module.h"
 #include "emerald/object.h"
 
 namespace emerald {
 
     class NativeFrame : public HeapRootSource {
     public:
-        NativeFrame(const std::vector<Object*> args);
+        NativeFrame(const std::vector<Object*> args, Module* globals);
 
         const std::vector<Object*>& get_args() const;
         size_t num_args() const;
 
-        const std::unordered_map<std::string, Object*>& get_locals() const;
-
         Object* get_arg(size_t arg_i);
         const Object* get_arg(size_t arg_i) const;
+
+        const Module* get_globals() const;
+        Module* get_globals();
+
+        const Object* get_global(const std::string& name) const;
+        Object* get_global(const std::string& name);
+
+        void set_global(const std::string& name, Object* val);
+
+        const std::unordered_map<std::string, Object*>& get_locals() const;
 
         Object* get_local(const std::string& name);
         const Object* get_local(const std::string& name) const;
@@ -50,7 +59,8 @@ namespace emerald {
 
     private:
         std::vector<Object*> _args;
-        std::unordered_map<std::string, Object*> _locals; 
+        Module* _globals;
+        std::unordered_map<std::string, Object*> _locals;
     };
 
 } // namespace emerald

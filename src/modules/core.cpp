@@ -15,13 +15,13 @@
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "emerald/execution_context.h"
 #include "emerald/interpreter.h"
 #include "emerald/magic_methods.h"
 #include "emerald/module.h"
 #include "emerald/modules/core.h"
 #include "emerald/native_frame.h"
 #include "emerald/objectutils.h"
+#include "emerald/process.h"
 
 namespace emerald {
 namespace modules {
@@ -43,13 +43,13 @@ namespace modules {
     NATIVE_FUNCTION(core_str) {
         EXPECT_NUM_ARGS(1);
 
-        return Interpreter::execute_method<String>(frame->get_arg(0), magic_methods::str, {}, context);
+        return Interpreter::execute_method<String>(frame->get_arg(0), magic_methods::str, {}, process);
     }
 
     NATIVE_FUNCTION(core_bool) {
         EXPECT_NUM_ARGS(1);
 
-        return Interpreter::execute_method<Boolean>(frame->get_arg(0), magic_methods::boolean, {}, context);
+        return Interpreter::execute_method<Boolean>(frame->get_arg(0), magic_methods::boolean, {}, process);
     }
 
     NATIVE_FUNCTION(core_range) {
@@ -77,36 +77,36 @@ namespace modules {
     NATIVE_FUNCTION(core_iter) {
         EXPECT_NUM_ARGS(1);
 
-        return Interpreter::execute_method<Object>(frame->get_arg(0), magic_methods::iter, {}, context);
+        return Interpreter::execute_method<Object>(frame->get_arg(0), magic_methods::iter, {}, process);
     }
 
     NATIVE_FUNCTION(core_cur) {
         EXPECT_NUM_ARGS(1);
 
-        return Interpreter::execute_method<Object>(frame->get_arg(0), magic_methods::cur, {}, context);
+        return Interpreter::execute_method<Object>(frame->get_arg(0), magic_methods::cur, {}, process);
     }
 
     NATIVE_FUNCTION(core_done) {
         EXPECT_NUM_ARGS(1);
 
-        return Interpreter::execute_method<Boolean>(frame->get_arg(0), magic_methods::done, {}, context);
+        return Interpreter::execute_method<Boolean>(frame->get_arg(0), magic_methods::done, {}, process);
     }
 
     NATIVE_FUNCTION(core_next) {
         EXPECT_NUM_ARGS(1);
 
-        return Interpreter::execute_method<Object>(frame->get_arg(0), magic_methods::next, {}, context);
+        return Interpreter::execute_method<Object>(frame->get_arg(0), magic_methods::next, {}, process);
     }
 
     MODULE_INITIALIZATION_FUNC(init_core_module) {
         Module* module = ALLOC_MODULE("core");
 
-        NativeObjects& native_objects = context->get_native_objects();
-        module->set_property("Object", native_objects.get_object_prototype());
-        module->set_property("Array", native_objects.get_array_prototype());
-        module->set_property("Boolean", native_objects.get_boolean_prototype());
-        module->set_property("Number", native_objects.get_number_prototype());
-        module->set_property("String", native_objects.get_string_prototype());
+        module->set_property("Array", ARRAY_PROTOTYPE);
+        module->set_property("Boolean", BOOLEAN_PROTOTYPE);
+        module->set_property("Exception", EXCEPTION_PROTOTYPE);
+        module->set_property("Number", NUMBER_PROTOTYPE);
+        module->set_property("Object", OBJECT_PROTOTYPE);
+        module->set_property("String", STRING_PROTOTYPE);
 
         module->set_property("extend", ALLOC_NATIVE_FUNCTION(core_extend));
         module->set_property("str", ALLOC_NATIVE_FUNCTION(core_str));

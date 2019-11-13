@@ -17,27 +17,27 @@
 
 #include <functional>
 
-#include "emerald/execution_context.h"
 #include "emerald/interpreter.h"
 #include "emerald/magic_methods.h"
 #include "emerald/module.h"
 #include "emerald/modules/collections.h"
 #include "emerald/native_frame.h"
 #include "emerald/objectutils.h"
+#include "emerald/process.h"
 #include "emerald/strutils.h"
 
 namespace emerald {
 namespace modules {
 
-    Queue::Queue(ExecutionContext* context)
-        : Object(context) {}
+    Queue::Queue(Process* process)
+        : Object(process) {}
 
-    Queue::Queue(ExecutionContext* context, Object* parent)
-        : Object(context, parent) {}
+    Queue::Queue(Process* process, Object* parent)
+        : Object(process, parent) {}
 
     std::string Queue::as_str() const {
         return "queue(" +
-            objectutils::join_range(_value.begin(), _value.end(), ",", get_context())
+            objectutils::join_range(_value.begin(), _value.end(), ",", get_process())
         + ")";
     }
 
@@ -56,19 +56,27 @@ namespace modules {
     }
 
     Boolean* Queue::empty() const {
-        return BOOLEAN_IN_CTX(_value.empty(), get_context());
+        return BOOLEAN_IN_CTX(_value.empty(), get_process());
     }
 
     Number* Queue::size() const {
-        return ALLOC_NUMBER_IN_CTX(_value.size(), get_context());
+        return ALLOC_NUMBER_IN_CTX(_value.size(), get_process());
     }
 
     Boolean* Queue::eq(Queue* other) const {
-        return BOOLEAN_IN_CTX(_eq(other), get_context());
+        return BOOLEAN_IN_CTX(_eq(other), get_process());
     }
 
     Boolean* Queue::neq(Queue* other) const {
-        return BOOLEAN_IN_CTX(!_eq(other), get_context());
+        return BOOLEAN_IN_CTX(!_eq(other), get_process());
+    }
+
+    Queue* Queue::clone(Process* process, CloneCache& cache) {
+        Queue* clone = clone_impl<Queue>(process, cache);
+        for (Object* obj : _value) {
+            clone->_value.push_back(obj->clone(process, cache));
+        }
+        return clone;
     }
 
     bool Queue::_eq(Queue* other) const {
@@ -76,18 +84,18 @@ namespace modules {
             _value.begin(),
             _value.end(),
             other->_value.begin(),
-            get_context());
+            get_process());
     }
 
-    Set::Set(ExecutionContext* context)
-        : Object(context) {}
+    Set::Set(Process* process)
+        : Object(process) {}
     
-    Set::Set(ExecutionContext* context, Object* parent)
-        : Object(context, parent) {}
+    Set::Set(Process* process, Object* parent)
+        : Object(process, parent) {}
 
     std::string Set::as_str() const {
         return "set(" +
-            objectutils::join_range(_value.begin(), _value.end(), ",", get_context())
+            objectutils::join_range(_value.begin(), _value.end(), ",", get_process())
         + ")";
     }
 
@@ -96,7 +104,7 @@ namespace modules {
     }
 
     Boolean* Set::contains(Object* obj) const {
-        return BOOLEAN_IN_CTX(_value.find(obj) != _value.end(), get_context());
+        return BOOLEAN_IN_CTX(_value.find(obj) != _value.end(), get_process());
     }
 
     void Set::remove(Object* obj) {
@@ -104,19 +112,27 @@ namespace modules {
     }
 
     Boolean* Set::empty() const {
-        return BOOLEAN_IN_CTX(_value.empty(), get_context());
+        return BOOLEAN_IN_CTX(_value.empty(), get_process());
     }
 
     Number* Set::size() const {
-        return ALLOC_NUMBER_IN_CTX(_value.size(), get_context());
+        return ALLOC_NUMBER_IN_CTX(_value.size(), get_process());
     }
 
     Boolean* Set::eq(Set* other) const {
-        return BOOLEAN_IN_CTX(_value == other->_value, get_context());
+        return BOOLEAN_IN_CTX(_value == other->_value, get_process());
     }
 
     Boolean* Set::neq(Set* other) const {
-        return BOOLEAN_IN_CTX(_value != other->_value, get_context());
+        return BOOLEAN_IN_CTX(_value != other->_value, get_process());
+    }
+
+    Set* Set::clone(Process* process, CloneCache& cache) {
+        Set* clone = clone_impl<Set>(process, cache);
+        for (Object* obj : _value) {
+            clone->_value.insert(obj->clone(process, cache));
+        }
+        return clone;
     }
 
     size_t Set::hash::operator()(Object* val) const {
@@ -125,7 +141,7 @@ namespace modules {
                 val,
                 magic_methods::str,
                 {},
-                val->get_context())->get_native_value());
+                val->get_process())->get_native_value());
     }
 
     bool Set::key_eq::operator()(Object* lhs, Object* rhs) const {
@@ -133,18 +149,18 @@ namespace modules {
             lhs,
             magic_methods::eq,
             { rhs },
-            lhs->get_context())->get_native_value();
+            lhs->get_process())->get_native_value();
     }
 
-    Stack::Stack(ExecutionContext* context)
-        : Object(context) {}
+    Stack::Stack(Process* process)
+        : Object(process) {}
 
-    Stack::Stack(ExecutionContext* context, Object* parent)
-        : Object(context, parent) {}
+    Stack::Stack(Process* process, Object* parent)
+        : Object(process, parent) {}
 
     std::string Stack::as_str() const {
         return "stack(" +
-            objectutils::join_range(_value.begin(), _value.end(), ",", get_context())
+            objectutils::join_range(_value.begin(), _value.end(), ",", get_process())
         + ")";
     }
 
@@ -163,19 +179,27 @@ namespace modules {
     }
 
     Boolean* Stack::empty() const {
-        return BOOLEAN_IN_CTX(_value.empty(), get_context());
+        return BOOLEAN_IN_CTX(_value.empty(), get_process());
     }
 
     Number* Stack::size() const {
-        return ALLOC_NUMBER_IN_CTX(_value.size(), get_context());
+        return ALLOC_NUMBER_IN_CTX(_value.size(), get_process());
     }
 
     Boolean* Stack::eq(Stack* other) const {
-        return BOOLEAN_IN_CTX(_eq(other), get_context());
+        return BOOLEAN_IN_CTX(_eq(other), get_process());
     }
 
     Boolean* Stack::neq(Stack* other) const {
-        return BOOLEAN_IN_CTX(!_eq(other), get_context());
+        return BOOLEAN_IN_CTX(!_eq(other), get_process());
+    }
+
+    Stack* Stack::clone(Process* process, CloneCache& cache) {
+        Stack* clone = clone_impl<Stack>(process, cache);
+        for (Object* obj : _value) {
+            clone->_value.push_back(obj->clone(process, cache));
+        }
+        return clone;
     }
 
     bool Stack::_eq(Stack* other) const {
@@ -183,7 +207,7 @@ namespace modules {
             _value.begin(),
             _value.end(),
             other->_value.begin(),
-            get_context());
+            get_process());
     }
 
     NATIVE_FUNCTION(queue_eq) {
@@ -215,7 +239,7 @@ namespace modules {
 
         CONVERT_RECV_TO(Queue, self);
 
-        return context->get_heap().allocate<Queue>(context, self);
+        return process->get_heap().allocate<Queue>(process, self);
     }
 
     NATIVE_FUNCTION(queue_peek) {
@@ -292,7 +316,7 @@ namespace modules {
 
         CONVERT_RECV_TO(Set, self);
 
-        return context->get_heap().allocate<Set>(context, self);
+        return process->get_heap().allocate<Set>(process, self);
     }
 
     NATIVE_FUNCTION(set_add) {
@@ -371,7 +395,7 @@ namespace modules {
 
         CONVERT_RECV_TO(Stack, self);
 
-        return context->get_heap().allocate<Stack>(context, self);
+        return process->get_heap().allocate<Stack>(process, self);
     }
 
     NATIVE_FUNCTION(stack_peek) {
@@ -420,12 +444,11 @@ namespace modules {
     }
 
     MODULE_INITIALIZATION_FUNC(init_collections_module) {
-        Heap& heap = context->get_heap();
-        NativeObjects& native_objects = context->get_native_objects();
+        Heap& heap = process->get_heap();
 
         Module* module = ALLOC_MODULE("collections");
 
-        Queue* queue = heap.allocate<Queue>(context, native_objects.get_object_prototype());
+        Queue* queue = heap.allocate<Queue>(process, OBJECT_PROTOTYPE);
         queue->set_property(magic_methods::eq, ALLOC_NATIVE_FUNCTION(queue_eq));
         queue->set_property(magic_methods::neq, ALLOC_NATIVE_FUNCTION(queue_neq));
         queue->set_property(magic_methods::clone, ALLOC_NATIVE_FUNCTION(queue_clone));
@@ -436,7 +459,7 @@ namespace modules {
         queue->set_property("size", ALLOC_NATIVE_FUNCTION(queue_size));
         module->set_property("Queue", queue);
 
-        Set* set = heap.allocate<Set>(context, native_objects.get_object_prototype());
+        Set* set = heap.allocate<Set>(process, OBJECT_PROTOTYPE);
         set->set_property(magic_methods::eq, ALLOC_NATIVE_FUNCTION(set_eq));
         set->set_property(magic_methods::neq, ALLOC_NATIVE_FUNCTION(set_neq));
         set->set_property(magic_methods::clone, ALLOC_NATIVE_FUNCTION(set_clone));
@@ -447,7 +470,7 @@ namespace modules {
         set->set_property("size", ALLOC_NATIVE_FUNCTION(set_size));
         module->set_property("Set", set);
 
-        Stack* stack = heap.allocate<Stack>(context, native_objects.get_object_prototype());
+        Stack* stack = heap.allocate<Stack>(process, OBJECT_PROTOTYPE);
         stack->set_property(magic_methods::eq, ALLOC_NATIVE_FUNCTION(stack_eq));
         stack->set_property(magic_methods::neq, ALLOC_NATIVE_FUNCTION(stack_neq));
         stack->set_property(magic_methods::clone, ALLOC_NATIVE_FUNCTION(stack_clone));

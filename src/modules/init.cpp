@@ -22,6 +22,7 @@
 #include "emerald/modules/gc.h"
 #include "emerald/modules/io.h"
 #include "emerald/modules/net.h"
+#include "emerald/modules/process.h"
 
 namespace emerald {
 namespace modules {
@@ -32,6 +33,7 @@ namespace modules {
         NativeModuleInitRegistry::add_module_init("gc", init_gc_module);
         NativeModuleInitRegistry::add_module_init("io", init_io_module);
         NativeModuleInitRegistry::add_module_init("net", init_net_module);
+        NativeModuleInitRegistry::add_module_init("process", init_process_module);
     }
 
 } // namespace modules

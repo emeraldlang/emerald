@@ -18,6 +18,8 @@
 #ifndef _EMERALD_MAGIC_METHODS_H
 #define _EMERALD_MAGIC_METHODS_H
 
+#include <string>
+
 namespace emerald {
 namespace magic_methods {
 

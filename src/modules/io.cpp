@@ -17,21 +17,21 @@
 
 #include "fmt/format.h"
 
-#include "emerald/execution_context.h"
 #include "emerald/magic_methods.h"
 #include "emerald/module.h"
 #include "emerald/modules/io.h"
 #include "emerald/native_frame.h"
 #include "emerald/objectutils.h"
+#include "emerald/process.h"
 
 namespace emerald {
 namespace modules {
 
-    FileStream::FileStream(ExecutionContext* context)
-        : Object(context) {}
+    FileStream::FileStream(Process* process)
+        : Object(process, OBJECT_PROTOTYPE) {}
 
-    FileStream::FileStream(ExecutionContext* context, Object* parent)
-        : Object(context, parent) {}
+    FileStream::FileStream(Process* process, Object* parent)
+        : Object(process, parent) {}
 
     std::string FileStream::as_str() const {
         return "<file_stream>";
@@ -48,14 +48,14 @@ namespace modules {
             openmode = std::fstream::in | std::fstream::out;
         } else {
             std::string msg = fmt::format("unknown file access: {0}", access_str);
-            throw ALLOC_EXCEPTION_IN_CTX(msg, get_context());
+            throw ALLOC_EXCEPTION_IN_CTX(msg, get_process());
         }
 
         _stream.open(filename->get_native_value(), openmode);
     }
 
     Boolean* FileStream::is_open() const {
-        return BOOLEAN_IN_CTX(_stream.is_open(), get_context());
+        return BOOLEAN_IN_CTX(_stream.is_open(), get_process());
     }
 
     String* FileStream::read() {
@@ -67,20 +67,20 @@ namespace modules {
         char s[size];
         _stream.read(s, size);
 
-        return ALLOC_STRING_IN_CTX(std::string(s), get_context());
+        return ALLOC_STRING_IN_CTX(std::string(s), get_process());
     }
 
     String* FileStream::read(Number* n) {
         size_t size = n->get_native_value(); 
         char s[size];
         _stream.read(s, size);
-        return ALLOC_STRING_IN_CTX(std::string(s), get_context());
+        return ALLOC_STRING_IN_CTX(std::string(s), get_process());
     }
 
     String* FileStream::readline() {
         std::string s;
         std::getline(_stream, s);
-        return ALLOC_STRING_IN_CTX(s, get_context());
+        return ALLOC_STRING_IN_CTX(s, get_process());
     }
 
     void FileStream::write(String* s) {
@@ -88,11 +88,15 @@ namespace modules {
         _stream.write(snv.data(), snv.size());
     }
 
-    StringStream::StringStream(ExecutionContext* context)
-        : Object(context) {}
+    FileStream* FileStream::clone(Process* process, CloneCache& cache) {
+        return clone_impl<FileStream>(process, cache);
+    }
 
-    StringStream::StringStream(ExecutionContext* context, Object* parent)
-        : Object(context, parent) {}
+    StringStream::StringStream(Process* process)
+        : Object(process, OBJECT_PROTOTYPE) {}
+
+    StringStream::StringStream(Process* process, Object* parent)
+        : Object(process, parent) {}
 
     std::string StringStream::as_str() const {
         return "<string_stream>";
@@ -102,13 +106,13 @@ namespace modules {
         size_t size = n->get_native_value();
         char s[size];
         _stream.read(s, size);
-        return ALLOC_STRING_IN_CTX(std::string(s), get_context());
+        return ALLOC_STRING_IN_CTX(std::string(s), get_process());
     }
 
     String* StringStream::readline() {
         std::string s;
         std::getline(_stream, s);
-        return ALLOC_STRING_IN_CTX(s, get_context());
+        return ALLOC_STRING_IN_CTX(s, get_process());
     }
 
     void StringStream::write(String* s) {
@@ -116,11 +120,15 @@ namespace modules {
         _stream.write(snv.data(), snv.size());
     }
 
+    StringStream* StringStream::clone(Process* process, CloneCache& cache) {
+        return clone_impl<StringStream>(process, cache);
+    }
+
     NATIVE_FUNCTION(file_stream_clone) {
         EXPECT_NUM_ARGS(0);
 
         CONVERT_RECV_TO(FileStream, self); 
-        return context->get_heap().allocate<FileStream>(context, self);
+        return process->get_heap().allocate<FileStream>(process, self);
     }
 
     NATIVE_FUNCTION(file_stream_open) {
@@ -178,7 +186,7 @@ namespace modules {
 
         CONVERT_RECV_TO(StringStream, self);
 
-        return context->get_heap().allocate<StringStream>(context, self);
+        return process->get_heap().allocate<StringStream>(process, self);
     }
 
     NATIVE_FUNCTION(string_stream_read) {
@@ -210,12 +218,11 @@ namespace modules {
     }
 
     MODULE_INITIALIZATION_FUNC(init_io_module) {
-        Heap& heap = context->get_heap();
-        NativeObjects& native_objects = context->get_native_objects();
+        Heap& heap = process->get_heap();
 
         Module* module = ALLOC_MODULE("io");
 
-        FileStream* file_stream = heap.allocate<FileStream>(context, native_objects.get_object_prototype());
+        FileStream* file_stream = heap.allocate<FileStream>(process);
         file_stream->set_property(magic_methods::clone, ALLOC_NATIVE_FUNCTION(file_stream_clone));
         file_stream->set_property("open", ALLOC_NATIVE_FUNCTION(file_stream_open));
         file_stream->set_property("is_open", ALLOC_NATIVE_FUNCTION(file_stream_is_open));
@@ -224,13 +231,13 @@ namespace modules {
         file_stream->set_property("write", ALLOC_NATIVE_FUNCTION(file_stream_write));
         module->set_property("FileStream", file_stream);
 
-        Object* file_access = heap.allocate<Object>(context, native_objects.get_object_prototype());
+        Object* file_access = heap.allocate<Object>(process);
         file_access->set_property("read", ALLOC_STRING("read"));
         file_access->set_property("write", ALLOC_STRING("write"));
         file_access->set_property("read_write", ALLOC_STRING("read_write"));
         module->set_property("FileAccess", file_access);
 
-        StringStream* string_stream = heap.allocate<StringStream>(context, native_objects.get_object_prototype());
+        StringStream* string_stream = heap.allocate<StringStream>(process);
         string_stream->set_property(magic_methods::clone, ALLOC_NATIVE_FUNCTION(string_stream_clone));
         string_stream->set_property("read", ALLOC_NATIVE_FUNCTION(string_stream_read));
         string_stream->set_property("readline", ALLOC_NATIVE_FUNCTION(string_stream_readline));

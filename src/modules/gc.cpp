@@ -15,33 +15,33 @@
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "emerald/execution_context.h"
 #include "emerald/module.h"
 #include "emerald/modules/gc.h"
 #include "emerald/native_frame.h"
 #include "emerald/objectutils.h"
+#include "emerald/process.h"
 
 namespace emerald {
 namespace modules {
 
     NATIVE_FUNCTION(gc_collect) {
-        context->get_heap().collect();
+        process->get_heap().collect();
         return NONE;
     }
 
     NATIVE_FUNCTION(gc_total_allocated_objects) {
-        return ALLOC_NUMBER(context->get_heap().get_managed_count());
+        return ALLOC_NUMBER(process->get_heap().get_managed_count());
     }
 
     NATIVE_FUNCTION(gc_threshold) {
-        return ALLOC_NUMBER(context->get_heap().threshold());
+        return ALLOC_NUMBER(process->get_heap().threshold());
     }
 
     NATIVE_FUNCTION(gc_set_threshold) {
         EXPECT_NUM_ARGS(1);
 
         CONVERT_ARG_TO(0, Number, threshold);
-        context->get_heap().set_threshold(threshold->get_native_value());
+        process->get_heap().set_threshold(threshold->get_native_value());
 
         return NONE;
     }

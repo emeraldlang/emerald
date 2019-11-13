@@ -22,8 +22,7 @@ include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup(TARGETS)
 
 find_package(Boost COMPONENTS serialization REQUIRED)
-find_package(CLI11 REQUIRED)
-find_package(fmt REQUIRED)
+# find_package(CLI11 REQUIRED)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 include_directories(${Boost_INCLUDE_DIRS})
@@ -44,6 +43,7 @@ add_library(emerald_s SHARED
     src/modules/init.cpp
     src/modules/io.cpp
     src/modules/net.cpp
+    src/modules/process.cpp
     src/natives/array.cpp
     src/natives/boolean.cpp
     src/natives/exception.cpp
@@ -55,16 +55,18 @@ add_library(emerald_s SHARED
     src/object.cpp
     src/opcode.cpp
     src/parser.cpp
+    src/process.cpp
     src/reporter.cpp
     src/scanner.cpp
     src/source.cpp
     src/stack.cpp
+    src/thread_pool.cpp
     src/token.cpp)
 
 target_link_libraries(emerald_s
     pthread
     stdc++fs
-    CLI11::CLI11
+    CONAN_PKG::CLI11
     CONAN_PKG::fmt
     ${Boost_LIBRARIES})
 
@@ -75,10 +77,12 @@ target_link_libraries(emerald
     PRIVATE emerald_s)
 
 file(GLOB LIB_FILES ${PROJECT_SOURCE_DIR}/lib/*.em)
-add_custom_target(emerald_lib
-    ALL
-    COMMAND emerald compile ${LIB_FILES} -o ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
-    DEPENDS ${LIB_FILES})
+if (LIB_FILES)
+    add_custom_target(emerald_lib
+        ALL
+        COMMAND emerald compile ${LIB_FILES} -o ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
+        DEPENDS ${LIB_FILES})
+endif()
 
 if (EMERALD_BUILD_TESTS)
     enable_testing()

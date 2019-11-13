@@ -15,10 +15,9 @@
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "emerald/module_registry.h"
-#include "emerald/execution_context.h"
 #include "emerald/module.h"
-#include "emerald/native_objects.h"
+#include "emerald/module_registry.h"
+#include "emerald/process.h"
 
 namespace emerald {
 
@@ -32,9 +31,9 @@ namespace emerald {
         return _modules.find(alias) != _modules.end();
     }
 
-    Module* NativeModuleInitRegistry::init_module(const std::string& alias, ExecutionContext* context) {
+    Module* NativeModuleInitRegistry::init_module(const std::string& alias, Process* process) {
         ModuleInitialization initialization = _modules.at(alias);
-        return initialization(context);
+        return initialization(process);
     }
 
     void ModuleRegistry::add_module(Module* module) {

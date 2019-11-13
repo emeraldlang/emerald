@@ -20,17 +20,17 @@
 
 #include "fmt/format.h"
 
-#include "emerald/execution_context.h"
 #include "emerald/interpreter.h"
 #include "emerald/magic_methods.h"
 #include "emerald/object.h"
+#include "emerald/process.h"
 #include "emerald/strutils.h"
 
 #define EXPECT_NUM_ARGS_OP(count, op)                           \
     do {                                                        \
         if (frame->num_args() op count) {                       \
-            throw context->get_heap().allocate<Exception>(      \
-                context, fmt::format(                           \
+            throw process->get_heap().allocate<Exception>(      \
+                process, fmt::format(                           \
                     "expected {0} args, got {1}",               \
                     count,                                      \
                     frame->num_args()));                        \
@@ -45,8 +45,8 @@
     do {                                                        \
         name = dynamic_cast<Type*>(val);                        \
         if (name == nullptr) {                                  \
-            throw context->get_heap().allocate<Exception>(      \
-                context, "");                                   \
+            throw process->get_heap().allocate<Exception>(      \
+                process, "");                                   \
         }                                                       \
     } while (false)
 
@@ -69,55 +69,65 @@
 
 #define LOCAL(Type, name) Type* name; (*frame)[#name] = name
 
-#define BOOLEAN(val) BOOLEAN_IN_CTX(val, context)
+#define NONE process->get_native_objects().get_null()
+#define BOOLEAN(val) BOOLEAN_IN_CTX(val, process)
 #define BOOLEAN_IN_CTX(val, ctx) (ctx)->get_native_objects().get_boolean(val)
+#define FALSE process->get_native_objects().get_boolean(false)
+#define TRUE process->get_native_objects().get_boolean(true)
 
-#define NONE context->get_native_objects().get_null()
+#define ARRAY_PROTOTYPE process->get_native_objects().get_array_prototype()
+#define ARRAY_ITERATOR_PROTOTYPE process->get_native_objects().get_array_iterator_prototype()
+#define BOOLEAN_PROTOTYPE process->get_native_objects().get_boolean_prototype()
+#define EXCEPTION_PROTOTYPE process->get_native_objects().get_exception_prototype()
+#define NUMBER_PROTOTYPE process->get_native_objects().get_number_prototype()
+#define OBJECT_PROTOTYPE process->get_native_objects().get_object_prototype()
+#define STRING_PROTOTYPE process->get_native_objects().get_string_prototype()
 
-#define ALLOC_EMPTY_ARRAY() context->get_heap().allocate<Array>(context)
+#define ALLOC_EMPTY_ARRAY() process->get_heap().allocate<Array>(process)
 
-#define ALLOC_EXCEPTION(msg) ALLOC_EXCEPTION_IN_CTX(msg, context)
+#define ALLOC_EXCEPTION(msg) ALLOC_EXCEPTION_IN_CTX(msg, process)
 #define ALLOC_EXCEPTION_IN_CTX(msg, ctx) (ctx)->get_heap().allocate<Exception>(ctx, msg)
 
-#define ALLOC_NATIVE_FUNCTION(function) context->get_heap().allocate<NativeFunction>(context, function)
+#define ALLOC_NATIVE_FUNCTION(function) process->get_heap().allocate<NativeFunction>(process, function, module)
+#define ALLOC_NATIVE_FUNCTION_NO_MOD(function) process->get_heap().allocate<NativeFunction>(process, function)
 
-#define ALLOC_NUMBER(num) ALLOC_NUMBER_IN_CTX(num, context)
+#define ALLOC_NUMBER(num) ALLOC_NUMBER_IN_CTX(num, process)
 #define ALLOC_NUMBER_IN_CTX(num, ctx) (ctx)->get_heap().allocate<Number>(ctx, num)
 
-#define ALLOC_MODULE(name) context->get_heap().allocate<Module>(context, name)
+#define ALLOC_MODULE(name) process->get_heap().allocate<Module>(process, name)
 
-#define ALLOC_STRING(str) ALLOC_STRING_IN_CTX(str, context)
+#define ALLOC_STRING(str) ALLOC_STRING_IN_CTX(str, process)
 #define ALLOC_STRING_IN_CTX(str, ctx) (ctx)->get_heap().allocate<String>(ctx, str)
 
 namespace emerald {
 namespace objectutils {
 
     template <class InputIt1, class InputIt2>
-    inline bool compare_range(InputIt1 first1, InputIt1 last1, InputIt2 first2, ExecutionContext* context) {
-        return std::equal(first1, last1, first2, [&context](Object* lhs, Object* rhs) {
-            return Interpreter::execute_method<Boolean>(lhs, magic_methods::eq, { rhs }, context)->get_native_value();
+    inline bool compare_range(InputIt1 first1, InputIt1 last1, InputIt2 first2, Process* process) {
+        return std::equal(first1, last1, first2, [&process](Object* lhs, Object* rhs) {
+            return Interpreter::execute_method<Boolean>(lhs, magic_methods::eq, { rhs }, process)->get_native_value();
         });
     }
 
     template <class InputIt>
-    inline std::string join_range(InputIt begin, InputIt end, const std::string& seperator, ExecutionContext* context) {
+    inline std::string join_range(InputIt begin, InputIt end, const std::string& seperator, Process* process) {
         return strutils::join(
             begin,
             end,
             seperator,
-            [&context](Object* obj) {
+            [&process](Object* obj) {
                 return Interpreter::execute_method<String>(
                     obj,
                     magic_methods::str,
                     {},
-                    context)->get_native_value();
+                    process)->get_native_value();
             });
     }
 
     class ObjectIterator {
     public:
-        ObjectIterator(ExecutionContext* context, Object* iterator)
-            : _context(context),
+        ObjectIterator(Process* process, Object* iterator)
+            : _process(process),
             _iterator(iterator) {}
 
         Object* cur() const {
@@ -125,7 +135,7 @@ namespace objectutils {
                 _iterator,
                 magic_methods::cur,
                 {},
-                _context);
+                _process);
         }
 
         Boolean* done() {
@@ -133,7 +143,7 @@ namespace objectutils {
                 _iterator,
                 magic_methods::done,
                 {},
-                _context);
+                _process);
         }
 
         Object* next() {
@@ -141,11 +151,11 @@ namespace objectutils {
                 _iterator,
                 magic_methods::next,
                 {},
-                _context);
+                _process);
         }
 
     private:
-        ExecutionContext* _context;
+        Process* _process;
         Object* _iterator;
     };
 

@@ -19,8 +19,9 @@
 
 namespace emerald {
 
-    NativeFrame::NativeFrame(const std::vector<Object*> args)
-        : _args(args) {}
+    NativeFrame::NativeFrame(const std::vector<Object*> args, Module* globals)
+        : _args(args),
+        _globals(globals) {}
 
     const std::vector<Object*>& NativeFrame::get_args() const {
         return _args;
@@ -30,16 +31,38 @@ namespace emerald {
         return _args.size();
     }
 
-    const std::unordered_map<std::string, Object*>& NativeFrame::get_locals() const {
-        return _locals;
-    }
-
     Object* NativeFrame::get_arg(size_t i) {
         return _args.at(i);
     }
 
     const Object* NativeFrame::get_arg(size_t i) const {
         return _args.at(i);
+    }
+
+    const Module* NativeFrame::get_globals() const {
+        return _globals;
+    }
+
+    Module* NativeFrame::get_globals() {
+        return _globals;
+    }
+
+    const Object* NativeFrame::get_global(const std::string& name) const {
+        if (_globals) return _globals->get_property(name);
+        return nullptr;
+    }
+
+    Object* NativeFrame::get_global(const std::string& name) {
+        if (_globals) return _globals->get_property(name);
+        return nullptr;
+    }
+
+    void NativeFrame::set_global(const std::string& name, Object* val) {
+        if (_globals) _globals->set_property(name, val);
+    }
+
+    const std::unordered_map<std::string, Object*>& NativeFrame::get_locals() const {
+        return _locals;
     }
 
     Object* NativeFrame::get_local(const std::string& name) {
