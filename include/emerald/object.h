@@ -26,9 +26,10 @@
 #include "emerald/code.h"
 #include "emerald/heap.h"
 #include "emerald/heap_managed.h"
+#include "emerald/native_stack.h"
 #include "emerald/process.h"
 
-#define NATIVE_FUNCTION(name) Object* name(Object* receiver, NativeFrame* frame, Process* process)
+#define NATIVE_FUNCTION(name) Object* name(Process* process, NativeStack::NativeFrame* frame)
 
 // Inheritance Hierarchy
 // - Object
@@ -48,7 +49,6 @@ namespace emerald {
     class String;
 
     class CloneCache;
-    class NativeFrame;
     class Module;
 
     class Object : public HeapManaged {
@@ -212,7 +212,7 @@ namespace emerald {
 
     class NativeFunction final : public Object {
     public:
-        using Callable = std::function<Object*(Object*, NativeFrame*, Process*)>;
+        using Callable = std::function<Object*(Process*, NativeStack::NativeFrame*)>;
 
         NativeFunction(Process* process, Callable callable, Module* globals = nullptr);
         NativeFunction(Process* process, Object* parent, Callable callable, Module* globals = nullptr);
@@ -222,8 +222,8 @@ namespace emerald {
         const Callable& get_callable() const;
         Module* get_globals() const;
 
-        Object* invoke(Object* receiver, NativeFrame* frame, Process* process);
-        Object* operator()(Object* receiver, NativeFrame* frame, Process* process);
+        Object* invoke(Object* receiver, const std::vector<Object*>& args, Module* globals);
+        Object* operator()(Object* receiver, const std::vector<Object*>& args, Module* globals);
 
         NativeFunction* clone(Process* process, CloneCache& cache) override;
 

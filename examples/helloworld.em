@@ -1,1 +1,4 @@
-print 'hello world'
+import core
+
+
+core.print('hello world')

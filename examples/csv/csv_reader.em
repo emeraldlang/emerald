@@ -1,3 +1,4 @@
+import core
 import csv
 import io
 
@@ -10,10 +11,10 @@ if stream.is_open() then
         let reader = clone csv.CsvReader(stream, {
             has_header: True
         })
-        print reader.read()
+        core.print(reader.read())
     catch exc
-        print exc
+        core.print(exc)
     end
 else
-    print 'error opening file {0}'.format(file_name)
+    core.print('error opening file {0}'.format(file_name))
 end

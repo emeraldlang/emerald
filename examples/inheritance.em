@@ -1,3 +1,6 @@
+import core
+
+
 let foo = {
   name: 'foo',
   one: 1,
@@ -8,8 +11,8 @@ let bar = clone foo
 bar.two = 'two'
 bar.three = 3
 
-print bar.one # 1
-print bar.three # 3
-print bar.two # 'two'
-print bar.name # 'foo'
-print foo.name # 'foo'
+core.print(bar.one) # 1
+core.print(bar.three) # 3
+core.print(bar.two) # 'two'
+core.print(bar.name) # 'foo'
+core.print(foo.name) # 'foo'

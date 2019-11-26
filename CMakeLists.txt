@@ -37,6 +37,7 @@ add_library(emerald_s SHARED
     src/interpreter.cpp
     src/module.cpp
     src/module_registry.cpp
+    src/modules/bytecode.cpp
     src/modules/collections.cpp
     src/modules/core.cpp
     src/modules/gc.cpp
@@ -50,8 +51,8 @@ add_library(emerald_s SHARED
     src/natives/number.cpp
     src/natives/object.cpp
     src/natives/string.cpp
-    src/native_frame.cpp
     src/native_objects.cpp
+    src/native_stack.cpp
     src/object.cpp
     src/opcode.cpp
     src/parser.cpp

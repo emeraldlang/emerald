@@ -18,7 +18,7 @@
 #include "fmt/format.h"
 
 #include "emerald/natives/string.h"
-#include "emerald/native_frame.h"
+#include "emerald/native_variables.h"
 #include "emerald/objectutils.h"
 #include "emerald/process.h"
 #include "emerald/strutils.h"
@@ -187,14 +187,14 @@ namespace natives {
         CONVERT_RECV_TO(String, self);
         CONVERT_ARG_TO(0, String, seperator);
 
-        LOCAL(Array, res) = ALLOC_EMPTY_ARRAY();
+        Local<Array> res = ALLOC_EMPTY_ARRAY();
         for (const std::string& part : strutils::split(
                 self->get_native_value(),
                 seperator->get_native_value())) {
             res->push(ALLOC_STRING(part));
         }
 
-        return res;
+        return res.val();
     }
 
     NATIVE_FUNCTION(string_append) {

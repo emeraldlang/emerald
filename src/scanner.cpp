@@ -287,7 +287,6 @@ namespace emerald {
         { "throw", Token::THROW },
         { "do", Token::DO },
         { "end", Token::END },
-        { "print", Token::PRINT },
         { "clone", Token::CLONE },
         { "clones", Token::CLONES },
         { "object", Token::OBJECT },

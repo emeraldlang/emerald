@@ -20,7 +20,6 @@
 #include "emerald/interpreter.h"
 #include "emerald/magic_methods.h"
 #include "emerald/natives/boolean.h"
-#include "emerald/native_frame.h"
 #include "emerald/objectutils.h"
 #include "emerald/process.h"
 

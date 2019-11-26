@@ -15,13 +15,10 @@
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include <iostream>
-
 #include "emerald/code.h"
 #include "emerald/code_cache.h"
 #include "emerald/interpreter.h"
 #include "emerald/iterutils.h"
-#include "emerald/native_frame.h"
 #include "emerald/module.h"
 #include "emerald/objectutils.h"
 
@@ -69,6 +66,9 @@ namespace emerald {
                     if (current_frame.get_data_stack().size()) {
                         current_frame.set_instruction_pointer(instr.get_arg(0));
                     }
+                    break;
+                case OpCode::pop:
+                    current_frame.pop_n_ds(instr.get_arg(0));
                     break;
                 case OpCode::neg:
                     current_frame.push_ds(call_method0<Object>(current_frame.pop_ds(), magic_methods::neg, process));
@@ -258,7 +258,15 @@ namespace emerald {
                 case OpCode::throw_exc:
                     throw current_frame.pop_ds();
                 case OpCode::get_iter:
-                    current_frame.push_ds(call_method0<Object>(current_frame.pop_ds(), magic_methods::iter, process));
+                    // Check if the object on the data stack implements the methods
+                    // in the iterator protocol.
+                    if (current_frame.peek_ds()->has_property(magic_methods::cur) &&
+                        current_frame.peek_ds()->has_property(magic_methods::done) &&
+                        current_frame.peek_ds()->has_property(magic_methods::next)) {
+                        // nop
+                    } else {
+                        current_frame.push_ds(call_method0<Object>(current_frame.pop_ds(), magic_methods::iter, process));
+                    }
                     break;
                 case OpCode::iter_cur:
                     current_frame.push_ds(call_method0<Object>(current_frame.peek_ds(), magic_methods::cur, process));
@@ -304,9 +312,6 @@ namespace emerald {
                     current_frame.set_local(name, current_frame.pop_ds());
                     break;
                 }
-                case OpCode::print:
-                    std::cout << call_method0<String>(current_frame.pop_ds(), magic_methods::str, process)->get_native_value() << std::endl;
-                    break;
                 case OpCode::import: {
                     const std::string& name = current_frame.get_code()->get_import_name(
                         instr.get_arg(0));
@@ -330,15 +335,6 @@ namespace emerald {
 
         stack.pop_frame();
         return NONE;
-    }
-
-    Object* Interpreter::execute_function(Function* function, Process* process) {
-        process->get_stack().push_frame(
-            function->get_globals(),
-            function->get_code(),
-            function->get_globals());
-
-        return execute(process);
     }
 
     Object* Interpreter::execute_module(const std::string& module_name) {
@@ -377,12 +373,7 @@ namespace emerald {
 
             return execute(process);
         } else if (NativeFunction* func = dynamic_cast<NativeFunction*>(obj)) {
-            NativeFrame frame(args, func->get_globals());
-            Heap& heap = process->get_heap();
-            heap.add_root_source(&frame);
-            Object* res = (*func)(receiver, &frame, process);
-            heap.remove_root_source(&frame);
-            return res;
+            return (*func)(receiver, args, func->get_globals());
         } else if (Object* prop = obj->get_property(magic_methods::call)) {
             return call_obj<Object>(prop, obj, args, process);
         } else {
@@ -399,14 +390,16 @@ namespace emerald {
 
         Module* module;
         if (NativeModuleInitRegistry::has_module_init(name)) {
-            module = NativeModuleInitRegistry::init_module(name, process);
+            module = process->get_heap().allocate<Module>(process, name);
+            registry.add_module(module);
+            NativeModuleInitRegistry::init_module(module);
         } else if (std::shared_ptr<Code> code = CodeCache::get_code(name)) {
             module = process->get_heap().allocate<Module>(process, name, code);
+            registry.add_module(module);
         } else {
             throw process->get_heap().allocate<Exception>(process, fmt::format("no such module: {0}", name));
         }
 
-        registry.add_module(module);
         created = true;
 
         return module;

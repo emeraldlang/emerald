@@ -25,6 +25,7 @@ namespace emerald {
         _native_objects(this) {
         _heap.add_root_source(&_module_registry);
         _heap.add_root_source(&_native_objects);
+        _heap.add_root_source(&_native_stack);
         _heap.add_root_source(&_stack);
     }
 

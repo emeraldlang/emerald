@@ -20,7 +20,6 @@
 #include "fmt/format.h"
 
 #include "emerald/interpreter.h"
-#include "emerald/native_frame.h"
 #include "emerald/magic_methods.h"
 #include "emerald/module.h"
 #include "emerald/object.h"
@@ -247,6 +246,10 @@ namespace emerald {
     }
 
     Object* ArrayIterator::cur() const {
+        if (_i >= _arr->_value.size()) {
+            return _arr->back();
+        }
+
         return _arr->_value[_i];
     }
 
@@ -255,11 +258,8 @@ namespace emerald {
     }
 
     Object* ArrayIterator::next() {
-        if (_i == _arr->_value.size()) {
-            return _arr->back();
-        }
-
-        return _arr->_value[++_i];
+        _i++;
+        return cur();
     }
 
     ArrayIterator* ArrayIterator::clone(Process* process, CloneCache& cache) {
@@ -390,12 +390,17 @@ namespace emerald {
         return _globals;
     }
 
-    Object* NativeFunction::invoke(Object* receiver, NativeFrame* frame, Process* process) {
-        return _callable(receiver, frame, process);
+    Object* NativeFunction::invoke(Object* receiver, const std::vector<Object*>& args, Module* globals) {
+        Process* process = get_process();
+        NativeStack& native_stack = process->get_native_stack();
+        NativeStack::NativeFrame frame = native_stack.push_frame(receiver, args, globals);
+        Object* res = _callable(process, &frame);
+        native_stack.pop_frame();
+        return res;
     }
 
-    Object* NativeFunction::operator()(Object* receiver, NativeFrame* frame, Process* process) {
-        return _callable(receiver, frame, process);
+    Object* NativeFunction::operator()(Object* receiver, const std::vector<Object*>& args, Module* globals) {
+        return invoke(receiver, args, globals);
     }
 
     NativeFunction* NativeFunction::clone(Process* process, CloneCache& cache) {

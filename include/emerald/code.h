@@ -74,6 +74,8 @@ namespace emerald {
         void write_jmp_false_or_pop(size_t label);
         void write_jmp_data(size_t label);
 
+        void write_pop(size_t n);
+
         void write_neg();
         void write_log_neg();
 
@@ -135,14 +137,13 @@ namespace emerald {
         void write_ldloc(const std::string& name);
         void write_stloc(const std::string& name);
 
-        void write_print();
         size_t write_import(const std::string& name);
 
         std::shared_ptr<const Code> get_func(const std::string& label) const;
         std::shared_ptr<Code> get_func(const std::string& label);
         std::shared_ptr<const Code> get_func(size_t id) const;
         std::shared_ptr<Code> get_func(size_t id);
-
+        const std::string& get_func_label(size_t id) const;
         size_t get_func_index(const std::string& label) const;
 
         double get_num_constant(size_t id) const;
@@ -212,7 +213,6 @@ namespace emerald {
             std::shared_ptr<std::vector<std::string>> globals);
 
         void write(const Instruction& instr);
-        void rewrite(size_t i, const Instruction& instr);
 
         std::string to_string(size_t depth) const;
 

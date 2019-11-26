@@ -62,8 +62,6 @@ namespace emerald {
             return std::make_shared<ContinueStatement>(_scanner.current()->get_source_position());
         case Token::IF:
             return parse_ite_statement();
-        case Token::PRINT:
-            return parse_print_statement();
         case Token::LET:
             return parse_declaration_statement();
         case Token::DEF:
@@ -199,19 +197,6 @@ namespace emerald {
         }
 
         return std::make_shared<IteStatement>(end_pos(start), conditional, then_block, else_statement);
-    }
-
-    std::shared_ptr<PrintStatement> Parser::parse_print_statement() {
-        expect(Token::PRINT);
-
-        std::shared_ptr<SourcePosition> start = start_pos();
-        
-        std::vector<std::shared_ptr<Expression>> expressions;
-        do {
-            expressions.push_back(parse_expression());
-        } while (match(Token::COMMA));
-
-        return std::make_shared<PrintStatement>(end_pos(start), expressions);
     }
 
     std::shared_ptr<DeclarationStatement> Parser::parse_declaration_statement() {

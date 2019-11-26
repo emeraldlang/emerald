@@ -1,3 +1,6 @@
+import core
+
+
 def collatz : n
   let c = 1
   while (n != 1) do
@@ -11,4 +14,4 @@ def collatz : n
   return c
 end
 
-print collatz(13)
+core.print(collatz(13))

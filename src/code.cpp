@@ -30,8 +30,8 @@
 
 #define SPACES 4
 
-#define WRITE_OP(op_code) write((Instruction){ .op = op_code })
-#define WRITE_OP_WARGS(op_code, arguments...) write((Instruction){ .op = op_code, .args = arguments })
+#define WRITE_OP(op_code) write(Instruction(op_code))
+#define WRITE_OP_WARGS(op_code, arguments...) write(Instruction(op_code, arguments))
 
 namespace emerald {
 
@@ -101,6 +101,10 @@ namespace emerald {
 
     void Code::write_jmp_data(size_t label) {
         WRITE_OP_WARGS(OpCode::jmp_data, { get_label_offset(label) });
+    }
+
+    void Code::write_pop(size_t n) {
+        WRITE_OP_WARGS(OpCode::pop, { n });
     }
 
     void Code::write_neg() {
@@ -338,10 +342,6 @@ namespace emerald {
         WRITE_OP_WARGS(OpCode::stloc, { i });
     }
 
-    void Code::write_print() {
-        WRITE_OP(OpCode::print);
-    }
-
     size_t Code::write_import(const std::string& name) {
         size_t id = _import_names.size();
         _import_names.push_back(name);
@@ -365,6 +365,10 @@ namespace emerald {
 
     std::shared_ptr<Code> Code::get_func(size_t id) {
         return _functions.at(id);
+    }
+
+    const std::string& Code::get_func_label(size_t id) const {
+        return _functions.at(id)->_label;
     }
 
     size_t Code::get_func_index(const std::string& label) const {
@@ -472,10 +476,6 @@ namespace emerald {
 
     void Code::write(const Instruction& instr) { 
         _instructions.push_back(instr); 
-    }
-
-    void Code::rewrite(size_t i, const Instruction& instr) {
-        _instructions.at(i) = instr;
     }
 
     std::string Code::to_string(size_t depth) const {

@@ -179,13 +179,6 @@ namespace emerald {
         code()->bind_label(end);
     }
 
-    void Compiler::VisitPrintStatement(const std::shared_ptr<PrintStatement>& print_statement) {
-        for (const std::shared_ptr<Expression>& expression : print_statement->get_expressions()) {
-            Visit(expression);
-            code()->write_print();
-        }
-    }
-
     void Compiler::VisitDeclarationStatement(const std::shared_ptr<DeclarationStatement>& declaration_statement) {
         if (const std::shared_ptr<Expression>& init = declaration_statement->get_init_expression()) {
             Visit(init);
@@ -284,6 +277,7 @@ namespace emerald {
 
     void Compiler::VisitExpressionStatement(const std::shared_ptr<ExpressionStatement>& expression_statement) {
         Visit(expression_statement->get_expression());
+        code()->write_pop(1);
     }
 
     void Compiler::VisitAssignmentExpression(const std::shared_ptr<AssignmentExpression>& assignment_expression) {

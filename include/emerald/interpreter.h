@@ -35,7 +35,6 @@ namespace emerald {
     class Interpreter {
     public:
         static Object* execute(Process* process);
-        static Object* execute_function(Function* function, Process* process);
         template <class T>
         static T* execute_method(Object* receiver, const std::string& name, const std::vector<Object*>& args, Process* process);
         static Object* execute_module(const std::string& module_name);

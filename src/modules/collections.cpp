@@ -21,7 +21,7 @@
 #include "emerald/magic_methods.h"
 #include "emerald/module.h"
 #include "emerald/modules/collections.h"
-#include "emerald/native_frame.h"
+#include "emerald/native_variables.h"
 #include "emerald/objectutils.h"
 #include "emerald/process.h"
 #include "emerald/strutils.h"
@@ -444,11 +444,9 @@ namespace modules {
     }
 
     MODULE_INITIALIZATION_FUNC(init_collections_module) {
-        Heap& heap = process->get_heap();
+        Process* process =  module->get_process();
 
-        Module* module = ALLOC_MODULE("collections");
-
-        Queue* queue = heap.allocate<Queue>(process, OBJECT_PROTOTYPE);
+        Local<Queue> queue = process->get_heap().allocate<Queue>(process, OBJECT_PROTOTYPE);
         queue->set_property(magic_methods::eq, ALLOC_NATIVE_FUNCTION(queue_eq));
         queue->set_property(magic_methods::neq, ALLOC_NATIVE_FUNCTION(queue_neq));
         queue->set_property(magic_methods::clone, ALLOC_NATIVE_FUNCTION(queue_clone));
@@ -457,9 +455,9 @@ namespace modules {
         queue->set_property("enqueue", ALLOC_NATIVE_FUNCTION(queue_enqueue));
         queue->set_property("empty", ALLOC_NATIVE_FUNCTION(queue_empty));
         queue->set_property("size", ALLOC_NATIVE_FUNCTION(queue_size));
-        module->set_property("Queue", queue);
+        module->set_property("Queue", queue.val());
 
-        Set* set = heap.allocate<Set>(process, OBJECT_PROTOTYPE);
+        Local<Set> set = process->get_heap().allocate<Set>(process, OBJECT_PROTOTYPE);
         set->set_property(magic_methods::eq, ALLOC_NATIVE_FUNCTION(set_eq));
         set->set_property(magic_methods::neq, ALLOC_NATIVE_FUNCTION(set_neq));
         set->set_property(magic_methods::clone, ALLOC_NATIVE_FUNCTION(set_clone));
@@ -468,9 +466,9 @@ namespace modules {
         set->set_property("remove", ALLOC_NATIVE_FUNCTION(set_remove));
         set->set_property("empty", ALLOC_NATIVE_FUNCTION(set_empty));
         set->set_property("size", ALLOC_NATIVE_FUNCTION(set_size));
-        module->set_property("Set", set);
+        module->set_property("Set", set.val());
 
-        Stack* stack = heap.allocate<Stack>(process, OBJECT_PROTOTYPE);
+        Local<Stack> stack = process->get_heap().allocate<Stack>(process, OBJECT_PROTOTYPE);
         stack->set_property(magic_methods::eq, ALLOC_NATIVE_FUNCTION(stack_eq));
         stack->set_property(magic_methods::neq, ALLOC_NATIVE_FUNCTION(stack_neq));
         stack->set_property(magic_methods::clone, ALLOC_NATIVE_FUNCTION(stack_clone));
@@ -479,9 +477,7 @@ namespace modules {
         stack->set_property("push", ALLOC_NATIVE_FUNCTION(stack_push));
         stack->set_property("empty", ALLOC_NATIVE_FUNCTION(stack_empty));
         stack->set_property("size", ALLOC_NATIVE_FUNCTION(stack_size));
-        module->set_property("Stack", stack);
-
-        return module;
+        module->set_property("Stack", stack.val());
     }
 
 } // namespace modules

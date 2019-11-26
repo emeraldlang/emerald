@@ -36,7 +36,6 @@ namespace emerald {
     X(BreakStatement)           \
     X(ContinueStatement)        \
     X(IteStatement)             \
-    X(PrintStatement)           \
     X(DeclarationStatement)     \
     X(FunctionStatement)        \
     X(ObjectStatement)          \
@@ -235,18 +234,6 @@ namespace emerald {
         std::shared_ptr<Expression> _conditional;
         std::shared_ptr<StatementBlock> _then_block;
         std::shared_ptr<Statement> _else_statement;
-    };
-
-    class PrintStatement final : public Statement {
-    public:
-        PrintStatement(std::shared_ptr<SourcePosition> position, std::vector<std::shared_ptr<Expression>> expressions) 
-            : Statement(position, nPrintStatement),
-            _expressions(expressions) {}
-        
-        const std::vector<std::shared_ptr<Expression>>& get_expressions() const { return _expressions; }
-
-    private:
-        std::vector<std::shared_ptr<Expression>> _expressions;
     };
 
     class DeclarationStatement final : public Statement {

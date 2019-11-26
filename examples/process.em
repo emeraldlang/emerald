@@ -9,5 +9,5 @@ def work
 end
 
 let pid = process.create(work)
-print 'message from process<{0}>: '.format(pid)
-print process.receive()
+core.print('message from process<{0}>: '.format(pid))
+core.print(process.receive())

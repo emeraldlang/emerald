@@ -15,11 +15,13 @@
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include <iostream>
+
 #include "emerald/interpreter.h"
 #include "emerald/magic_methods.h"
 #include "emerald/module.h"
 #include "emerald/modules/core.h"
-#include "emerald/native_frame.h"
+#include "emerald/native_variables.h"
 #include "emerald/objectutils.h"
 #include "emerald/process.h"
 
@@ -56,12 +58,12 @@ namespace modules {
         EXPECT_NUM_ARGS(1);
 
         TRY_CONVERT_ARG_TO(0, Number, n);
-        LOCAL(Array, res) = ALLOC_EMPTY_ARRAY();
+        Local<Array> res = ALLOC_EMPTY_ARRAY();
         for (size_t i = 0; i < n->get_native_value(); i++) {
             res->push(ALLOC_NUMBER(i));
         }
 
-        return res;
+        return res.val();
     }
 
     NATIVE_FUNCTION(core_super) {
@@ -98,8 +100,17 @@ namespace modules {
         return Interpreter::execute_method<Object>(frame->get_arg(0), magic_methods::next, {}, process);
     }
 
+    NATIVE_FUNCTION(core_print) {
+        size_t n = frame->num_args();
+        for (size_t i = 0; i < n; i++) {
+            std::cout << Interpreter::execute_method<String>(frame->get_arg(i), magic_methods::str, {}, process)->get_native_value() << std::endl;
+        }
+
+        return NONE;
+    }
+
     MODULE_INITIALIZATION_FUNC(init_core_module) {
-        Module* module = ALLOC_MODULE("core");
+        Process* process =  module->get_process();
 
         module->set_property("Array", ARRAY_PROTOTYPE);
         module->set_property("Boolean", BOOLEAN_PROTOTYPE);
@@ -117,8 +128,7 @@ namespace modules {
         module->set_property("cur", ALLOC_NATIVE_FUNCTION(core_cur));
         module->set_property("done", ALLOC_NATIVE_FUNCTION(core_done));
         module->set_property("next", ALLOC_NATIVE_FUNCTION(core_next));
-
-        return module;
+        module->set_property("print", ALLOC_NATIVE_FUNCTION(core_print));
     }
 
 } // namespace modules

@@ -26,6 +26,7 @@
 #include "emerald/heap.h"
 #include "emerald/module_registry.h"
 #include "emerald/native_objects.h"
+#include "emerald/native_stack.h"
 #include "emerald/stack.h"
 
 namespace emerald {
@@ -49,6 +50,9 @@ namespace emerald {
         const NativeObjects& get_native_objects() const { return _native_objects; }
         NativeObjects& get_native_objects() { return _native_objects; }
 
+        const NativeStack& get_native_stack() const { return _native_stack; }
+        NativeStack& get_native_stack() { return _native_stack; }
+
         const Stack& get_stack() const { return _stack; }
         Stack& get_stack() { return _stack; }
 
@@ -61,6 +65,7 @@ namespace emerald {
         Heap _heap;
         ModuleRegistry _module_registry;
         NativeObjects _native_objects;
+        NativeStack _native_stack;
         Stack _stack;
 
         std::queue<Object*> _mailbox;

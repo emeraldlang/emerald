@@ -18,6 +18,7 @@
 #include "emerald/module.h"
 #include "emerald/module_registry.h"
 #include "emerald/process.h"
+#include "emerald/objectutils.h"
 
 namespace emerald {
 
@@ -31,9 +32,11 @@ namespace emerald {
         return _modules.find(alias) != _modules.end();
     }
 
-    Module* NativeModuleInitRegistry::init_module(const std::string& alias, Process* process) {
-        ModuleInitialization initialization = _modules.at(alias);
-        return initialization(process);
+    void NativeModuleInitRegistry::init_module(Module* module) {
+        NativeStack& native_stack = module->get_process()->get_native_stack();
+        NativeStack::NativeFrame frame = native_stack.push_frame();
+        _modules.at(module->get_name())(module);
+        native_stack.pop_frame();
     }
 
     void ModuleRegistry::add_module(Module* module) {

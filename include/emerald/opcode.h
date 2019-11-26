@@ -33,6 +33,8 @@ namespace emerald {
     X(jmp_false, 1)             \
     X(jmp_false_or_pop, 1)      \
     X(jmp_data, 1)              \
+    /* Stack Manipulation */    \
+    X(pop, 1)                   \
     /* Unary */                 \
     X(neg, 0)                   \
     X(log_neg, 0)               \
@@ -95,7 +97,6 @@ namespace emerald {
     X(ldloc, 1)                 \
     X(stloc, 1)                 \
     /* Other */                 \
-    X(print, 0)                 \
     X(import, 1)
 
     class OpCode {

@@ -15,30 +15,38 @@
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "emerald/natives/exception.h"
-#include "emerald/objectutils.h"
-#include "emerald/process.h"
+#ifndef _EMERALD_NATIVE_VARIABLES_H
+#define _EMERALD_NATIVE_VARIABLES_H
 
 namespace emerald {
-namespace natives {
 
-    NATIVE_FUNCTION(exception_clone) {
-        EXPECT_NUM_ARGS(0);
+    template <class T>
+    class Local {
+    public:
+        Local(T* obj);
 
-        CONVERT_RECV_TO(Exception, self);
+        T* val() const {
+            return _obj;
+        }
 
-        return process->get_heap().allocate<Exception>(process, self);
+        T* operator->() const {
+            return _obj;
+        }
+
+    private:
+        T* _obj;
+    };
+
+    template <class T>
+    Local<T>::Local(T* obj)
+        : _obj(obj) {
+        _obj
+            ->get_process()
+            ->get_native_stack()
+            .peek()
+            .add_local(_obj);
     }
 
-    NATIVE_FUNCTION(exception_init) {
-        EXPECT_NUM_ARGS(1);
-
-        CONVERT_RECV_TO(Exception, self);
-        CONVERT_ARG_TO(0, String, msg);
-        self->init(msg);
-
-        return NONE;
-    }
-
-} // namespace natives
 } // namespace emerald
+
+#endif // _EMERALD_NATIVE_VARIABLES_H

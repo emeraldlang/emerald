@@ -19,7 +19,7 @@
 #include "emerald/magic_methods.h"
 #include "emerald/module.h"
 #include "emerald/modules/net.h"
-#include "emerald/native_frame.h"
+#include "emerald/native_variables.h"
 #include "emerald/process.h"
 
 namespace emerald {
@@ -379,11 +379,9 @@ namespace modules {
     }
 
     MODULE_INITIALIZATION_FUNC(init_net_module) {
-        Heap& heap = process->get_heap();
+        Process* process =  module->get_process();
 
-        Module* module = ALLOC_MODULE("net");
-
-        IPAddress* ip_address = heap.allocate<IPAddress>(process);
+        Local<IPAddress> ip_address = process->get_heap().allocate<IPAddress>(process);
         ip_address->set_property(magic_methods::clone, ALLOC_NATIVE_FUNCTION(ip_address_clone));
         ip_address->set_property(magic_methods::init, ALLOC_NATIVE_FUNCTION(ip_address_init));
         ip_address->set_property("is_loopback", ALLOC_NATIVE_FUNCTION(ip_address_is_loopback));
@@ -391,23 +389,23 @@ namespace modules {
         ip_address->set_property("is_unspecified", ALLOC_NATIVE_FUNCTION(ip_address_is_unspecified));
         ip_address->set_property("is_ipv4", ALLOC_NATIVE_FUNCTION(ip_address_is_ipv4));
         ip_address->set_property("is_ipv6", ALLOC_NATIVE_FUNCTION(ip_address_is_ipv6));
-        module->set_property("IPAddress", ip_address);
+        module->set_property("IPAddress", ip_address.val());
 
-        IPEndpoint* ip_endpoint = heap.allocate<IPEndpoint>(process);
+        Local<IPEndpoint> ip_endpoint = process->get_heap().allocate<IPEndpoint>(process);
         ip_endpoint->set_property(magic_methods::clone, ALLOC_NATIVE_FUNCTION(ip_endpoint_clone));
         ip_endpoint->set_property(magic_methods::init, ALLOC_NATIVE_FUNCTION(ip_endpoint_init));
         ip_endpoint->set_property("get_address", ALLOC_NATIVE_FUNCTION(ip_endpoint_get_address));
         ip_endpoint->set_property("get_port", ALLOC_NATIVE_FUNCTION(ip_endpoint_get_port));
-        module->set_property("IPEndpoint", ip_endpoint);
+        module->set_property("IPEndpoint", ip_endpoint.val());
 
-        TcpClient* tcp_client = heap.allocate<TcpClient>(process);
+        Local<TcpClient> tcp_client = process->get_heap().allocate<TcpClient>(process);
         tcp_client->set_property(magic_methods::clone, ALLOC_NATIVE_FUNCTION(tcp_client_clone));
         tcp_client->set_property("connect", ALLOC_NATIVE_FUNCTION(tcp_client_connect));
         tcp_client->set_property("read", ALLOC_NATIVE_FUNCTION(tcp_client_read));
         tcp_client->set_property("write", ALLOC_NATIVE_FUNCTION(tcp_client_write));
-        module->set_property("TcpClient", tcp_client);
+        module->set_property("TcpClient", tcp_client.val());
 
-        TcpListener* tcp_listener = heap.allocate<TcpListener>(process);
+        Local<TcpListener> tcp_listener = process->get_heap().allocate<TcpListener>(process);
         tcp_listener->set_property(magic_methods::clone, ALLOC_NATIVE_FUNCTION(tcp_listener_clone));
         tcp_listener->set_property(magic_methods::init, ALLOC_NATIVE_FUNCTION(tcp_listener_init));
         tcp_listener->set_property("start", ALLOC_NATIVE_FUNCTION(tcp_listener_start));
@@ -415,9 +413,7 @@ namespace modules {
         tcp_listener->set_property("is_listening", ALLOC_NATIVE_FUNCTION(tcp_listener_is_listening));
         tcp_listener->set_property("accept", ALLOC_NATIVE_FUNCTION(tcp_listener_accept));
         tcp_listener->set_property("get_endpoint", ALLOC_NATIVE_FUNCTION(tcp_listener_get_endpoint));
-        module->set_property("TcpListener", tcp_listener);
-
-        return module;
+        module->set_property("TcpListener", tcp_listener.val());
     }
 
 } // namespace modules

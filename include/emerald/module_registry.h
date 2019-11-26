@@ -26,7 +26,7 @@
 #include "emerald/heap.h"
 #include "emerald/heap_root_source.h"
 
-#define MODULE_INITIALIZATION_FUNC(name) Module* name(Process* process)
+#define MODULE_INITIALIZATION_FUNC(name) void name(Module* module)
 
 namespace emerald {
 
@@ -35,11 +35,11 @@ namespace emerald {
 
     class NativeModuleInitRegistry {
     public:
-        using ModuleInitialization = std::function<Module*(Process*)>;
+        using ModuleInitialization = std::function<void(Module*)>;
 
         static void add_module_init(const std::string& alias, ModuleInitialization initialization);
         static bool has_module_init(const std::string& alias);
-        static Module* init_module(const std::string& alias, Process* process);
+        static void init_module(Module* module);
 
     private:
         static std::unordered_map<std::string, ModuleInitialization> _modules;

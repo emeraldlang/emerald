@@ -30,7 +30,8 @@
     X(core_iter)        \
     X(core_cur)         \
     X(core_done)        \
-    X(core_next)
+    X(core_next)        \
+    X(core_print)
 
 namespace emerald {
 namespace modules {

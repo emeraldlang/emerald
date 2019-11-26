@@ -51,7 +51,6 @@ namespace emerald {
         std::shared_ptr<Statement> parse_for_statement();
         std::shared_ptr<WhileStatement> parse_while_statement();
         std::shared_ptr<IteStatement> parse_ite_statement();
-        std::shared_ptr<PrintStatement> parse_print_statement();
         std::shared_ptr<DeclarationStatement> parse_declaration_statement();
         std::shared_ptr<FunctionStatement> parse_function_statement();
         std::shared_ptr<ObjectStatement> parse_object_statement();

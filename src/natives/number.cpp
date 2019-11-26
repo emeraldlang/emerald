@@ -16,7 +16,6 @@
 */
 
 #include "emerald/natives/number.h"
-#include "emerald/native_frame.h"
 #include "emerald/objectutils.h"
 #include "emerald/process.h"
 

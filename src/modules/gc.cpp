@@ -17,7 +17,6 @@
 
 #include "emerald/module.h"
 #include "emerald/modules/gc.h"
-#include "emerald/native_frame.h"
 #include "emerald/objectutils.h"
 #include "emerald/process.h"
 
@@ -47,14 +46,12 @@ namespace modules {
     }
 
     MODULE_INITIALIZATION_FUNC(init_gc_module) {
-        Module* module = ALLOC_MODULE("gc");
+        Process* process =  module->get_process();
 
         module->set_property("collect", ALLOC_NATIVE_FUNCTION(gc_collect));
         module->set_property("total_allocated_objects", ALLOC_NATIVE_FUNCTION(gc_total_allocated_objects));
         module->set_property("threshold", ALLOC_NATIVE_FUNCTION(gc_threshold));
         module->set_property("set_threshold", ALLOC_NATIVE_FUNCTION(gc_set_threshold));
-
-        return module;
     }
 
 } // namespace modules

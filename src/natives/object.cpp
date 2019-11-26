@@ -16,7 +16,7 @@
 */
 
 #include "emerald/natives/object.h"
-#include "emerald/native_frame.h"
+#include "emerald/native_variables.h"
 #include "emerald/objectutils.h"
 #include "emerald/process.h"
 
@@ -26,25 +26,25 @@ namespace natives {
     NATIVE_FUNCTION(object_eq) {
         EXPECT_NUM_ARGS(1);
 
-        return BOOLEAN(receiver == frame->get_arg(0));
+        return BOOLEAN(frame->get_receiver() == frame->get_arg(0));
     }
 
     NATIVE_FUNCTION(object_neq) {
         EXPECT_NUM_ARGS(1);
 
-        return BOOLEAN(receiver != frame->get_arg(0));
+        return BOOLEAN(frame->get_receiver() != frame->get_arg(0));
     }
 
     NATIVE_FUNCTION(object_str) {
         EXPECT_NUM_ARGS(0);
 
-        return ALLOC_STRING(receiver->as_str());
+        return ALLOC_STRING(frame->get_receiver()->as_str());
     }
 
     NATIVE_FUNCTION(object_boolean) {
         EXPECT_NUM_ARGS(0);
 
-        return BOOLEAN(receiver->as_bool());
+        return BOOLEAN(frame->get_receiver()->as_bool());
     }
 
     NATIVE_FUNCTION(object_clone) {
@@ -62,12 +62,12 @@ namespace natives {
     NATIVE_FUNCTION(object_keys) {
         EXPECT_NUM_ARGS(0);
 
-        LOCAL(Array, keys) = ALLOC_EMPTY_ARRAY();
-        for (const auto& pair : receiver->get_properties()) {
+        Local<Array> keys = ALLOC_EMPTY_ARRAY();
+        for (const auto& pair : frame->get_receiver()->get_properties()) {
             keys->push(ALLOC_STRING(pair.first));
         }
 
-        return keys;
+        return keys.val();
     }
 
     NATIVE_FUNCTION(object_get_prop) {
@@ -75,7 +75,7 @@ namespace natives {
 
         TRY_CONVERT_ARG_TO(0, String, name);
 
-        if (Object* property = receiver->get_property(name->get_native_value())) {
+        if (Object* property = frame->get_receiver()->get_property(name->get_native_value())) {
             return property;
         }
 
@@ -86,7 +86,7 @@ namespace natives {
         EXPECT_NUM_ARGS(2);
 
         TRY_CONVERT_ARG_TO(0, String, name);
-        receiver->set_property(name->get_native_value(), frame->get_arg(1));
+        frame->get_receiver()->set_property(name->get_native_value(), frame->get_arg(1));
 
         return NONE;
     }

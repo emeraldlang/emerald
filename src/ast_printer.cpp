@@ -127,19 +127,6 @@ namespace emerald {
         end_indentation_block();
     }
 
-    void ASTPrinter::VisitPrintStatement(const std::shared_ptr<PrintStatement>& print_statement) {
-        start_indentation_block("print");
-
-        for (const std::shared_ptr<Expression>& expr : print_statement->get_expressions()) {
-            Visit(expr);
-            if (expr != print_statement->get_expressions().back()) {
-                _oss << std::endl;
-            }
-        }
-
-        end_indentation_block();
-    }
-
     void ASTPrinter::VisitDeclarationStatement(const std::shared_ptr<DeclarationStatement>& declaration_statement) {
         start_indentation_block("let");
 

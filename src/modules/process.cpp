@@ -18,7 +18,6 @@
 #include "emerald/interpreter.h"
 #include "emerald/module.h"
 #include "emerald/modules/process.h"
-#include "emerald/native_frame.h"
 #include "emerald/objectutils.h"
 #include "emerald/process.h"
 #include "emerald/thread_pool.h"
@@ -29,14 +28,16 @@ namespace modules {
     NATIVE_FUNCTION(process_create) {
         EXPECT_NUM_ARGS(1);
 
-        TRY_CONVERT_ARG_TO(0, Function, func);
-
         Process* new_process = Processes::create_process();
-        // Copies globals into new process heap
+        // Copy callable and globals into new process heap
         CloneCache cache;
-        Function* copy = func->clone(new_process, cache);
-        ThreadPool::queue([new_process, copy]() {
-            Interpreter::execute_function(copy, new_process);
+        Object* copy = frame->get_arg(0)->clone(new_process, cache);
+        ThreadPool::queue([&]() {
+            // Interpreter::call_obj(
+            //     copy,
+            //     receiver_copy,
+            //     args,
+            //     new_process);
         });
 
         return ALLOC_NUMBER(new_process->get_id());
@@ -67,14 +68,12 @@ namespace modules {
     }
 
     MODULE_INITIALIZATION_FUNC(init_process_module) {
-        Module* module = ALLOC_MODULE("process");
+        Process* process = module->get_process();
 
         module->set_property("create", ALLOC_NATIVE_FUNCTION(process_create));
         module->set_property("id", ALLOC_NATIVE_FUNCTION(process_id));
         module->set_property("receive", ALLOC_NATIVE_FUNCTION(process_receive));
         module->set_property("send", ALLOC_NATIVE_FUNCTION(process_send));
-
-        return module;
     }
 
 } // namespace modules

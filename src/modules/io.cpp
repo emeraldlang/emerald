@@ -20,7 +20,7 @@
 #include "emerald/magic_methods.h"
 #include "emerald/module.h"
 #include "emerald/modules/io.h"
-#include "emerald/native_frame.h"
+#include "emerald/native_variables.h"
 #include "emerald/objectutils.h"
 #include "emerald/process.h"
 
@@ -218,33 +218,29 @@ namespace modules {
     }
 
     MODULE_INITIALIZATION_FUNC(init_io_module) {
-        Heap& heap = process->get_heap();
+        Process* process =  module->get_process();
 
-        Module* module = ALLOC_MODULE("io");
-
-        FileStream* file_stream = heap.allocate<FileStream>(process);
+        Local<FileStream> file_stream = process->get_heap().allocate<FileStream>(process);
         file_stream->set_property(magic_methods::clone, ALLOC_NATIVE_FUNCTION(file_stream_clone));
         file_stream->set_property("open", ALLOC_NATIVE_FUNCTION(file_stream_open));
         file_stream->set_property("is_open", ALLOC_NATIVE_FUNCTION(file_stream_is_open));
         file_stream->set_property("read", ALLOC_NATIVE_FUNCTION(file_stream_read));
         file_stream->set_property("readline", ALLOC_NATIVE_FUNCTION(file_stream_readline));
         file_stream->set_property("write", ALLOC_NATIVE_FUNCTION(file_stream_write));
-        module->set_property("FileStream", file_stream);
+        module->set_property("FileStream", file_stream.val());
 
-        Object* file_access = heap.allocate<Object>(process);
+        Local<Object> file_access = process->get_heap().allocate<Object>(process);
         file_access->set_property("read", ALLOC_STRING("read"));
         file_access->set_property("write", ALLOC_STRING("write"));
         file_access->set_property("read_write", ALLOC_STRING("read_write"));
-        module->set_property("FileAccess", file_access);
+        module->set_property("FileAccess", file_access.val());
 
-        StringStream* string_stream = heap.allocate<StringStream>(process);
+        Local<StringStream> string_stream = process->get_heap().allocate<StringStream>(process);
         string_stream->set_property(magic_methods::clone, ALLOC_NATIVE_FUNCTION(string_stream_clone));
         string_stream->set_property("read", ALLOC_NATIVE_FUNCTION(string_stream_read));
         string_stream->set_property("readline", ALLOC_NATIVE_FUNCTION(string_stream_readline));
         string_stream->set_property("write", ALLOC_NATIVE_FUNCTION(string_stream_write));
-        module->set_property("StringStream", string_stream);
-
-        return module;
+        module->set_property("StringStream", string_stream.val());
     }
 
 } // namespace modules

@@ -26,15 +26,15 @@
 #include "emerald/process.h"
 #include "emerald/strutils.h"
 
-#define EXPECT_NUM_ARGS_OP(count, op)                           \
-    do {                                                        \
-        if (frame->num_args() op count) {                       \
-            throw process->get_heap().allocate<Exception>(      \
-                process, fmt::format(                           \
-                    "expected {0} args, got {1}",               \
-                    count,                                      \
-                    frame->num_args()));                        \
-        }                                                       \
+#define EXPECT_NUM_ARGS_OP(count, op)                       \
+    do {                                                    \
+        if (frame->num_args() op count) {                   \
+            throw process->get_heap().allocate<Exception>(  \
+                process, fmt::format(                       \
+                    "expected {0} args, got {1}",           \
+                    count,                                  \
+                    frame->num_args()));                    \
+        }                                                   \
     } while (false)
 
 #define EXPECT_NUM_ARGS(count) EXPECT_NUM_ARGS_OP(count, !=)
@@ -51,11 +51,11 @@
     } while (false)
 
 #define CONVERT_ARG_TO(i, Type, name) CONVERT_VAL_TO(frame->get_arg(i), Type, name)
-#define CONVERT_RECV_TO(Type, name) CONVERT_VAL_TO(receiver, Type, name)
+#define CONVERT_RECV_TO(Type, name) CONVERT_VAL_TO(frame->get_receiver(), Type, name)
 
 #define TRY_CONVERT_VAL_TO(val, Type, name) Type* name = dynamic_cast<Type*>(val)
 #define TRY_CONVERT_ARG_TO(i, Type, name) TRY_CONVERT_VAL_TO(frame->get_arg(i), Type, name)
-#define TRY_CONVERT_RECV_TO(Type, name) TRY_CONVERT_VAL_TO(receiver, Type, name)
+#define TRY_CONVERT_RECV_TO(Type, name) TRY_CONVERT_VAL_TO(frame->get_receiver(), Type, name)
 
 #define TRY_CONVERT_OPTIONAL_ARG_TO(i, Type, name)          \
     Type* name;                                             \
@@ -66,8 +66,6 @@
             name = nullptr;                                 \
         }                                                   \
     } while (false)
-
-#define LOCAL(Type, name) Type* name; (*frame)[#name] = name
 
 #define NONE process->get_native_objects().get_null()
 #define BOOLEAN(val) BOOLEAN_IN_CTX(val, process)
@@ -95,6 +93,9 @@
 #define ALLOC_NUMBER_IN_CTX(num, ctx) (ctx)->get_heap().allocate<Number>(ctx, num)
 
 #define ALLOC_MODULE(name) process->get_heap().allocate<Module>(process, name)
+
+#define ALLOC_OBJECT() ALLOC_OBJECT_IN_CTX(process)
+#define ALLOC_OBJECT_IN_CTX(ctx) (ctx)->get_heap().allocate<Object>(ctx, OBJECT_PROTOTYPE)
 
 #define ALLOC_STRING(str) ALLOC_STRING_IN_CTX(str, process)
 #define ALLOC_STRING_IN_CTX(str, ctx) (ctx)->get_heap().allocate<String>(ctx, str)

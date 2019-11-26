@@ -17,6 +17,7 @@
 
 #include "emerald/modules/init.h"
 #include "emerald/module_registry.h"
+#include "emerald/modules/bytecode.h"
 #include "emerald/modules/collections.h"
 #include "emerald/modules/core.h"
 #include "emerald/modules/gc.h"
@@ -28,6 +29,7 @@ namespace emerald {
 namespace modules {
 
     void add_module_inits_to_registry() {
+        NativeModuleInitRegistry::add_module_init("bytecode", init_bytecode_module);
         NativeModuleInitRegistry::add_module_init("collections", init_collections_module);
         NativeModuleInitRegistry::add_module_init("core", init_core_module);
         NativeModuleInitRegistry::add_module_init("gc", init_gc_module);
