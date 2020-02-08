@@ -49,7 +49,7 @@ namespace emerald {
     std::shared_ptr<Statement> Parser::parse_statement() {
         switch (_scanner.next()->get_type()) {
         case Token::DO:
-            return parse_do_statement();
+            return parse_do_while_statement();
         case Token::FOR:
             return parse_for_statement();
         case Token::WHILE:
@@ -100,7 +100,7 @@ namespace emerald {
         }
     }
 
-    std::shared_ptr<DoStatement> Parser::parse_do_statement() {
+    std::shared_ptr<DoWhileStatement> Parser::parse_do_while_statement() {
         expect(Token::DO);
 
         std::shared_ptr<SourcePosition> start = start_pos();
@@ -108,7 +108,10 @@ namespace emerald {
         std::shared_ptr<StatementBlock> body = parse_statement_block({ Token::END });
         expect(Token::END);
 
-        return std::make_shared<DoStatement>(end_pos(start), body);
+        expect(Token::WHILE);
+        std::shared_ptr<Expression> conditional = parse_expression();
+
+        return std::make_shared<DoWhileStatement>(end_pos(start), body, conditional);
     }
 
     std::shared_ptr<Statement> Parser::parse_for_statement() {
@@ -186,7 +189,7 @@ namespace emerald {
 
         std::shared_ptr<Statement> else_statement;
         if (match(Token::ELSE)) {
-            if (match(Token::IF)) {
+            if (lookahead(Token::IF)) {
                 else_statement = parse_ite_statement();
             } else {
                 else_statement = parse_statement_block({ Token::END });

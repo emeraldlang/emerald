@@ -29,7 +29,7 @@ namespace emerald {
 
 #define STATEMENT_NODES         \
     X(StatementBlock)           \
-    X(DoStatement)              \
+    X(DoWhileStatement)         \
     X(ForStatement)             \
     X(ForInStatement)           \
     X(WhileStatement)           \
@@ -133,16 +133,20 @@ namespace emerald {
         std::vector<std::shared_ptr<Statement>> _statements;
     };
 
-    class DoStatement final : public Statement {
+    class DoWhileStatement final : public Statement {
     public:
-        DoStatement(std::shared_ptr<SourcePosition> position, std::shared_ptr<StatementBlock> block)
-            : Statement(position, nDoStatement),
-            _block(block) {}
+        DoWhileStatement(std::shared_ptr<SourcePosition> position, std::shared_ptr<StatementBlock> block,
+            std::shared_ptr<Expression> conditional)
+            : Statement(position, nDoWhileStatement),
+            _block(block),
+            _conditional(conditional) {}
 
         const std::shared_ptr<StatementBlock>& get_block() const { return _block; }
+        const std::shared_ptr<Expression>& get_conditional_expression() const { return _conditional; }
 
     private:
         std::shared_ptr<StatementBlock> _block;
+        std::shared_ptr<Expression> _conditional;
     };
 
     class ForStatement final : public Statement {

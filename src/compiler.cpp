@@ -46,17 +46,30 @@ namespace emerald {
         }
     }
 
-    void Compiler::VisitDoStatement(const std::shared_ptr<DoStatement>& do_statement) {
-        Visit(do_statement->get_block());
-    }
-
-    void Compiler::VisitForStatement(const std::shared_ptr<ForStatement>& for_statement) {
-        Visit(for_statement->get_init_statement());
-
-        size_t condition = code()->create_label();
+    void Compiler::VisitDoWhileStatement(const std::shared_ptr<DoWhileStatement>& do_while_statement) {
+        ssize_t condition = code()->create_label();
         size_t beginning = code()->create_label();
         size_t end = code()->create_label();
         _loop_stack.emplace(condition, beginning, end);
+
+        code()->bind_label(beginning);
+        Visit(do_while_statement->get_block());
+        code()->bind_label(condition);
+        Visit(do_while_statement->get_conditional_expression());
+        code()->write_jmp_true(beginning);
+        code()->bind_label(end);
+
+        _loop_stack.pop();
+    }
+
+    void Compiler::VisitForStatement(const std::shared_ptr<ForStatement>& for_statement) {
+        size_t condition = code()->create_label();
+        size_t beginning = code()->create_label();
+        size_t end = code()->create_label();
+
+        _loop_stack.emplace(condition, beginning, end);
+
+        Visit(for_statement->get_init_statement());
 
         write_fs_condition(for_statement);
         code()->write_jmp_false(end);
@@ -81,6 +94,7 @@ namespace emerald {
         code()->write_jmp_true(beginning);
 
         code()->bind_label(end);
+
         _loop_stack.pop();
     }
 
@@ -88,6 +102,7 @@ namespace emerald {
         size_t condition = code()->create_label();
         size_t beginning = code()->create_label();
         size_t end = code()->create_label();
+
         _loop_stack.emplace(condition, beginning, end);
 
         Visit(for_in_statement->get_iterable());
@@ -110,6 +125,7 @@ namespace emerald {
         code()->write_jmp_false(beginning);
 
         code()->bind_label(end);
+
         _loop_stack.pop();
     }
 
@@ -117,6 +133,7 @@ namespace emerald {
         size_t condition = code()->create_label();
         size_t beginning = code()->create_label();
         size_t end = code()->create_label();
+
         _loop_stack.emplace(condition, beginning, end);
 
         Visit(while_statement->get_conditional_expression());
@@ -127,8 +144,8 @@ namespace emerald {
         code()->bind_label(condition);
         Visit(while_statement->get_conditional_expression());
         code()->write_jmp_true(beginning);
-
         code()->bind_label(end);
+
         _loop_stack.pop();
     }
 
@@ -291,6 +308,7 @@ namespace emerald {
                 write_comp_assign(op);
             } else {
                 VisitPropertyStore(property, assignment_expression->get_right_expression());
+                VisitPropertyLoad(property);
             }
         } else if (std::shared_ptr<Identifier> identifier = ASTNode::as<Identifier>(lvalue)) { 
             if (op->is_comp_assignment_op()) {
@@ -299,6 +317,7 @@ namespace emerald {
                 write_comp_assign(op);
             } else {
                 VisitIdentifierStore(identifier, assignment_expression->get_right_expression());
+                VisitIdentifierLoad(identifier);
             }
         }
     }

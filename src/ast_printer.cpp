@@ -52,10 +52,12 @@ namespace emerald {
         }
     }
 
-    void ASTPrinter::VisitDoStatement(const std::shared_ptr<DoStatement>& do_statement) {
-        start_indentation_block("do");
+    void ASTPrinter::VisitDoWhileStatement(const std::shared_ptr<DoWhileStatement>& do_while_statement) {
+        start_indentation_block("do_while");
 
-        Visit(do_statement->get_block());
+        Visit(do_while_statement->get_block());
+        _oss << std::endl;
+        Visit(do_while_statement->get_conditional_expression());
 
         end_indentation_block();
     }

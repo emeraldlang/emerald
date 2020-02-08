@@ -208,5 +208,41 @@ namespace natives {
         return self;
     }
 
+    NATIVE_FUNCTION(string_isalpha) {
+        EXPECT_NUM_ARGS(0);
+
+        CONVERT_RECV_TO(String, self);
+
+        for (char ch : self->get_native_value()) {
+            if (!std::isalpha(ch)) return FALSE;
+        }
+
+        return TRUE;
+    }
+
+    NATIVE_FUNCTION(string_isalnum) {
+        EXPECT_NUM_ARGS(0);
+
+        CONVERT_RECV_TO(String, self);
+
+        for (char ch : self->get_native_value()) {
+            if (!std::isalnum(ch)) return FALSE;
+        }
+
+        return TRUE;
+    }
+
+    NATIVE_FUNCTION(string_isdigit) {
+        EXPECT_NUM_ARGS(0);
+
+        CONVERT_RECV_TO(String, self);
+
+        for (char ch : self->get_native_value()) {
+            if (!std::isdigit(ch)) return FALSE;
+        }
+
+        return TRUE;
+    }
+
 } // namespace natives
 } // namespace emerald

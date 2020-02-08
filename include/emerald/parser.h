@@ -47,7 +47,7 @@ namespace emerald {
     
         std::shared_ptr<Statement> parse_statement();
         std::shared_ptr<StatementBlock> parse_statement_block(std::vector<Token::Type> end_tokens);
-        std::shared_ptr<DoStatement> parse_do_statement();
+        std::shared_ptr<DoWhileStatement> parse_do_while_statement();
         std::shared_ptr<Statement> parse_for_statement();
         std::shared_ptr<WhileStatement> parse_while_statement();
         std::shared_ptr<IteStatement> parse_ite_statement();

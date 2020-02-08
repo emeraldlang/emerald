@@ -55,6 +55,12 @@ namespace modules {
         obj->set_property("op", ALLOC_NUMBER(instr.get_op()));
         obj->set_property("opname", ALLOC_STRING(OpCode::get_string(instr.get_op())));
 
+        Local<Array> args = ALLOC_EMPTY_ARRAY();
+        for (uint64_t arg : instr.get_args()) {
+            args->push(ALLOC_NUMBER(arg));
+        }
+        obj->set_property("args", args.val());
+
         return obj.val();
     }
 

@@ -39,7 +39,10 @@
     X(string_substr)        \
     X(string_format)        \
     X(string_split)         \
-    X(string_append)
+    X(string_append)        \
+    X(string_isalpha)       \
+    X(string_isalnum)       \
+    X(string_isdigit)
 
 namespace emerald {
 namespace natives {

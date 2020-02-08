@@ -239,6 +239,9 @@ namespace emerald {
         _string->set_property("format", ALLOC_NATIVE_FUNCTION_NO_MOD(natives::string_format));
         _string->set_property("split", ALLOC_NATIVE_FUNCTION_NO_MOD(natives::string_split));
         _string->set_property("append", ALLOC_NATIVE_FUNCTION_NO_MOD(natives::string_append));
+        _string->set_property("isalpha", ALLOC_NATIVE_FUNCTION_NO_MOD(natives::string_isalpha));
+        _string->set_property("isalnum", ALLOC_NATIVE_FUNCTION_NO_MOD(natives::string_isalnum));
+        _string->set_property("isdigit", ALLOC_NATIVE_FUNCTION_NO_MOD(natives::string_isdigit));
     }
 
     void NativeObjects::initialize_booleans(Process* process) {
