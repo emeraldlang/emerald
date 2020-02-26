@@ -41,11 +41,10 @@ namespace emerald {
         static Module* import_module(const std::string& name, Process* process);
         template <class T>
         static T* create_obj(Object* parent, const std::vector<Object*>& args, Process* process);
-
-    private:
         template <class T>
         static T* call_obj(Object* obj, Object* receiver, const std::vector<Object*>& args, Process* process);
 
+    private:
         template <class T>
         static T* call_method(Object* receiver, const std::string& name, size_t num_args, Process* process);
         template <class T>

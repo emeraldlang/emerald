@@ -142,19 +142,67 @@ namespace emerald {
     }
 
     std::shared_ptr<Token> Scanner::scan_string() {
+        std::string literal;
         char quote = _c;
         advance();
 
         while (_c != quote) {
             if (_c == eof_marker) {
                 return emit(Token::EOSF);
+            } else if (_c == '\\') {
+                advance();
+                switch (_c) {
+                case '\'':
+                    literal += '\'';
+                    break;
+                case '"':
+                    literal += '"';
+                    break;
+                case '\\':
+                    literal += '\\';
+                    break;
+                case 'b':
+                    literal += '\b';
+                    break;
+                case 'n':
+                    literal += '\n';
+                    break;
+                case 'r':
+                    literal += '\r';
+                    break;
+                case 't':
+                    literal += '\t';
+                    break;
+                case 'u':
+                case 'U': {
+                    uint32_t temp = 0;
+                    for (size_t i = 0; i < 4; i++) {
+                        advance();
+                        if (_c >= '0' && _c <= '9') {
+                            temp = temp * 16 + (_c - '0');
+                        } else if (_c >= 'A' && _c <= 'F') {
+                            temp = temp * 16 + (_c - 'A' + 10);
+                        } else {
+                            temp = temp * 16 + (_c - 'a' + 10);
+                        }
+                    }
+                    std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> c;
+                    literal += c.to_bytes(temp);
+                    break;
+                }
+                default:
+                    literal += _c;
+                    break;
+                }
+            } else {
+                literal += _c;
             }
-            
+
             advance();
         }
 
         advance();
-        return emit(Token::STRING_LITERAL, _source->substr(_sp + 1, _cp - 1));
+        return emit(Token::STRING_LITERAL, literal);
     }
 
     std::shared_ptr<Token> Scanner::scan_keyword_or_identifier() {

@@ -284,12 +284,14 @@ namespace emerald {
         std::string _value;
     };
 
-    class CloneCache final {
+    class CloneCache final : public HeapRootSource {
     public:
         CloneCache() = default;
 
         void add_clone(Object* obj, Object* clone);
         Object* get_clone(Object* obj);
+
+        std::vector<HeapManaged*> get_roots() override;
 
     private:
         std::unordered_map<Object*, Object*> _clones;

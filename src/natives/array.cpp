@@ -157,6 +157,22 @@ namespace natives {
         return self->join(seperator);
     }
 
+    NATIVE_FUNCTION(array_indexof) {
+        EXPECT_NUM_ARGS(1);
+
+        CONVERT_RECV_TO(Array, self);
+
+        Object* elem = frame->get_arg(0);
+        for (size_t i = 0; i < self->size()->get_native_value(); i++) {
+            Boolean* eq = Interpreter::execute_method<Boolean>(self->at(ALLOC_NUMBER(i)), magic_methods::eq, { elem }, process);
+            if (eq->get_native_value()) {
+                return ALLOC_NUMBER(i);
+            } 
+        }
+
+        return ALLOC_NUMBER(-1);
+    }
+
     NATIVE_FUNCTION(array_iterator_cur) {
         EXPECT_NUM_ARGS(0);
 

@@ -26,18 +26,24 @@ namespace emerald {
 namespace modules {
 
     NATIVE_FUNCTION(process_create) {
-        EXPECT_NUM_ARGS(1);
+        EXPECT_ATLEAST_NUM_ARGS(1);
 
         Process* new_process = Processes::create_process();
-        // Copy callable and globals into new process heap
         CloneCache cache;
-        Object* copy = frame->get_arg(0)->clone(new_process, cache);
-        ThreadPool::queue([&]() {
-            // Interpreter::call_obj(
-            //     copy,
-            //     receiver_copy,
-            //     args,
-            //     new_process);
+        new_process->get_heap().add_root_source(&cache);
+        Object* callable = frame->get_arg(0)->clone(new_process, cache);
+        std::vector<Object*> args;
+        for (size_t i = 1; i < frame->num_args(); i++) {
+            args.push_back(frame->get_arg(i)->clone(new_process, cache));
+        }
+        Object* receiver = frame->get_receiver()->clone(new_process, cache);
+        new_process->get_heap().remove_root_source(&cache);
+        ThreadPool::queue([=]() {
+            Interpreter::call_obj<Object>(
+                callable,
+                receiver,
+                args,
+                new_process);
         });
 
         return ALLOC_NUMBER(new_process->get_id());
@@ -60,7 +66,10 @@ namespace modules {
 
         if (Process* receiver = Processes::get_process(pid->get_native_value())) {
             CloneCache cache;
-            receiver->push_msg(frame->get_arg(1)->clone(receiver, cache));
+            receiver->get_heap().add_root_source(&cache);
+            Object* copy = frame->get_arg(1)->clone(receiver, cache);
+            receiver->get_heap().remove_root_source(&cache);
+            receiver->push_msg(copy);
             return BOOLEAN(true);
         }
 

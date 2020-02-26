@@ -25,6 +25,6 @@ namespace emerald {
             work);
     }
 
-    boost::asio::thread_pool ThreadPool::_pool;
+    boost::asio::thread_pool ThreadPool::_pool(4);
 
 } // namespace emerald

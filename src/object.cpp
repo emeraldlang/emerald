@@ -513,4 +513,13 @@ namespace emerald {
         return nullptr;
     }
 
+    std::vector<HeapManaged*> CloneCache::get_roots() {
+        std::vector<HeapManaged*> clones;
+        for (const std::pair<Object*, Object*>& pair : _clones) {
+            clones.push_back(pair.second);
+        }
+
+        return clones;
+    }
+
 } // namespace emerald

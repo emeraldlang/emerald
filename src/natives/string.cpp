@@ -89,6 +89,17 @@ namespace natives {
         return BOOLEAN(self->get_native_value() > other->get_native_value());
     }
 
+    NATIVE_FUNCTION(string_iadd) {
+        EXPECT_NUM_ARGS(1);
+
+        CONVERT_RECV_TO(String, self);
+        CONVERT_ARG_TO(0, String, str);
+
+        self->get_native_value().append(str->get_native_value());
+
+        return self;
+    }
+
     NATIVE_FUNCTION(string_clone) {
         EXPECT_NUM_ARGS(0);
 
@@ -169,16 +180,15 @@ namespace natives {
     NATIVE_FUNCTION(string_format) {
         CONVERT_RECV_TO(String, self);
 
-        using ctx = fmt::format_context;
-        std::vector<fmt::basic_format_arg<ctx>> fmt_args;
+        std::vector<fmt::format_args::format_arg> fmt_args;
         size_t n = frame->num_args();
         for (size_t i = 0; i < n; i++) {
             String* arg = Interpreter::execute_method<String>(frame->get_arg(i), magic_methods::str, {}, process);
-            fmt_args.push_back(fmt::internal::make_arg<ctx>(arg->get_native_value()));
+            fmt_args.push_back(fmt::internal::make_arg<fmt::format_context>(arg->get_native_value()));
         }
 
         return ALLOC_STRING(
-            fmt::vformat(self->get_native_value(), fmt::basic_format_args<ctx>(fmt_args.data(), fmt_args.size())));
+            fmt::vformat(self->get_native_value(), fmt::format_args(fmt_args.data(), fmt_args.size())));
     }
 
     NATIVE_FUNCTION(string_split) {

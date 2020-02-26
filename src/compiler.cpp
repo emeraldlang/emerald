@@ -304,7 +304,7 @@ namespace emerald {
         if (std::shared_ptr<Property> property = ASTNode::as<Property>(lvalue)) {
             if (op->is_comp_assignment_op()) {
                 Visit(assignment_expression->get_right_expression());
-                VisitPropertyLoad(property, true);
+                VisitPropertyLoad(property);
                 write_comp_assign(op);
             } else {
                 VisitPropertyStore(property, assignment_expression->get_right_expression());

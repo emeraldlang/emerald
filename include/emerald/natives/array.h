@@ -34,7 +34,8 @@
     X(array_clear)      \
     X(array_push)       \
     X(array_pop)        \
-    X(array_join)
+    X(array_join)       \
+    X(array_indexof)
 
 #define ARRAY_ITERATOR_NATIVES  \
     X(array_iterator_cur)       \

@@ -163,6 +163,7 @@ namespace emerald {
         _array->set_property("push", ALLOC_NATIVE_FUNCTION_NO_MOD(natives::array_push));
         _array->set_property("pop", ALLOC_NATIVE_FUNCTION_NO_MOD(natives::array_pop));
         _array->set_property("join", ALLOC_NATIVE_FUNCTION_NO_MOD(natives::array_join));
+        _array->set_property("indexof", ALLOC_NATIVE_FUNCTION_NO_MOD(natives::array_indexof));
 
         _array_iterator = process->get_heap().allocate<ArrayIterator>(process, _object);
 
@@ -225,6 +226,7 @@ namespace emerald {
         _string->set_property(magic_methods::gt, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::string_gt));
         _string->set_property(magic_methods::lte, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::string_lte));
         _string->set_property(magic_methods::gte, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::string_gte));
+        _string->set_property(magic_methods::iadd, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::string_iadd));
 
         _string->set_property(magic_methods::clone, ALLOC_NATIVE_FUNCTION_NO_MOD(natives::string_clone));
 
