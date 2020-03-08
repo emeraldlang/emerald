@@ -1,8 +1,8 @@
-# Native Types
+# Types
 
 This section describes the types that are built into the interpreter.
 
-### Array
+## Array
 
 #### Example
 ```emerald
@@ -31,7 +31,7 @@ This section describes the types that are built into the interpreter.
 - `pop : self`
     - Removes and returns the last element of the array.
 
-### Boolean
+## Boolean
 `True` and `False`
 
 #### Methods
@@ -40,10 +40,10 @@ This section describes the types that are built into the interpreter.
 - `__neq__ : self, other`
     - Tests whether the boolean is not equal to other. Invoked when used with the `!=` operator.
 
-### None
+## None
 `None`
 
-### Number
+## Number
 Numbers can be expressed in either base 10 or base 16.
 
 #### Example
@@ -99,7 +99,7 @@ Numbers can be expressed in either base 10 or base 16.
 - `__bit_shr__ : self, other`
     - Shifts the bits of the number to the right by other. Invoked when used with the `>>` operator.
 
-### String
+## String
 Strings can be surrounded by single or double quotes.
 
 #### Example

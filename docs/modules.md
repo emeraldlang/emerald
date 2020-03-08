@@ -1,5 +1,21 @@
-# Native Modules
+# Modules
 This sections describes the modules that are built into the language.
+
+## bytecode
+This module contains functions to view the bytecode of functions.
+
+### bytecode
+Returns a `BytecodeIterator` object for the supplied function.
+
+#### Arguments
+- `f` - The function.
+
+### BytecodeIterator
+Iterator object for iterating over the bytecode of a function.
+
+#### Methods
+- `__clone__` - Creates and returns a `BytecodeIterator` object.
+- `__init__ : f` - Initializes the `BytecodeIterator` with the supplied function `f`.
 
 ## collections
 This module contains objects that store a collection of objects.
@@ -63,14 +79,15 @@ An object used for read and write operations on a file.
 
 #### Example
 ```emerald
+import core
 import io
 
 let file_name = 'examples/helloworld.em'
 let fs = clone io.FileStream
 if fs.open(file_name, io.FileAccess.read) then
-    print fs.read()
+    core.print(fs.read())
 else
-    print 'could not open file: {0}'.format(file_name)
+    core.print('could not open file: {0}'.format(file_name))
 end
 ```
 

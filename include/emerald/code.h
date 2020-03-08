@@ -113,12 +113,15 @@ namespace emerald {
 
         void write_new_obj(bool explicit_parent, size_t num_props);
         void write_init(size_t num_args);
+        std::shared_ptr<Code> write_new_func();
         std::shared_ptr<Code> write_new_func(const std::string& label);
         size_t write_new_num(double val);
         size_t write_new_str(const std::string& val);
         void write_new_boolean(bool val);
         void write_new_arr(size_t num_elems);
         void write_null();
+        void write_def_accessor_prop(bool has_setter, bool push_self_back = false);
+        void write_def_data_prop(bool push_self_back = false);
         void write_get_prop(bool push_self_back = false);
         void write_set_prop(bool push_self_back = false);
         void write_self();
@@ -134,8 +137,12 @@ namespace emerald {
 
         void write_ldgbl(const std::string& name);
         void write_stgbl(const std::string& name);
+        size_t add_global_name(const std::string& name);
         void write_ldloc(const std::string& name);
         void write_stloc(const std::string& name);
+        size_t add_local_name(const std::string& name);
+        void write_ldlocs();
+        void write_ldgbls();
 
         size_t write_import(const std::string& name);
 
@@ -207,6 +214,9 @@ namespace emerald {
         std::vector<std::string> _locals;
         std::shared_ptr<std::vector<std::string>> _globals;
 
+        Code(
+            size_t id,
+            std::shared_ptr<std::vector<std::string>> globals);
         Code(  
             const std::string& label,
             size_t id,

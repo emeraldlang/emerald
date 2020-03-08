@@ -54,36 +54,44 @@ namespace emerald {
         return _parent;
     }
 
-    const std::unordered_map<std::string, Object*>& Object::get_properties() const {
+    const std::unordered_map<std::string, PropertyDescriptor*>& Object::get_properties() const {
         return _properties;
     }
 
-    const Object* Object::get_property(const std::string& key) const {
-        if (const Object* property = get_own_property(key)) {
-            return property;
-        }
-
-        if (_parent) {
-            return _parent->get_property(key);
+    Object* Object::get_property(const std::string& key) const {
+        if (PropertyDescriptor* descriptor = get_property_descriptor(key)) {
+            return get_property_value(descriptor);
         }
 
         return nullptr;
     }
-    
-    const Object* Object::get_own_property(const std::string& key) const {
+
+    Object* Object::get_own_property(const std::string& key) const {
+        if (PropertyDescriptor* descriptor = get_own_property_descriptor(key)) {
+            return get_property_value(descriptor);
+        }
+
+        return nullptr;
+    }
+
+    PropertyDescriptor* Object::get_property_descriptor(const std::string& key) const {
+        if (PropertyDescriptor* descriptor = get_own_property_descriptor(key)) {
+            return descriptor;
+        }
+
+        if (_parent) {
+            return _parent->get_property_descriptor(key);
+        }
+
+        return nullptr;
+    }
+
+    PropertyDescriptor* Object::get_own_property_descriptor(const std::string& key) const {
         if (has_own_property(key)) {
             return _properties.at(key);
         }
 
         return nullptr;
-    }
-
-    Object* Object::get_property(const std::string& key) {
-        return const_cast<Object*>(static_cast<const Object&>(*this).get_property(key));
-    }
-
-    Object* Object::get_own_property(const std::string& key) {
-        return const_cast<Object*>(static_cast<const Object&>(*this).get_own_property(key));
     }
 
     bool Object::has_property(const std::string& key) const {
@@ -102,9 +110,24 @@ namespace emerald {
         return _properties.find(key) != _properties.end();
     }
 
-    bool Object::set_property(const std::string& key, Object* value) {
-        _properties[key] = value;
-        return true;
+    void Object::define_property(const std::string& key, PropertyDescriptor* descriptor) {
+        _properties[key] = descriptor;
+    }
+
+    void Object::set_property(const std::string& key, Object* value) {
+        if (has_own_property(key)) {
+            if (_properties[key]->get_type() == PropertyDescriptor::DATA) {
+                _properties[key]->set_value(value);
+            } else {
+                Interpreter::call_obj<Object>(
+                    _properties[key]->get_setter(),
+                    this,
+                    { value },
+                    _process);
+            }
+        } else {
+            _properties[key] = _process->get_heap().allocate<PropertyDescriptor>(_process, value);
+        }
     }
 
     Object* Object::clone(Process* process, CloneCache& cache) {
@@ -116,9 +139,21 @@ namespace emerald {
             _parent->mark();
         }
 
-        for (std::pair<std::string, Object*> pair : get_properties()) {
+        for (std::pair<std::string, PropertyDescriptor*> pair : get_properties()) {
             pair.second->mark();
         }
+    }
+
+    Object* Object::get_property_value(PropertyDescriptor* descriptor) const {
+        if (descriptor->get_type() == PropertyDescriptor::DATA) {
+            return descriptor->get_value();
+        }
+
+        return Interpreter::call_obj<Object>(
+            descriptor->get_getter(),
+            const_cast<Object*>(this),
+            {},
+            _process);
     }
 
     Array::Array(Process* process, const std::vector<Object*>& value)
@@ -467,6 +502,61 @@ namespace emerald {
 
     Number* Number::clone(Process* process, CloneCache& cache) {
         return clone_impl<Number>(process, cache, _value);
+    }
+
+    PropertyDescriptor::PropertyDescriptor(Process* process, Object* value)
+        : Object(process, OBJECT_PROTOTYPE),
+        _type(DATA),
+        _value(value) {}
+
+    PropertyDescriptor::PropertyDescriptor(Process* process, Object* getter, Object* setter)
+        : Object(process, OBJECT_PROTOTYPE),
+        _type(ACCESSOR),
+        _accessor(Accessor{.getter=getter, .setter=setter}) {}
+
+    PropertyDescriptor::Type PropertyDescriptor::get_type() const {
+        return _type;
+    }
+
+    Object* PropertyDescriptor::get_value() const {
+        if (_type == DATA) {
+            return _value;
+        }
+
+        return nullptr;
+    }
+
+    void PropertyDescriptor::set_value(Object* value) {
+        if (_type == DATA) {
+            _value = value;
+        }
+    }
+
+    Object* PropertyDescriptor::get_getter() const {
+        if (_type == ACCESSOR) {
+            return _accessor.getter;
+        }
+
+        return nullptr;
+    }
+
+    Object* PropertyDescriptor::get_setter() const {
+        if (_type == ACCESSOR) {
+            return _accessor.setter;
+        }
+
+        return nullptr;
+    }
+
+    void PropertyDescriptor::reach() {
+        Object::reach();
+
+        if (_type == ACCESSOR) {
+            _accessor.getter->mark();
+            _accessor.setter->mark();
+        } else {
+            _value->mark();
+        }
     }
 
     String::String(Process* process, const std::string& value)

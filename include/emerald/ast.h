@@ -39,6 +39,7 @@ namespace emerald {
     X(DeclarationStatement)     \
     X(FunctionStatement)        \
     X(ObjectStatement)          \
+    X(PropStatement)            \
     X(TryCatchStatement)        \
     X(ThrowStatement)           \
     X(ReturnStatement)          \
@@ -288,10 +289,30 @@ namespace emerald {
         const std::string& get_identifier() const { return _identifier; }
         const std::shared_ptr<LValueExpression>& get_parent() const { return _parent; }
         const std::shared_ptr<StatementBlock>& get_block() const { return _block; }
+
     private:
         std::string _identifier;
         std::shared_ptr<LValueExpression> _parent;
         std::shared_ptr<StatementBlock> _block;
+    };
+
+    class PropStatement final : public Statement {
+    public:
+        PropStatement(std::shared_ptr<SourcePosition> position, const std::string& identifier,
+            std::shared_ptr<StatementBlock> getter, std::shared_ptr<StatementBlock> setter)
+            : Statement(position, nPropStatement),
+            _identifier(identifier),
+            _getter(getter),
+            _setter(setter) {}
+
+        const std::string& get_identifier() const { return _identifier; }
+        const std::shared_ptr<StatementBlock>& get_getter() const { return _getter; }
+        const std::shared_ptr<StatementBlock>& get_setter() const { return _setter; }
+
+    private:
+        std::string _identifier;
+        std::shared_ptr<StatementBlock> _getter;
+        std::shared_ptr<StatementBlock> _setter;
     };
 
     class TryCatchStatement final : public Statement {

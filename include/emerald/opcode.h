@@ -79,6 +79,8 @@ namespace emerald {
     X(new_boolean, 1)           \
     X(new_arr, 1)               \
     X(null, 0)                  \
+    X(def_accessor_prop, 2)     \
+    X(def_data_prop, 1)         \
     X(get_prop, 1)              \
     X(set_prop, 1)              \
     X(self, 0)                  \
@@ -96,6 +98,8 @@ namespace emerald {
     X(stgbl, 1)                 \
     X(ldloc, 1)                 \
     X(stloc, 1)                 \
+    X(ldlocs, 0)                \
+    X(ldgbls, 0)                \
     /* Other */                 \
     X(import, 1)
 

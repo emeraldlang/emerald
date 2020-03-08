@@ -56,8 +56,8 @@ namespace emerald {
         return true;
     }
 
-    void Stack::push_frame(Object* receiver, std::shared_ptr<const Code> code, Module* globals) {
-        _stack.emplace_back(receiver, code, globals);
+    void Stack::push_frame(Object* receiver, std::shared_ptr<const Code> code, Module* globals, Object* locals) {
+        _stack.emplace_back(receiver, code, globals, locals);
     }
 
     const Module* Stack::peek_globals() const {
@@ -77,10 +77,7 @@ namespace emerald {
         for (Frame& frame : _stack) {
             roots.push_back(frame.get_receiver());
             roots.push_back(frame.get_globals());
-
-            for (std::pair<std::string, Object*> local : frame.get_locals()) {
-                roots.push_back(local.second);
-            }
+            roots.push_back(frame.get_locals());
 
             for (Object* obj : frame.get_data_stack()) {
                 roots.push_back(obj);
@@ -90,11 +87,12 @@ namespace emerald {
         return roots;
     }
 
-    Stack::Frame::Frame(Object* receiver, std::shared_ptr<const Code> code, Module* globals)
+    Stack::Frame::Frame(Object* receiver, std::shared_ptr<const Code> code, Module* globals, Object* locals)
         : _receiver(receiver), 
         _code(code), 
         _ip(0),
-        _globals(globals) {}
+        _globals(globals),
+        _locals(locals) {}
 
     Object* Stack::Frame::get_receiver() const {
         return _receiver;
@@ -144,24 +142,28 @@ namespace emerald {
         _globals->set_property(name, val);
     }
 
-    const std::unordered_map<std::string, Object*>& Stack::Frame::get_locals() const {
+    const Object* Stack::Frame::get_locals() const {
+        return _locals;
+    }
+
+    Object* Stack::Frame::get_locals() {
         return _locals;
     }
 
     const Object* Stack::Frame::get_local(const std::string& name) const {
-        return _locals.at(name);
+        return _locals->get_property(name);
     }
 
     Object* Stack::Frame::get_local(const std::string& name) {
-        return _locals.at(name);
+        return _locals->get_property(name);
     }
 
     void Stack::Frame::set_local(const std::string& name, Object* val) {
-        _locals[name] = val;
+        _locals->set_property(name, val);
     }
 
     size_t Stack::Frame::num_locals() const {
-        return _locals.size();
+        return _locals->get_properties().size();
     }
 
     const std::deque<Object*> Stack::Frame::get_data_stack() const {

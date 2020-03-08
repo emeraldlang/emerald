@@ -47,6 +47,9 @@
     X(CLONE, "clone", 0)                \
     X(CLONES, "clones", 0)              \
     X(OBJECT, "object", 0)              \
+    X(PROP, "prop", 0)                  \
+    X(GET, "get", 0)                    \
+    X(SET, "set", 0)                    \
     X(SELF, "self", 0)                  \
     X(IMPORT, "import", 0)              \
     /* Seperators */                    \

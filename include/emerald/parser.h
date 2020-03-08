@@ -54,6 +54,7 @@ namespace emerald {
         std::shared_ptr<DeclarationStatement> parse_declaration_statement();
         std::shared_ptr<FunctionStatement> parse_function_statement();
         std::shared_ptr<ObjectStatement> parse_object_statement();
+        std::shared_ptr<PropStatement> parse_prop_statement();
         std::shared_ptr<TryCatchStatement> parse_try_catch_statement();
         std::shared_ptr<ThrowStatement> parse_throw_statement();
         std::shared_ptr<ReturnStatement> parse_return_statement();

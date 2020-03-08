@@ -50,6 +50,7 @@ namespace emerald {
 
     class CloneCache;
     class Module;
+    class PropertyDescriptor;
 
     class Object : public HeapManaged {
     public:
@@ -63,17 +64,19 @@ namespace emerald {
         Process* get_process() const;
         Object* get_parent() const;
 
-        const std::unordered_map<std::string, Object*>& get_properties() const;
+        const std::unordered_map<std::string, PropertyDescriptor*>& get_properties() const;
 
-        const Object* get_property(const std::string& key) const;
-        const Object* get_own_property(const std::string& key) const;
-        Object* get_property(const std::string& key);
-        Object* get_own_property(const std::string& key);
+        Object* get_property(const std::string& key) const;
+        Object* get_own_property(const std::string& key) const;
+
+        PropertyDescriptor* get_property_descriptor(const std::string& key) const;
+        PropertyDescriptor* get_own_property_descriptor(const std::string& key) const;
 
         bool has_property(const std::string& key) const;
         bool has_own_property(const std::string& key) const;
 
-        bool set_property(const std::string& key, Object* value);
+        void define_property(const std::string& key, PropertyDescriptor* descriptor);
+        void set_property(const std::string& key, Object* value);
 
         virtual Object* clone(Process* process, CloneCache& cache);
 
@@ -83,11 +86,13 @@ namespace emerald {
 
         virtual void reach() override;
 
+        Object* get_property_value(PropertyDescriptor* descriptor) const;
+
     private:
         Process* _process;
         Object* _parent;
 
-        std::unordered_map<std::string, Object*> _properties;
+        std::unordered_map<std::string, PropertyDescriptor*> _properties;
     };
 
     class ArrayIterator;
@@ -263,6 +268,38 @@ namespace emerald {
 
     private:
         double _value;
+    };
+
+    class PropertyDescriptor final : public Object {
+    public:
+        enum Type {
+            ACCESSOR,
+            DATA
+        };
+
+        PropertyDescriptor(Process* process, Object* value);
+        PropertyDescriptor(Process* process, Object* getter, Object* setter);
+
+        Type get_type() const;
+
+        Object* get_value() const;
+        void set_value(Object* value);
+
+        Object* get_getter() const;
+        Object* get_setter() const;
+
+    private:
+        Type _type;
+        struct Accessor {
+            Object* getter;
+            Object* setter;
+        };
+        union {
+            Accessor _accessor;
+            Object* _value;
+        };
+
+        void reach() override;
     };
 
     class String final : public Object {

@@ -50,8 +50,13 @@ namespace emerald {
     std::vector<HeapManaged*> NativeStack::get_roots() {
         std::vector<HeapManaged*> roots;
         for (NativeFrame& frame : _stack) {
-            roots.push_back(frame.get_receiver());
-            roots.push_back(frame.get_globals());
+            if (Object* receiver = frame.get_receiver()) {
+                roots.push_back(receiver);
+            }
+            
+            if (Module* globals = frame.get_globals()) {
+                roots.push_back(globals);
+            }
 
             for (Object* local : frame.get_locals()) {
                 roots.push_back(local);

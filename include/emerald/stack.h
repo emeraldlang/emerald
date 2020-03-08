@@ -41,7 +41,7 @@ namespace emerald {
 
         class Frame {
         public:
-            Frame(Object* receiver, std::shared_ptr<const Code> code, Module* globals);
+            Frame(Object* receiver, std::shared_ptr<const Code> code, Module* globals, Object* locals);
 
             Object* get_receiver() const;
             std::shared_ptr<const Code> get_code() const;
@@ -63,7 +63,8 @@ namespace emerald {
 
             void set_global(const std::string& name, Object* val);
 
-            const std::unordered_map<std::string, Object*>& get_locals() const;
+            const Object* get_locals() const;
+            Object* get_locals();
 
             const Object* get_local(const std::string& name) const;
             Object* get_local(const std::string& name);
@@ -93,7 +94,7 @@ namespace emerald {
             size_t _ip;
 
             Module* _globals;
-            std::unordered_map<std::string, Object*> _locals;
+            Object* _locals;
             std::deque<Object*> _data_stack;
             std::stack<size_t> _catch_stack;
         };
@@ -107,7 +108,7 @@ namespace emerald {
         Frame& peek();
 
         bool pop_frame();
-        void push_frame(Object* receiver, std::shared_ptr<const Code> code, Module* globals);
+        void push_frame(Object* receiver, std::shared_ptr<const Code> code, Module* globals, Object* locals);
 
         const Module* peek_globals() const;
         Module* peek_globals();

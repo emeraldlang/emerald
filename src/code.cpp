@@ -227,6 +227,16 @@ namespace emerald {
         WRITE_OP_WARGS(OpCode::init, { num_args });
     }
 
+    std::shared_ptr<Code> Code::write_new_func() {
+        size_t id = _functions.size();
+        std::shared_ptr<Code> code(new Code(id, _globals));
+        _functions.push_back(code);
+
+        WRITE_OP_WARGS(OpCode::new_func, { id });
+
+        return code;
+    }
+
     std::shared_ptr<Code> Code::write_new_func(const std::string& label) {
         CHECK_THROW_LOGIC_ERROR(!label.empty(), "cannot have empty label");
 
@@ -268,6 +278,14 @@ namespace emerald {
 
     void Code::write_null() {
         WRITE_OP(OpCode::null);
+    }
+
+    void Code::write_def_accessor_prop(bool has_setter, bool push_self_back) {
+        WRITE_OP_WARGS(OpCode::def_accessor_prop, { has_setter, push_self_back });
+    }
+
+    void Code::write_def_data_prop(bool push_self_back) {
+        WRITE_OP_WARGS(OpCode::def_data_prop, { push_self_back });
     }
 
     void Code::write_get_prop(bool push_self_back) {
@@ -318,12 +336,17 @@ namespace emerald {
     }
     
     void Code::write_stgbl(const std::string& name) {
+        WRITE_OP_WARGS(OpCode::stgbl, { add_global_name(name) });
+    }
+
+    size_t Code::add_global_name(const std::string& name) {
         size_t i;
         if (!get_global_id(name, i)) {
             i = _globals->size();
             _globals->push_back(name);
         }
-        WRITE_OP_WARGS(OpCode::stgbl, { i });
+
+        return i;
     }
 
     void Code::write_ldloc(const std::string& name) {
@@ -334,12 +357,25 @@ namespace emerald {
     }
 
     void Code::write_stloc(const std::string& name) {
+        WRITE_OP_WARGS(OpCode::stloc, { add_local_name(name) });
+    }
+
+    size_t Code::add_local_name(const std::string& name) {
         size_t i;
         if (!get_local_id(name, i)) {
             i = _locals.size();
             _locals.push_back(name);
         }
-        WRITE_OP_WARGS(OpCode::stloc, { i });
+
+        return i;
+    }
+
+    void Code::write_ldlocs() {
+        WRITE_OP(OpCode::ldlocs);
+    }
+
+    void Code::write_ldgbls() {
+        WRITE_OP(OpCode::ldgbls);
     }
 
     size_t Code::write_import(const std::string& name) {
@@ -465,6 +501,12 @@ namespace emerald {
     std::vector<Code::Instruction>::const_iterator Code::end() const { 
         return _instructions.end(); 
     }
+
+    Code::Code(
+        size_t id,
+        std::shared_ptr<std::vector<std::string>> globals)
+        : _id(id),
+        _globals(globals) {}
 
     Code::Code(
         const std::string& label,

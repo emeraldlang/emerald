@@ -1,3 +1,3 @@
 - [Getting Started](/)
-- [Native Types](/native-types)
-- [Native Modules](/native-modules)
+- [Types](/types)
+- [Modules](/modules)

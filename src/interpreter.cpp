@@ -218,6 +218,34 @@ namespace emerald {
                     current_frame.push_ds(NONE);
                     break;
                 }
+                case OpCode::def_accessor_prop: {
+                    Object* obj = current_frame.pop_ds();
+                    Object* key = current_frame.pop_ds();
+                    Object* getter = current_frame.pop_ds();
+                    Object* setter;
+                    if (instr.get_arg(0)) {
+                        setter = current_frame.pop_ds();
+                    } else {
+                        setter = NONE;
+                    }
+                    if (instr.get_arg(1)) {
+                        current_frame.push_ds(obj);
+                    }
+                    PropertyDescriptor* descriptor = ALLOC_PROP_ACC_DESC(getter, setter);
+                    obj->define_property(key->as_str(), descriptor);
+                    break;
+                }
+                case OpCode::def_data_prop: {
+                    Object* obj = current_frame.pop_ds();
+                    Object* key = current_frame.pop_ds();
+                    Object* val = current_frame.pop_ds();
+                    PropertyDescriptor* descriptor = ALLOC_PROP_DATA_DESC(val);
+                    if (instr.get_arg(0)) {
+                        current_frame.push_ds(obj);
+                    }
+                    obj->define_property(key->as_str(), descriptor);
+                    break;
+                }
                 case OpCode::get_prop: {
                     Object* obj = current_frame.pop_ds();
                     Object* key = current_frame.pop_ds();
@@ -238,11 +266,7 @@ namespace emerald {
                     if (instr.get_arg(0)) {
                         current_frame.push_ds(obj);
                     }
-                    if (!obj->set_property(key->as_str(), val)) {
-                        throw process->get_heap().allocate<Exception>(
-                            process,
-                            fmt::format("could not set property: {0} of {1}", key->as_str(), obj->as_str()));
-                    }
+                    obj->set_property(key->as_str(), val);
                     break;
                 }
                 case OpCode::self:
@@ -257,17 +281,19 @@ namespace emerald {
                     break;
                 case OpCode::throw_exc:
                     throw current_frame.pop_ds();
-                case OpCode::get_iter:
+                case OpCode::get_iter: {
                     // Check if the object on the data stack implements the methods
                     // in the iterator protocol.
-                    if (current_frame.peek_ds()->has_property(magic_methods::cur) &&
-                        current_frame.peek_ds()->has_property(magic_methods::done) &&
-                        current_frame.peek_ds()->has_property(magic_methods::next)) {
+                    Object* peek = current_frame.peek_ds();
+                    if (peek->has_property(magic_methods::cur) &&
+                        peek->has_property(magic_methods::done) &&
+                        peek->has_property(magic_methods::next)) {
                         // nop
                     } else {
                         current_frame.push_ds(call_method0<Object>(current_frame.pop_ds(), magic_methods::iter, process));
                     }
                     break;
+                }
                 case OpCode::iter_cur:
                     current_frame.push_ds(call_method0<Object>(current_frame.peek_ds(), magic_methods::cur, process));
                     break;
@@ -312,6 +338,12 @@ namespace emerald {
                     current_frame.set_local(name, current_frame.pop_ds());
                     break;
                 }
+                case OpCode::ldlocs:
+                    current_frame.push_ds(current_frame.get_locals());
+                    break;
+                case OpCode::ldgbls:
+                    current_frame.push_ds(current_frame.get_globals());
+                    break;
                 case OpCode::import: {
                     const std::string& name = current_frame.get_code()->get_import_name(
                         instr.get_arg(0));
@@ -343,8 +375,9 @@ namespace emerald {
         std::shared_ptr<Code> code = CodeCache::get_or_load_code(module_name);
         Module* entry_module = process->get_heap().allocate<Module>(process, module_name, code);
         process->get_module_registry().add_module(entry_module);
+        Object* locals = ALLOC_OBJECT();
 
-        process->get_stack().push_frame(entry_module, entry_module->get_code(), entry_module);
+        process->get_stack().push_frame(entry_module, entry_module->get_code(), entry_module, locals);
 
         return execute(process);    
     }
@@ -353,7 +386,8 @@ namespace emerald {
         bool created;
         Module* module = get_module(name, created, process); 
         if (created && !module->is_native()) {
-            process->get_stack().push_frame(module, module->get_code(), module);
+            Object* locals = ALLOC_OBJECT();
+            process->get_stack().push_frame(module, module->get_code(), module, locals);
             execute(process);
         }
 
@@ -364,7 +398,8 @@ namespace emerald {
     Object* Interpreter::call_obj<Object>(Object* obj, Object* receiver, const std::vector<Object*>& args, Process* process) {
         Stack& stack = process->get_stack();
         if (Function* func = dynamic_cast<Function*>(obj)) {
-            stack.push_frame(receiver, func->get_code(), func->get_globals());
+            Object* locals = ALLOC_OBJECT();
+            stack.push_frame(receiver, func->get_code(), func->get_globals(), locals);
 
             Stack::Frame& current_frame = stack.peek();
             for (Object* arg : iterutils::reverse(args)) {

@@ -15,6 +15,8 @@
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include "fmt/format.h"
+
 #include "emerald/compiler.h"
 #include "emerald/iterutils.h"
 #include "emerald/token.h"
@@ -247,6 +249,33 @@ namespace emerald {
         code()->write_call(false, 0);
 
         write_st(object_statement->get_identifier());
+    }
+
+    void Compiler::VisitPropStatement(const std::shared_ptr<PropStatement>& prop_statement) {
+        std::shared_ptr<StatementBlock> setter = prop_statement->get_setter();
+        if (setter) {
+            push_new_func();
+            code()->write_stloc("value");
+            Visit(prop_statement->get_setter());
+            pop_func();
+        }
+
+        push_new_func();
+        Visit(prop_statement->get_getter());
+        pop_func();
+
+        const std::string& identifier = prop_statement->get_identifier();
+        code()->write_new_str(identifier);
+
+        if (is_top_level()) {
+            code()->add_global_name(identifier);
+            code()->write_ldgbls();
+        } else {
+            code()->add_local_name(identifier);
+            code()->write_ldlocs();
+        }
+
+        code()->write_def_accessor_prop(setter != nullptr);
     }
 
     void Compiler::VisitTryCatchStatement(const std::shared_ptr<TryCatchStatement>& try_catch_statement) {
@@ -572,14 +601,6 @@ namespace emerald {
     void Compiler::VisitKeyValuePair(const std::shared_ptr<KeyValuePair>& key_value_pair) {
         Visit(key_value_pair->get_value());
         Visit(key_value_pair->get_key());
-    }
-
-    void Compiler::push_new_func(const std::string& label) {
-        _code_stack.push(code()->write_new_func(label));
-    }
-
-    void Compiler::pop_func() {
-        _code_stack.pop();
     }
 
     bool Compiler::is_top_level() {

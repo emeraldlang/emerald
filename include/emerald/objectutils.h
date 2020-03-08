@@ -95,7 +95,13 @@
 #define ALLOC_MODULE(name) process->get_heap().allocate<Module>(process, name)
 
 #define ALLOC_OBJECT() ALLOC_OBJECT_IN_CTX(process)
-#define ALLOC_OBJECT_IN_CTX(ctx) (ctx)->get_heap().allocate<Object>(ctx, OBJECT_PROTOTYPE)
+#define ALLOC_OBJECT_IN_CTX(ctx) (ctx)->get_heap().allocate<Object>(ctx, (ctx)->get_native_objects().get_object_prototype())
+
+#define ALLOC_PROP_ACC_DESC(getter, setter) ALLOC_PROP_ACC_DESC_IN_CTX(getter, setter, process)
+#define ALLOC_PROP_ACC_DESC_IN_CTX(getter, setter, ctx) (ctx)->get_heap().allocate<PropertyDescriptor>(ctx, getter, setter)
+
+#define ALLOC_PROP_DATA_DESC(val) ALLOC_PROP_DATA_DESC_IN_CTX(val, process)
+#define ALLOC_PROP_DATA_DESC_IN_CTX(val, ctx) (ctx)->get_heap().allocate<PropertyDescriptor>(ctx, val)
 
 #define ALLOC_STRING(str) ALLOC_STRING_IN_CTX(str, process)
 #define ALLOC_STRING_IN_CTX(str, ctx) (ctx)->get_heap().allocate<String>(ctx, str)

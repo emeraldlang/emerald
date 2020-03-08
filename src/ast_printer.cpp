@@ -172,6 +172,10 @@ namespace emerald {
         end_indentation_block();
     }
 
+    void ASTPrinter::VisitPropStatement(const std::shared_ptr<PropStatement>& prop_statement) {
+        
+    }
+
     void ASTPrinter::VisitTryCatchStatement(const std::shared_ptr<TryCatchStatement>& try_catch_statement) {
         start_indentation_block("try");
 

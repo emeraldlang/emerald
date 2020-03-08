@@ -54,6 +54,9 @@
     X(tcp_listener_accept)          \
     X(tcp_listener_get_endpoint)
 
+#define NET_NATIVES     \
+    X(net_resolve)
+
 namespace emerald {
 namespace modules {
 
@@ -61,6 +64,11 @@ namespace modules {
     public:
         IPAddress(Process* process);
         IPAddress(Process* process, Object* parent);
+
+        static IPAddress* from_native_address(
+            Process* process,
+            Object* parent,
+            const boost::asio::ip::address& address);
 
         std::string as_str() const override;
 
@@ -86,6 +94,14 @@ namespace modules {
         IPEndpoint(Process* process);
         IPEndpoint(Process* process, Object* parent);
 
+        static IPEndpoint* from_native_endpoint(
+            Process* process,
+            Object* address_parent,
+            Object* endpoint_parent,
+            const boost::asio::ip::tcp::endpoint& endpoint);
+
+        std::string as_str() const override;
+
         const boost::asio::ip::tcp::endpoint& get_native_endpoint() const;
 
         void init(IPAddress* address, Number* port);
@@ -109,7 +125,7 @@ namespace modules {
         TcpClient(Process* process);
         TcpClient(Process* process, Object* parent);
 
-        void connect(IPEndpoint* endpoint);
+        Boolean* connect(IPEndpoint* endpoint);
 
         String* read(Number* bytes);
         void write(String* buffer);
@@ -154,6 +170,7 @@ namespace modules {
     IP_ENDPOINT_NATIVES
     TCP_CLIENT_NATIVES
     TCP_LISTENER_NATIVES
+    NET_NATIVES
 #undef X
 
     MODULE_INITIALIZATION_FUNC(init_net_module);

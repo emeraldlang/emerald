@@ -2,11 +2,37 @@
 Emerald is an object oriented language that uses prototypal based
 inheritance.
 
+## Installation
+```
+git clone https://github.com/emeraldlang/emerald.git
+cd emerald
+mkdir build
+cd build
+conan install ..
+cmake ..
+make
+```
+
+## Compiling
+The compile command will compile the specified source files and creates an `.emc` file.
+```
+./build/bin/emerald compile some_folder/some_file.em
+```
+
+## Running
+The run command takes the name of the module you want to execute. It looks for
+a `.emc` file so be sure to run the `compile` command before.
+```
+./build/bin/emerald run some_folder.some_file
+```
+
 ## A Few Simple Examples
 
 ### Hello World
 ```emerald
-print 'hello world'
+import core
+
+core.print('hello world')
 ```
 
 ### Fibonacci

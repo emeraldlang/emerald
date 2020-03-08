@@ -33,6 +33,10 @@ namespace emerald {
             return _obj;
         }
 
+        T& operator*() const {
+            return *_obj;
+        }
+
     private:
         T* _obj;
     };

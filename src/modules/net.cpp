@@ -15,6 +15,8 @@
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include "fmt/format.h"
+
 #include "emerald/interpreter.h"
 #include "emerald/magic_methods.h"
 #include "emerald/module.h"
@@ -30,6 +32,16 @@ namespace modules {
 
     IPAddress::IPAddress(Process* process, Object* parent)
         : Object(process, parent) {}
+
+    IPAddress* IPAddress::from_native_address(
+            Process* process,
+            Object* parent,
+            const boost::asio::ip::address& address) {
+        IPAddress* ip_address = process->get_heap().allocate<IPAddress>(
+            process, parent);
+        ip_address->_address = address;
+        return ip_address;
+    }
 
     std::string IPAddress::as_str() const {
         return _address.to_string();
@@ -80,6 +92,31 @@ namespace modules {
         _address(nullptr),
         _port(nullptr) {}
 
+    IPEndpoint* IPEndpoint::from_native_endpoint(
+            Process* process,
+            Object* address_parent,
+            Object* endpoint_parent,
+            const boost::asio::ip::tcp::endpoint& endpoint) {
+        NativeStack::ScopedNativeFrame scoped_frame(process->get_native_stack().push_frame());
+
+        Local<IPAddress> address = Interpreter::create_obj<IPAddress>(
+            address_parent,
+            { ALLOC_STRING(endpoint.address().to_string()) },
+            process);
+        Local<Number> port = ALLOC_NUMBER(endpoint.port());
+        Local<IPEndpoint> ip_endpoint = process->get_heap().allocate<IPEndpoint>(
+            process, endpoint_parent);
+        ip_endpoint->_address = address.val();
+        ip_endpoint->_port = port.val();
+        ip_endpoint->_endpoint = endpoint;
+
+        return ip_endpoint.val();
+    }
+
+    std::string IPEndpoint::as_str() const {
+        return fmt::format("{0}:{1}", _endpoint.address().to_string(), _endpoint.port());
+    }
+
     const boost::asio::ip::tcp::endpoint& IPEndpoint::get_native_endpoint() const {
         return _endpoint;
     }
@@ -114,8 +151,14 @@ namespace modules {
         : Object(process, parent),
         _socket(_service) {}
 
-    void TcpClient::connect(IPEndpoint* endpoint) {
-        _socket.connect(endpoint->get_native_endpoint());
+    Boolean* TcpClient::connect(IPEndpoint* endpoint) {
+        boost::system::error_code error;
+        _socket.connect(endpoint->get_native_endpoint(), error);
+        if (error) {
+            return BOOLEAN_IN_CTX(false, get_process());
+        }
+
+        return BOOLEAN_IN_CTX(true, get_process());
     }
 
     String* TcpClient::read(Number* bytes) {
@@ -378,6 +421,28 @@ namespace modules {
         return self->get_endpoint();
     }
 
+    NATIVE_FUNCTION(net_resolve) {
+        EXPECT_NUM_ARGS(1);
+
+        CONVERT_ARG_TO(0, String, hostname);
+
+        boost::asio::io_service service;
+        boost::asio::ip::tcp::resolver resolver(service);
+        boost::asio::ip::tcp::resolver::iterator iter = resolver.resolve(hostname->get_native_value(), "");
+        boost::asio::ip::tcp::resolver::iterator end;
+        Local<Array> res = ALLOC_EMPTY_ARRAY();
+        while (iter != end) {
+            const boost::asio::ip::tcp::endpoint& endpoint = *iter;
+            res->push(IPAddress::from_native_address(
+                process,
+                frame->get_global("IPAddress"),
+                endpoint.address()));
+            iter++;
+        }
+
+        return res.val();
+    }
+
     MODULE_INITIALIZATION_FUNC(init_net_module) {
         Process* process =  module->get_process();
 
@@ -414,6 +479,8 @@ namespace modules {
         tcp_listener->set_property("accept", ALLOC_NATIVE_FUNCTION(tcp_listener_accept));
         tcp_listener->set_property("get_endpoint", ALLOC_NATIVE_FUNCTION(tcp_listener_get_endpoint));
         module->set_property("TcpListener", tcp_listener.val());
+
+        module->set_property("resolve", ALLOC_NATIVE_FUNCTION(net_resolve));
     }
 
 } // namespace modules

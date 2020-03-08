@@ -68,6 +68,8 @@ namespace emerald {
             return parse_function_statement();
         case Token::OBJECT:
             return parse_object_statement();
+        case Token::PROP:
+            return parse_prop_statement();
         case Token::TRY:
             return parse_try_catch_statement();
         case Token::THROW:
@@ -269,6 +271,29 @@ namespace emerald {
         expect(Token::END);
 
         return std::make_shared<ObjectStatement>(end_pos(start), identifier, parent, block);
+    }
+
+    std::shared_ptr<PropStatement> Parser::parse_prop_statement() {
+        expect(Token::PROP);
+
+        std::shared_ptr<SourcePosition> start = start_pos();
+
+        expect(Token::IDENTIFIER);
+        std::string identifier = _scanner.current()->get_lexeme();
+
+        expect(Token::GET);
+        std::shared_ptr<StatementBlock> getter = parse_statement_block({ Token::END });
+        expect(Token::END);
+
+        std::shared_ptr<StatementBlock> setter;
+        if (match(Token::SET)) {
+            setter = parse_statement_block({ Token::END });
+            expect(Token::END);
+        }
+
+        expect(Token::END);
+
+        return std::make_shared<PropStatement>(end_pos(start), identifier, getter, setter);
     }
 
     std::shared_ptr<TryCatchStatement> Parser::parse_try_catch_statement() {

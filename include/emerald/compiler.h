@@ -67,10 +67,20 @@ namespace emerald {
         void VisitIdentifierLoad(const std::shared_ptr<Identifier>& identifier);
         void VisitIdentifierStore(const std::shared_ptr<Identifier>& identifier, const std::shared_ptr<Expression>& val);
 
-        void push_new_func(const std::string& label);
-        void pop_func();
         bool is_top_level();
         bool is_code_top_level(const std::shared_ptr<Code>& code);
+
+        void push_new_func() {
+            _code_stack.push(code()->write_new_func());
+        }
+
+        void push_new_func(const std::string& label) {
+            _code_stack.push(code()->write_new_func(label));
+        }
+
+        void pop_func() {
+            _code_stack.pop();
+        }
 
         std::shared_ptr<Code> code() {
             if (_code_stack.size()) {
