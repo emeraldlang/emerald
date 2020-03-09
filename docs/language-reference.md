@@ -361,7 +361,7 @@ let X = clone Y
 If we were to now call `core.super(X)` it would return `Y`. A subsequent call would return
 `core.Object` and finally `None` to end the chain.
 
-Because `X` inherits from `Y`, if you access `prop`, it will return the string 'hello'.
+Because `X` inherits from `Y`, if you access `some_prop`, it will return the string `'hello'`.
 
 Emerald also includes a simpler syntax to add more properties to `X`:
 ```emerald
@@ -382,9 +382,23 @@ object X clones Y
     end
 end
 ```
+You define variables and functions as you would normally, all 'local' variables in the
+body of the object will be set as properties of `X`.
 
-The `prop` statement is used to define properties with a getter and setter. The setter
-receives the implicit argument `value`, this is the value that the property has been
-assigned.
+In addition to defining variables and functions you can use the `prop` statement is used
+to define properties with a getter and setter. The setter receives the implicit argument `value`,
+this is the value that the property has been assigned.
 
 ## Modules
+Every file in Emerald is considered to be a module. Once your project has grown, it will become
+necessary to split your code between multiple files. If you want to import a module into another,
+you use the `import` statement. For example, if the relative path to a module is `/my_lib/something/my_module.em`,
+the module name would be `my_lib.something.my_module`:
+```emerald
+import my_lib.something.my_module
+```
+
+And you can now use the contents of that module:
+```emerald
+my_lib.something.my_module.do_something()
+```

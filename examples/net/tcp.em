@@ -10,9 +10,9 @@ let client = listener.accept()
 let msg = client.read(5)
 
 if msg == 'hello' then
-    client.write("hello!")
+    client.write('hello!')
 else
-    client.write("i don't understand")
+    client.write('i don\'t understand')
 end
 
 listener.stop()

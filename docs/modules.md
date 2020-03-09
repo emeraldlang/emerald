@@ -402,18 +402,126 @@ Returns a `Boolean` that indicates if the `IPAddress` is ipv4.
 Returns a `Boolean` that indicates if the `IPAddress` is ipv6.
 
 ### *object* IPEndpoint
+An object that represents and `IPAddress` and port.
+
+### Methods
+- `__init__ : address, port`  
+Initializes the `IPEndpoint` with the provided address and port.
+- `__clone__`  
+Creates and returns a `IPEndpoint` object.
+- `get_address`  
+Returns the `IPAddress` for the `IPEndpoint`.
+-`get_port`  
+Returns the port for the `IPEndpoint`.
 
 ### *object* TCPClient
+An object for TCP connections.
+
+### Methods
+- `__clone__`  
+Creates and returns a `TCPClient` object.
+- `connect : endpoint`  
+Connects to the specified endpoint, returns a `Boolean` that indicates whether the connection was successful.
+- `read : n`
+Reads `n` bytes from the socket.
+- `write : s`
+Writes the contents of `s` to the socket.
+
+### Example
+```emerald
+import net
+
+let endpoint = clone net.IPEndpoint(clone net.IPAddress('127.0.0.1'), 8000)
+let client = clone net.TCPClient
+
+if client.connect(endpoint) then
+    client.write('hello!')
+    core.print(client.read(5))
+else
+    core.print('failed to connect to {0}'.format(endpoint))
+end
+```
 
 ### *object* TCPListener
+An object that listens for TCP client connections.
+
+### Methods
+- `__init__ : endpoint`  
+Initializes the `TCPListener` with the provided `IPEndpoint`.
+- `__clone__`  
+Creates and returns a `TCPListener` object.
+- `start`  
+Starts listening for incoming connections.
+- `stop`  
+Stops listening for incoming connections.
+- `is_listening`  
+Returns a `Boolean` that indicates whether the `TCPListener` is listening for incoming connections.
+- `accept`  
+Accepts an incoming connection, returns a `TCPClient` object.
+- `get_endpoint`  
+Gets the `IPEndpoint` for the `TCPListener`.
+
+### Example
+```emerald
+import net
+
+let endpoint = clone net.IPEndpoint(clone net.IPAddress('127.0.0.1'), 8000)
+let listener = clone net.TcpListener(endpoint)
+
+listener.start()
+
+let client = listener.accept()
+let msg = client.read(5)
+
+if msg == 'hello' then
+    client.write('hello!')
+else
+    client.write('i don\'t understand')
+end
+
+listener.stop()
+
+```
+
+### *function* resolve
+Resolves a DNS hostname, returns an array of `IPAddress`.
+
+### Methods
 
 ## process
 This module contains functions for process creation and interprocess communication.
 
 ### *function* create
+Creates a new process.
+
+### Arguments
+- `f` - The callable object.
+- `...args` - The arguments to pass to `f`.
+
+### Example
+```emerald
+import process
+
+def some_work
+    # do something
+end
+
+let pid = process.create(some_work)
+```
 
 ### *function* id
+Returns the id of the current process.
 
 ### *function* receive
+Dequeues a message from the current process' mailbox, it will
+block if there are no mesages.
 
 ### *function* send
+Enqueues a message in the mailbox of the process specified by
+the provided `pid`.
+
+#### Arguments
+- `pid`  
+The id of the process to send to.
+- `msg`  
+The message to send to the process.
