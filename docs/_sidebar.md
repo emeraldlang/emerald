@@ -1,3 +1,3 @@
 - [Getting Started](/)
-- [Types](/types)
+- [Language Reference](/language-reference)
 - [Modules](/modules)

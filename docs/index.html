@@ -18,7 +18,8 @@
       alias: {
         '/.*/_sidebar.md': '/_sidebar.md'
       },
-      subMaxLevel: 2
+      subMaxLevel: 2,
+      auto2top: true,
     }
   </script>
   <script src="//unpkg.com/docsify/lib/docsify.min.js"></script>
@@ -28,7 +29,7 @@
         pattern: /(^|[^\\])#.*/,
         lookbehind: true
       },
-      'keyword': /\b(?:do|end|for|to|by|while|if|then|else|print|let|def|object|return|import|object|clones|clone)\b/,
+      'keyword': /\b(?:do|end|for|to|by|while|if|then|else|print|let|def|object|return|import|object|clones|clone|prop|get|set|try|catch)\b/,
       'boolean': /\b(?:True|False|None)\b/,
       'string': {
         pattern: /("|')[\s\S]+?\1/,
