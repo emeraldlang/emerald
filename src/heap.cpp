@@ -29,26 +29,46 @@ namespace emerald {
     }
 
     const std::unordered_set<HeapManaged*>& Heap::get_managed_set() const {
+        std::lock_guard<std::mutex> lock(_mutex);
         return _managed_set;
     }
 
     size_t Heap::get_managed_count() const {
+        std::lock_guard<std::mutex> lock(_mutex);
         return _managed_set.size();
     }
 
     void Heap::add_managed(HeapManaged* managed) {
+        std::lock_guard<std::mutex> lock(_mutex);
         _managed_set.insert(managed);
     }
 
     void Heap::add_root_source(HeapRootSource* root_source) {
+        std::lock_guard<std::mutex> lock(_mutex);
         _root_source_set.insert(root_source);
     }
 
     void Heap::remove_root_source(HeapRootSource* root_source) {
+        std::lock_guard<std::mutex> lock(_mutex);
         _root_source_set.erase(root_source);
     }
 
     void Heap::collect() {
+        std::lock_guard<std::mutex> lock(_mutex);
+        collect_nolock();
+    }
+
+    size_t Heap::threshold() const {
+        std::lock_guard<std::mutex> lock(_mutex);
+        return _threshold;
+    }
+
+    void Heap::set_threshold(size_t threshold) {
+        std::lock_guard<std::mutex> lock(_mutex);
+        _threshold = threshold;
+    }
+
+    void Heap::collect_nolock() {
         for (HeapRootSource* root_source : _root_source_set) {
             for (HeapManaged* managed : root_source->get_roots()) {
                 managed->mark();
@@ -66,14 +86,6 @@ namespace emerald {
                 it++;
             }
         }
-    }
-
-    size_t Heap::threshold() const {
-        return _threshold;
-    }
-
-    void Heap::set_threshold(size_t threshold) {
-        _threshold = threshold;
     }
 
 } // namespace emerald

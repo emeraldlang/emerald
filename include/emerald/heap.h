@@ -18,6 +18,7 @@
 #ifndef _EMERALD_HEAP_H
 #define _EMERALD_HEAP_H
 
+#include <mutex>
 #include <unordered_set>
 #include <utility>
 
@@ -50,13 +51,18 @@ namespace emerald {
         std::unordered_set<HeapManaged*> _managed_set;
         std::unordered_set<HeapRootSource*> _root_source_set;
 
+        mutable std::mutex _mutex;
+
         size_t _threshold;
+
+        void collect_nolock();
     };
 
     template <class T, class... Args>
     T* Heap::allocate(Args&&... args) {
+        std::lock_guard<std::mutex> lock(_mutex);
         if (_managed_set.size() >= _threshold) {
-            collect();
+            collect_nolock();
             _threshold *= 2;
         }
 

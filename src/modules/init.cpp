@@ -20,6 +20,7 @@
 #include "emerald/modules/bytecode.h"
 #include "emerald/modules/collections.h"
 #include "emerald/modules/core.h"
+#include "emerald/modules/datetime.h"
 #include "emerald/modules/gc.h"
 #include "emerald/modules/io.h"
 #include "emerald/modules/net.h"
@@ -32,6 +33,7 @@ namespace modules {
         NativeModuleInitRegistry::add_module_init("bytecode", init_bytecode_module);
         NativeModuleInitRegistry::add_module_init("collections", init_collections_module);
         NativeModuleInitRegistry::add_module_init("core", init_core_module);
+        NativeModuleInitRegistry::add_module_init("datetime", init_datetime_module);
         NativeModuleInitRegistry::add_module_init("gc", init_gc_module);
         NativeModuleInitRegistry::add_module_init("io", init_io_module);
         NativeModuleInitRegistry::add_module_init("net", init_net_module);

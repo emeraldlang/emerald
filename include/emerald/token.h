@@ -52,6 +52,7 @@
     X(SET, "set", 0)                    \
     X(SELF, "self", 0)                  \
     X(IMPORT, "import", 0)              \
+    X(AS, "as", 0)                      \
     /* Seperators */                    \
     X(COLON, ":", 0)                    \
     X(LPAREN, "(", 0)                   \

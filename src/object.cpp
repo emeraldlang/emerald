@@ -115,12 +115,21 @@ namespace emerald {
     }
 
     void Object::set_property(const std::string& key, Object* value) {
-        if (has_own_property(key)) {
-            if (_properties[key]->get_type() == PropertyDescriptor::DATA) {
-                _properties[key]->set_value(value);
-            } else {
+        if (PropertyDescriptor* descriptor = get_own_property_descriptor(key)) {
+            if (descriptor->get_type() == PropertyDescriptor::DATA) {
+                descriptor->set_value(value);
+            } else if (Object* setter = descriptor->get_setter()) {
                 Interpreter::call_obj<Object>(
-                    _properties[key]->get_setter(),
+                    setter,
+                    this,
+                    { value },
+                    _process);
+            }
+        } else if (PropertyDescriptor* descriptor = get_property_descriptor(key);
+                descriptor && descriptor->get_type() == PropertyDescriptor::ACCESSOR) {
+            if (Object* setter = descriptor->get_setter()) {
+                Interpreter::call_obj<Object>(
+                    setter,
                     this,
                     { value },
                     _process);
@@ -477,7 +486,10 @@ namespace emerald {
     }
 
     std::string Number::as_str() const {
-        return fmt::format("{0:g}", _value);
+        std::string str = fmt::format("{0:f}", _value);
+        str.erase(str.find_last_not_of('0') + 1);
+        str.erase(str.find_last_not_of('.') + 1);
+        return str;
     }
 
     void Number::init(Number* val) {
@@ -546,6 +558,18 @@ namespace emerald {
         }
 
         return nullptr;
+    }
+
+    PropertyDescriptor* PropertyDescriptor::clone(Process* process, CloneCache& cache) {
+        PropertyDescriptor* clone = clone_impl<PropertyDescriptor>(process, cache);
+        if (_type == ACCESSOR) {
+            clone->_accessor.getter = _accessor.getter->clone(process, cache);
+            clone->_accessor.setter = _accessor.setter->clone(process, cache);
+        } else {
+            clone->_value = _value->clone(process, cache);
+        }
+
+        return clone;
     }
 
     void PropertyDescriptor::reach() {

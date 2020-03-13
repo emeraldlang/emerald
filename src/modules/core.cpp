@@ -57,7 +57,7 @@ namespace modules {
     NATIVE_FUNCTION(core_range) {
         EXPECT_NUM_ARGS(1);
 
-        TRY_CONVERT_ARG_TO(0, Number, n);
+        CONVERT_ARG_TO(0, Number, n);
         Local<Array> res = ALLOC_EMPTY_ARRAY();
         for (size_t i = 0; i < n->get_native_value(); i++) {
             res->push(ALLOC_NUMBER(i));

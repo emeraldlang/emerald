@@ -173,7 +173,19 @@ namespace emerald {
     }
 
     void ASTPrinter::VisitPropStatement(const std::shared_ptr<PropStatement>& prop_statement) {
-        
+        start_indentation_block("prop");
+
+        start_indentation_block("get");
+        Visit(prop_statement->get_getter());
+        end_indentation_block();
+
+        if (std::shared_ptr<StatementBlock> setter = prop_statement->get_setter()) {
+            start_indentation_block("set");
+            Visit(setter);
+            end_indentation_block();
+        }
+
+        end_indentation_block();
     }
 
     void ASTPrinter::VisitTryCatchStatement(const std::shared_ptr<TryCatchStatement>& try_catch_statement) {

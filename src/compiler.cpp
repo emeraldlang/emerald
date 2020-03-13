@@ -318,7 +318,11 @@ namespace emerald {
 
         code()->write_import(module_name);
 
-        write_st(module_name);
+        if (import_statement->has_alias()) {
+            write_st(import_statement->get_alias());
+        } else {
+            write_st(module_name);
+        }
     }
 
     void Compiler::VisitExpressionStatement(const std::shared_ptr<ExpressionStatement>& expression_statement) {

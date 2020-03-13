@@ -226,7 +226,7 @@ namespace emerald {
                     if (instr.get_arg(0)) {
                         setter = current_frame.pop_ds();
                     } else {
-                        setter = NONE;
+                        setter = nullptr;
                     }
                     if (instr.get_arg(1)) {
                         current_frame.push_ds(obj);

@@ -67,7 +67,8 @@
         }                                                   \
     } while (false)
 
-#define NONE process->get_native_objects().get_null()
+#define NONE NONE_IN_CTX(process)
+#define NONE_IN_CTX(ctx) (process)->get_native_objects().get_null()
 #define BOOLEAN(val) BOOLEAN_IN_CTX(val, process)
 #define BOOLEAN_IN_CTX(val, ctx) (ctx)->get_native_objects().get_boolean(val)
 #define FALSE process->get_native_objects().get_boolean(false)

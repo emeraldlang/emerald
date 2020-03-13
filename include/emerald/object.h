@@ -288,6 +288,8 @@ namespace emerald {
         Object* get_getter() const;
         Object* get_setter() const;
 
+        PropertyDescriptor* clone(Process* process, CloneCache& cache) override;
+
     private:
         Type _type;
         struct Accessor {
@@ -350,8 +352,8 @@ namespace emerald {
             // there may be a circular reference.
             obj->_parent = _parent->clone(process, cache);
         }
-        for (std::pair<std::string, Object*> pair : get_properties()) {
-            obj->set_property(pair.first, pair.second->clone(process, cache));
+        for (std::pair<std::string, PropertyDescriptor*> pair : get_properties()) {
+            obj->define_property(pair.first, pair.second->clone(process, cache));
         }
         return obj;
     }

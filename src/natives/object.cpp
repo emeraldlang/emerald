@@ -73,7 +73,7 @@ namespace natives {
     NATIVE_FUNCTION(object_get_prop) {
         EXPECT_NUM_ARGS(2);
 
-        TRY_CONVERT_ARG_TO(0, String, name);
+        CONVERT_ARG_TO(0, String, name);
 
         if (Object* property = frame->get_receiver()->get_property(name->get_native_value())) {
             return property;
@@ -85,7 +85,7 @@ namespace natives {
     NATIVE_FUNCTION(object_set_prop) {
         EXPECT_NUM_ARGS(2);
 
-        TRY_CONVERT_ARG_TO(0, String, name);
+        CONVERT_ARG_TO(0, String, name);
         frame->get_receiver()->set_property(name->get_native_value(), frame->get_arg(1));
 
         return NONE;

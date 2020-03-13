@@ -15,16 +15,37 @@
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "emerald/thread_pool.h"
+#include "emerald/mailbox.h"
+#include "emerald/object.h"
 
 namespace emerald {
-    
-    void ThreadPool::queue(std::function<void()> work) {
-        boost::asio::post(
-            _pool,
-            work);
+
+    void Mailbox::push_msg(Object* message) {
+        {
+            std::lock_guard<std::mutex> lock(_mutex);
+            _mailbox.push_back(message);
+        }
+
+        _cv.notify_one();
     }
 
-    boost::asio::thread_pool ThreadPool::_pool;
+    Object* Mailbox::pop_msg() {
+        std::unique_lock<std::mutex> lock(_mutex);
+        while (_mailbox.empty()) _cv.wait(lock);
+
+        Object* message = _mailbox.front();
+        _mailbox.pop_front();
+
+        return message;
+    }
+
+    std::vector<HeapManaged*> Mailbox::get_roots() {
+        std::vector<HeapManaged*> roots;
+        for (Object* msg : _mailbox) {
+            roots.push_back(msg);
+        }
+
+        return roots;
+    }
 
 } // namespace emerald

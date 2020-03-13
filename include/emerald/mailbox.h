@@ -15,16 +15,32 @@
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-#include "emerald/thread_pool.h"
+#ifndef _EMERALD_MAILBOX_H
+#define _EMERALD_MAILBOX_H
+
+#include <condition_variable>
+#include <deque>
+#include <mutex>
+
+#include "emerald/heap_root_source.h"
 
 namespace emerald {
-    
-    void ThreadPool::queue(std::function<void()> work) {
-        boost::asio::post(
-            _pool,
-            work);
-    }
 
-    boost::asio::thread_pool ThreadPool::_pool;
+    class Object;
+
+    class Mailbox : public HeapRootSource {
+    public:
+        void push_msg(Object* message);
+        Object* pop_msg();
+
+        std::vector<HeapManaged*> get_roots() override;
+
+    private:
+        std::deque<Object*> _mailbox;
+        std::mutex _mutex;
+        std::condition_variable _cv;
+    };
 
 } // namespace emerald
+
+#endif // _EMERALD_MAILBOX_H

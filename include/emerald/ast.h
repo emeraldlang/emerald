@@ -360,14 +360,19 @@ namespace emerald {
 
     class ImportStatement final : public Statement {
     public:
-        ImportStatement(std::shared_ptr<SourcePosition> position, const std::string& module_name)
+        ImportStatement(std::shared_ptr<SourcePosition> position, const std::string& module_name, const std::string& alias = "")
             : Statement(position, nImportStatement),
-            _module_name(module_name) {}
+            _module_name(module_name),
+            _alias(alias) {}
 
         const std::string& get_module_name() const { return _module_name; }
 
+        const std::string& get_alias() const { return _alias; }
+        bool has_alias() const { return _alias != ""; }
+
     private:
         std::string _module_name;
+        std::string _alias;
     };
 
     class ExpressionStatement final : public Statement {

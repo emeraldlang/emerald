@@ -18,12 +18,10 @@
 #ifndef _EMERALD_PROCESS_H
 #define _EMERALD_PROCESS_H
 
-#include <condition_variable>
-#include <mutex>
-#include <queue>
 #include <unordered_map>
 
 #include "emerald/heap.h"
+#include "emerald/mailbox.h"
 #include "emerald/module_registry.h"
 #include "emerald/native_objects.h"
 #include "emerald/native_stack.h"
@@ -44,6 +42,9 @@ namespace emerald {
         const Heap& get_heap() const { return _heap; }
         Heap& get_heap() { return _heap; }
 
+        const Mailbox& get_mailbox() const { return _mailbox; }
+        Mailbox& get_mailbox() { return _mailbox; }
+
         const ModuleRegistry& get_module_registry() const { return _module_registry; }
         ModuleRegistry& get_module_registry() { return _module_registry; }
 
@@ -56,21 +57,15 @@ namespace emerald {
         const Stack& get_stack() const { return _stack; }
         Stack& get_stack() { return _stack; }
 
-        void push_msg(Object* message);
-        Object* pop_msg();
-
     private:
         PID _id;
 
         Heap _heap;
+        Mailbox _mailbox;
         ModuleRegistry _module_registry;
         NativeObjects _native_objects;
         NativeStack _native_stack;
         Stack _stack;
-
-        std::queue<Object*> _mailbox;
-        std::mutex _mutex;
-        std::condition_variable _cv;
     };
 
     class Processes {

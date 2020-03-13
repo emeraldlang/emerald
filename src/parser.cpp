@@ -342,7 +342,13 @@ namespace emerald {
             parts.push_back(_scanner.current()->get_lexeme()); 
         } while (match(Token::DOT));
 
-        return std::make_shared<ImportStatement>(end_pos(start), strutils::join(parts.begin(), parts.end(), "."));
+        std::string alias;
+        if (match(Token::AS)) {
+            expect(Token::IDENTIFIER);
+            alias = _scanner.current()->get_lexeme();
+        }
+
+        return std::make_shared<ImportStatement>(end_pos(start), strutils::join(parts.begin(), parts.end(), "."), alias);
     }
 
     std::shared_ptr<ExpressionStatement> Parser::parse_expression_statement() {

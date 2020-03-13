@@ -140,6 +140,7 @@ namespace modules {
         IPEndpoint* clone = clone_impl<IPEndpoint>(process, cache);
         clone->_address = _address->clone(process, cache);
         clone->_port = _port->clone(process, cache);
+        clone->_endpoint = _endpoint;
         return clone;
     }
 

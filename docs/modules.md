@@ -233,6 +233,121 @@ Prints the provided objects to console.
 - `...objs`  
 The objects to print to console.
 
+## datetime
+The module contains functions and objects for working with dates and times.
+
+### *object* Date
+Object that represents a date.
+
+#### Methods
+- `__iadd__ : days`  
+Adds days to the `Date` in place. Invoked when used with the `+=` operator.
+- `__isub__ : days`  
+Subtracts days from the `Date` in place. Invoked when used with the `-=` operator.
+- `__clone__`  
+Creates and returns a `Date` object.
+- `__init__`  
+Initializes the `Date` object.
+
+#### Properties
+- *get* `year`  
+The year part of the date.
+- *get* `month`  
+The month part of the date.
+- *get* `day`  
+The day part of the date.
+- *get* `day_of_week`  
+The day of the week (Monday, Thursday, etc).
+- *get* `day_of_year`  
+The day of the year (1 to 366).
+- *get* `end_of_month`  
+A `Date` object that set to the last day of this `Date`'s month.
+
+### Example
+```emerald
+import core
+import datetime
+
+let date = clone datetime.Date(2020, 3, 20)
+core.print(date) # 2020-Mar-20
+```
+
+### *object* TimeDuration
+Object that represents a length of time.
+
+#### Methods
+- `__add__ : other`  
+Returns a new `TimeDuration` that adds the value of other to this `TimeDuration`. Invoked when used with the `+` operator.
+- `__sub__ : other`  
+Returns a new `TimeDuration` that subtracts the value of other from this `TimeDuration`. Invoked when used with the `-` operator.
+- `__iadd__ : other`  
+Adds other to the `TimeDuration` in place. Invoked when used with the `+=` operator.
+- `__isub__ : other`  
+Subtracts other from the `TimeDuration` in place. Invoked when used with the `-=` operator.
+- `__clone__`  
+Creates and returns a `TimeDuration` object.
+- `__init__`  
+Initializes the `TimeDuration` object.
+
+#### Properties
+- *get* `hours`  
+The number of normalized hours.
+- *get* `minutes`  
+The number of normalized minutes.
+- *get* `seconds`  
+The number of normalized seconds.
+- *get* `milliseconds`  
+The number of milliseconds.
+- *get* `total_seconds`  
+The total number of seconds.
+- *get* `total_milliseconds`  
+The total number of seconds.
+
+### Example
+```emerald
+import core
+import datetime
+
+let duration = clone datetime.TimeDuration(1, 20, 33, 543)
+core.print(duration) # 01:20:33.543
+```
+
+### *object* Time
+Object that represents a point in time.
+
+#### Methods
+- `__iadd__ : time`  
+Adds the `TimeDuration` time to the `Time` in place. Invoked when used with the `+=` operator.
+- `__isub__ : time`  
+Subtracts the `TimeDuration` time from the `Time` in place. Invoked when used with the `-=` operator.
+- `__clone__`  
+Creates and returns a `Time` object.
+- `__init__`  
+Initializes the `Time` object.
+
+#### Properties
+- *get* `date`  
+The date (see [Date](#object-date)).
+- *get* `time_of_day`  
+The time of day (see [TimeDuration](#object-timeduration)).
+
+### Example
+```emerald
+import core
+import datetime
+
+let date = clone datetime.Date(2020, 3, 20)
+let time_of_day = clone datetime.TimeDuration(1, 20, 33, 543)
+let time = clone datetime.Time(date, time_of_day)
+core.print(time) # 2020-Mar-20 01:20:33.543
+```
+
+### *function* universal_time
+Gets the UTC time (see [Time](#object-time)).
+
+### *function* local_time
+Gets the local time (see [Time](#object-time))
+
 ## gc
 This module contains functions for garbage collection.
 
@@ -485,8 +600,6 @@ listener.stop()
 
 ### *function* resolve
 Resolves a DNS hostname, returns an array of `IPAddress`.
-
-### Methods
 
 ## process
 This module contains functions for process creation and interprocess communication.

@@ -56,20 +56,20 @@ namespace modules {
     NATIVE_FUNCTION(process_receive) {
         EXPECT_NUM_ARGS(0);
 
-        return process->pop_msg();
+        return process->get_mailbox().pop_msg();
     }
 
     NATIVE_FUNCTION(process_send) {
         EXPECT_NUM_ARGS(2);
 
-        TRY_CONVERT_ARG_TO(0, Number, pid);
+        CONVERT_ARG_TO(0, Number, pid);
 
         if (Process* receiver = Processes::get_process(pid->get_native_value())) {
             CloneCache cache;
             receiver->get_heap().add_root_source(&cache);
             Object* copy = frame->get_arg(1)->clone(receiver, cache);
             receiver->get_heap().remove_root_source(&cache);
-            receiver->push_msg(copy);
+            receiver->get_mailbox().push_msg(copy);
             return BOOLEAN(true);
         }
 

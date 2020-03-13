@@ -21,7 +21,7 @@ endif()
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup(TARGETS)
 
-find_package(Boost COMPONENTS serialization REQUIRED)
+find_package(Boost COMPONENTS serialization date_time REQUIRED)
 # find_package(CLI11 REQUIRED)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -35,11 +35,13 @@ add_library(emerald_s SHARED
     src/heap.cpp
     src/heap_managed.cpp
     src/interpreter.cpp
+    src/mailbox.cpp
     src/module.cpp
     src/module_registry.cpp
     src/modules/bytecode.cpp
     src/modules/collections.cpp
     src/modules/core.cpp
+    src/modules/datetime.cpp
     src/modules/gc.cpp
     src/modules/init.cpp
     src/modules/io.cpp

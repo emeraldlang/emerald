@@ -23,29 +23,11 @@ namespace emerald {
     Process::Process(PID id)
         : _id(id),
         _native_objects(this) {
+        _heap.add_root_source(&_mailbox);
         _heap.add_root_source(&_module_registry);
         _heap.add_root_source(&_native_objects);
         _heap.add_root_source(&_native_stack);
         _heap.add_root_source(&_stack);
-    }
-
-    void Process::push_msg(Object* message) {
-        {
-            std::lock_guard<std::mutex> lock(_mutex);
-            _mailbox.push(message);
-        }
-
-        _cv.notify_one();
-    }
-
-    Object* Process::pop_msg() {
-        std::unique_lock<std::mutex> lock(_mutex);
-        while (_mailbox.empty()) _cv.wait(lock);
-
-        Object* message = _mailbox.front();
-        _mailbox.pop();
-
-        return message;
     }
 
     Process* Processes::create_process() {

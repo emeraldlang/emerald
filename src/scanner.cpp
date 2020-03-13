@@ -343,6 +343,7 @@ namespace emerald {
         { "set", Token::SET },
         { "self", Token::SELF },
         { "import", Token::IMPORT },
+        { "as", Token::AS },
         { "None", Token::NULL_LITERAL },
         { "True", Token::TRUE_LITERAL },
         { "False", Token::FALSE_LITERAL }

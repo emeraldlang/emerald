@@ -206,6 +206,8 @@ Strings can be surrounded by single or double quotes.
 #### Methods
 - `__add__ : other`  
 Returns the concaentation of the `String` and other. Invoked when used with `+` operator.
+- `__iadd__ : other`  
+Concatenates other to `String` in place. Invoked when used with the `+=` operator.
 - `__eq__ : other`  
 Tests whether the `String` is equal to other. Invoked when used with the `==` operator.
 - `__neq__ : other`  
@@ -366,18 +368,20 @@ Because `X` inherits from `Y`, if you access `some_prop`, it will return the str
 Emerald also includes a simpler syntax to add more properties to `X`:
 ```emerald
 object X clones Y
-    let some_prop = 'world'
+    let _some_prop = 'world'
 
     def some_method
-        return 'hello ' + self.some_prop
+        return 'hello ' + self._some_prop
     end
 
-    prop some_other_prop
+    prop some_prop
         get
-            return 'hello {0}!'.format(self.some_prop)
-        end
+            return self._some_prop
         set
-            self.some_prop = '{0}!'.format(self.some_prop)
+            if value == None then
+                throw clone Exception("cannot be 'None'")
+            end
+            self._some_prop = value
         end
     end
 end
@@ -396,6 +400,11 @@ you use the `import` statement. For example, if the relative path to a module is
 the module name would be `my_lib.something.my_module`:
 ```emerald
 import my_lib.something.my_module
+```
+
+Alternatively you can use an alias with the `as` keyword:
+```emerald
+import my_lib.something.my_module as my_module
 ```
 
 And you can now use the contents of that module:
