@@ -15,12 +15,15 @@
 **  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include <chrono>
+#include <thread>
+
 #include "emerald/interpreter.h"
 #include "emerald/module.h"
 #include "emerald/modules/process.h"
+#include "emerald/native_variables.h"
 #include "emerald/objectutils.h"
 #include "emerald/process.h"
-#include "emerald/thread_pool.h"
 
 namespace emerald {
 namespace modules {
@@ -28,7 +31,7 @@ namespace modules {
     NATIVE_FUNCTION(process_create) {
         EXPECT_ATLEAST_NUM_ARGS(1);
 
-        Process* new_process = Processes::create_process();
+        Process* new_process = ProcessManager::create();
         CloneCache cache;
         new_process->get_heap().add_root_source(&cache);
         Object* callable = frame->get_arg(0)->clone(new_process, cache);
@@ -38,7 +41,7 @@ namespace modules {
         }
         Object* receiver = frame->get_receiver()->clone(new_process, cache);
         new_process->get_heap().remove_root_source(&cache);
-        ThreadPool::queue([=]() {
+        ProcessManager::execute(new_process->get_id(), [=](emerald::Process*) {
             Interpreter::call_obj<Object>(
                 callable,
                 receiver,
@@ -53,6 +56,16 @@ namespace modules {
         return ALLOC_NUMBER(process->get_id());
     }
 
+    NATIVE_FUNCTION(process_join) {
+        EXPECT_NUM_ARGS(1);
+
+        CONVERT_ARG_TO(0, Number, pid);
+
+        ProcessManager::join(pid->get_native_value());
+
+        return NONE;
+    }
+
     NATIVE_FUNCTION(process_receive) {
         EXPECT_NUM_ARGS(0);
 
@@ -64,7 +77,7 @@ namespace modules {
 
         CONVERT_ARG_TO(0, Number, pid);
 
-        if (Process* receiver = Processes::get_process(pid->get_native_value())) {
+        if (Process* receiver = ProcessManager::get(pid->get_native_value())) {
             CloneCache cache;
             receiver->get_heap().add_root_source(&cache);
             Object* copy = frame->get_arg(1)->clone(receiver, cache);
@@ -76,13 +89,52 @@ namespace modules {
         return BOOLEAN(false);
     }
 
+    NATIVE_FUNCTION(process_sleep) {
+        EXPECT_NUM_ARGS(1);
+
+        CONVERT_ARG_TO(0, Number, time);
+
+        std::this_thread::sleep_for(
+            std::chrono::duration<double>(time->get_native_value()));
+
+        return NONE;
+    }
+
+    NATIVE_FUNCTION(process_state) {
+        EXPECT_NUM_ARGS(1);
+
+        CONVERT_ARG_TO(0, Number, pid);
+
+        if (Process* process = ProcessManager::get(pid->get_native_value())) {
+            switch (process->get_state()) {
+            case Process::State::PENDING:
+                return ALLOC_STRING("pending");
+            case Process::State::RUNNING:
+                return ALLOC_STRING("running");
+            case Process::State::COMPLETED:
+                return ALLOC_STRING("completed");
+            }
+        }
+
+        return ALLOC_STRING("unknown");
+    }
+
     MODULE_INITIALIZATION_FUNC(init_process_module) {
         Process* process = module->get_process();
 
         module->set_property("create", ALLOC_NATIVE_FUNCTION(process_create));
         module->set_property("id", ALLOC_NATIVE_FUNCTION(process_id));
+        module->set_property("join", ALLOC_NATIVE_FUNCTION(process_join));
         module->set_property("receive", ALLOC_NATIVE_FUNCTION(process_receive));
         module->set_property("send", ALLOC_NATIVE_FUNCTION(process_send));
+        module->set_property("sleep", ALLOC_NATIVE_FUNCTION(process_sleep));
+        module->set_property("state", ALLOC_NATIVE_FUNCTION(process_state));
+
+        Local<Object> states = ALLOC_OBJECT();
+        states->set_property("pending", ALLOC_STRING("pending"));
+        states->set_property("running", ALLOC_STRING("running"));
+        states->set_property("completed", ALLOC_STRING("completed"));
+        module->set_property("States", states.val());
     }
 
 } // namespace modules

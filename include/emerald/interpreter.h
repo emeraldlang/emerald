@@ -37,7 +37,7 @@ namespace emerald {
         static Object* execute(Process* process);
         template <class T>
         static T* execute_method(Object* receiver, const std::string& name, const std::vector<Object*>& args, Process* process);
-        static Object* execute_module(const std::string& module_name);
+        static Object* execute_module(const std::string& module_name, Process* process);
         static Module* import_module(const std::string& name, Process* process);
         template <class T>
         static T* create_obj(Object* parent, const std::vector<Object*>& args, Process* process);

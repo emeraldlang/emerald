@@ -625,6 +625,13 @@ let pid = process.create(some_work)
 ### *function* id
 Returns the id of the current process.
 
+### *function* join
+The function returns when the process identified by `pid` completes execution.
+
+#### Arguments
+- `pid`
+The id of the process to join.
+
 ### *function* receive
 Dequeues a message from the current process' mailbox, it will
 block if there are no mesages.
@@ -638,3 +645,25 @@ the provided `pid`.
 The id of the process to send to.
 - `msg`  
 The message to send to the process.
+
+### *function* sleep
+Blocks execution of the current process for the specified `duration` in
+seconds.
+
+#### Arguments
+- `duration`
+The number of seconds to sleep for.
+
+### *function* state
+Returns the state for the process identified by `pid`, see [States](#object-states).
+
+#### Arguments
+- `pid`
+The id of the process to get the state for.
+
+### *object* States
+
+#### Properties
+- `pending`
+- `running`
+- `completed`

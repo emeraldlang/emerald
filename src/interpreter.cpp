@@ -369,9 +369,7 @@ namespace emerald {
         return NONE;
     }
 
-    Object* Interpreter::execute_module(const std::string& module_name) {
-        Process* process = Processes::create_process();
-
+    Object* Interpreter::execute_module(const std::string& module_name, Process* process) {
         std::shared_ptr<Code> code = CodeCache::get_or_load_code(module_name);
         Module* entry_module = process->get_heap().allocate<Module>(process, module_name, code);
         process->get_module_registry().add_module(entry_module);
@@ -379,7 +377,7 @@ namespace emerald {
 
         process->get_stack().push_frame(entry_module, entry_module->get_code(), entry_module, locals);
 
-        return execute(process);    
+        return execute(process);
     }
 
     Module* Interpreter::import_module(const std::string& name, Process* process) {

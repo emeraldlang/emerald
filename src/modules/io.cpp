@@ -229,7 +229,7 @@ namespace modules {
         file_stream->set_property("write", ALLOC_NATIVE_FUNCTION(file_stream_write));
         module->set_property("FileStream", file_stream.val());
 
-        Local<Object> file_access = process->get_heap().allocate<Object>(process);
+        Local<Object> file_access = ALLOC_OBJECT();
         file_access->set_property("read", ALLOC_STRING("read"));
         file_access->set_property("write", ALLOC_STRING("write"));
         file_access->set_property("read_write", ALLOC_STRING("read_write"));

@@ -11,3 +11,4 @@ end
 
 let pid = process.create(work, 1.5, 'some string')
 core.print('message from process<{0}>: {1}'.format(pid, process.receive()))
+process.join(pid)

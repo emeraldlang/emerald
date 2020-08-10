@@ -24,8 +24,11 @@
 #define PROCESS_NATIVES \
     X(process_create)   \
     X(process_id)       \
+    X(process_join)     \
     X(process_receive)  \
-    X(process_send)
+    X(process_send)     \
+    X(process_sleep)    \
+    X(process_state)
 
 namespace emerald {
 namespace modules {

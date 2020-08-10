@@ -153,7 +153,11 @@ int main(int argc, char** argv) {
 
     run->callback([&]() {
         emerald::modules::add_module_inits_to_registry();
-        emerald::Interpreter::execute_module(run_module_name);
+        emerald::Process* main_process = emerald::ProcessManager::create();
+        emerald::ProcessManager::execute(main_process->get_id(), [=](emerald::Process*) {
+            emerald::Interpreter::execute_module(run_module_name, main_process);
+        });
+        emerald::ProcessManager::join(main_process->get_id());
     });
 
     CLI11_PARSE(app, argc, argv);

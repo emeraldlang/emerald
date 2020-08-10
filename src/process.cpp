@@ -22,6 +22,7 @@ namespace emerald {
 
     Process::Process(PID id)
         : _id(id),
+        _state(State::PENDING),
         _native_objects(this) {
         _heap.add_root_source(&_mailbox);
         _heap.add_root_source(&_module_registry);
@@ -30,18 +31,50 @@ namespace emerald {
         _heap.add_root_source(&_stack);
     }
 
-    Process* Processes::create_process() {
+    Process::PID ProcessManager::_curr_id = 0;
+
+    std::unordered_map<Process::PID, Process> ProcessManager::_map;
+    std::unordered_map<Process::PID, std::thread> ProcessManager::_threads;
+    std::mutex ProcessManager::_mutex;
+
+    Process* ProcessManager::create() {
+        std::lock_guard<std::mutex> lock(_mutex);
         Process::PID pid = _curr_id++;
         _map.emplace(pid, pid);
         return &_map.at(pid);
     }
 
-    Process* Processes::get_process(Process::PID pid) {
-        return &_map.at(pid);
+    void ProcessManager::execute(Process::PID id, std::function<void(Process*)> f) {
+        std::lock_guard<std::mutex> lock(_mutex);
+        if (_threads.find(id) != _threads.end()) {
+            return;
+        }
+
+        Process* process = &_map.at(id);
+        _threads.emplace(id, [=]() {
+            process->_state.store(Process::State::RUNNING);
+            f(process);
+            process->_state.store(Process::State::COMPLETED);
+        });
     }
 
-    Process::PID Processes::_curr_id = 0;
+    Process* ProcessManager::get(Process::PID id) {
+        std::lock_guard<std::mutex> lock(_mutex);
+        if (_map.find(id) != _map.end()) {
+            return &_map.at(id);
+        }
+        return nullptr;
+    }
 
-    std::unordered_map<Process::PID, Process> Processes::_map;
+    void ProcessManager::join(Process::PID id) {
+        _mutex.lock();
+        if (_threads.find(id) == _threads.end()) return;
+        std::thread& t = _threads.at(id);
+        _mutex.unlock();
+        // join after unlock to prevent deadlock
+        if (t.joinable()) {
+            t.join();
+        }
+    }
 
 } // namespace emerald

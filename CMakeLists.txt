@@ -63,7 +63,6 @@ add_library(emerald_s SHARED
     src/scanner.cpp
     src/source.cpp
     src/stack.cpp
-    src/thread_pool.cpp
     src/token.cpp)
 
 target_link_libraries(emerald_s

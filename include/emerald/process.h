@@ -18,6 +18,9 @@
 #ifndef _EMERALD_PROCESS_H
 #define _EMERALD_PROCESS_H
 
+#include <atomic>
+#include <mutex>
+#include <thread>
 #include <unordered_map>
 
 #include "emerald/heap.h"
@@ -29,11 +32,17 @@
 
 namespace emerald {
 
-    class Processes;
+    class ProcessManager;
 
     class Process {
     public:
         using PID = size_t;
+
+        enum class State {
+            PENDING,
+            RUNNING,
+            COMPLETED
+        };
 
         Process(PID id);
 
@@ -57,8 +66,14 @@ namespace emerald {
         const Stack& get_stack() const { return _stack; }
         Stack& get_stack() { return _stack; }
 
+        State get_state() const { return _state.load(); }
+        void set_state(State state) { _state.store(state); }
+
     private:
+        friend class ProcessManager;
+
         PID _id;
+        std::atomic<State> _state;
 
         Heap _heap;
         Mailbox _mailbox;
@@ -68,14 +83,18 @@ namespace emerald {
         Stack _stack;
     };
 
-    class Processes {
+    class ProcessManager {
     public:
-        static Process* create_process();
-        static Process* get_process(Process::PID id);
+        static Process* create();
+        static void execute(Process::PID id, std::function<void(Process*)> f);
+        static Process* get(Process::PID id);
+        static void join(Process::PID id);
 
     private:
         static Process::PID _curr_id;
         static std::unordered_map<Process::PID, Process> _map;
+        static std::unordered_map<Process::PID, std::thread> _threads;
+        static std::mutex _mutex;
     };
 
 } // namespace emerald
