@@ -22,7 +22,7 @@ include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup(TARGETS)
 
 find_package(Boost COMPONENTS serialization date_time REQUIRED)
-# find_package(CLI11 REQUIRED)
+# find_package(CLI11 CONFIG REQUIRED)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 include_directories(${Boost_INCLUDE_DIRS})
@@ -68,7 +68,7 @@ add_library(emerald_s SHARED
 target_link_libraries(emerald_s
     pthread
     stdc++fs
-    CONAN_PKG::CLI11
+    CONAN_PKG::cli11
     CONAN_PKG::fmt
     ${Boost_LIBRARIES})
 
